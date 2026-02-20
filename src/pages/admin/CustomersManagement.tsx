@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import { customers, type Customer } from '@/data/products';
-import { 
-  Search, 
-  Mail, 
-  Phone, 
+import { useDatabase } from '@/context/DatabaseContext';
+import {
+  Search,
+  Mail,
+  Phone,
   ShoppingBag,
   DollarSign,
   User,
@@ -13,7 +13,8 @@ import {
 } from 'lucide-react';
 
 export function CustomersManagement() {
-  const [customerList] = useState<Customer[]>(customers);
+  const { db } = useDatabase();
+  const customerList = db.customers;
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [expandedCustomer, setExpandedCustomer] = useState<string | null>(null);

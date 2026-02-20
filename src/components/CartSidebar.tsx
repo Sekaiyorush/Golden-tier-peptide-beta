@@ -3,7 +3,7 @@ import { X, Plus, Minus, ShoppingBag, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export function CartSidebar() {
-  const { items, isOpen, setIsOpen, removeFromCart, updateQuantity, cartTotal } = useCart();
+  const { items, isOpen, setIsOpen, removeFromCart, updateQuantity, cartSubtotal, discountAmount, cartTotal } = useCart();
 
   if (!isOpen) return null;
 
@@ -13,7 +13,7 @@ export function CartSidebar() {
         className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50"
         onClick={() => setIsOpen(false)}
       />
-      
+
       <div className="fixed right-0 top-0 h-full w-full max-w-md bg-white border-l border-slate-200 z-50 shadow-xl flex flex-col">
         <div className="flex items-center justify-between p-5 border-b border-slate-100">
           <div>
@@ -55,12 +55,12 @@ export function CartSidebar() {
                       {item.product.name.split('-')[0]}
                     </span>
                   </div>
-                  
+
                   <div className="flex-1 min-w-0">
                     <p className="font-medium text-slate-900 truncate">{item.product.name}</p>
                     <p className="text-sm text-slate-500">${item.product.price.toFixed(2)}</p>
                   </div>
-                  
+
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
@@ -76,7 +76,7 @@ export function CartSidebar() {
                       <Plus className="h-3 w-3" />
                     </button>
                   </div>
-                  
+
                   <button
                     onClick={() => removeFromCart(item.product.id)}
                     className="p-2 hover:bg-red-50 rounded-lg text-slate-400 hover:text-red-500"
@@ -94,8 +94,14 @@ export function CartSidebar() {
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
                 <span className="text-slate-500">Subtotal</span>
-                <span className="font-medium text-slate-900">${cartTotal.toFixed(2)}</span>
+                <span className="font-medium text-slate-900">${cartSubtotal.toFixed(2)}</span>
               </div>
+              {discountAmount > 0 && (
+                <div className="flex justify-between text-sm text-emerald-600">
+                  <span>Partner Discount</span>
+                  <span className="font-medium">-${discountAmount.toFixed(2)}</span>
+                </div>
+              )}
               <div className="flex justify-between text-sm">
                 <span className="text-slate-500">Shipping</span>
                 <span className="text-slate-500">Calculated at checkout</span>
@@ -105,7 +111,7 @@ export function CartSidebar() {
                 <span className="text-xl font-semibold text-slate-900">${cartTotal.toFixed(2)}</span>
               </div>
             </div>
-            
+
             <Link
               to="/checkout"
               onClick={() => setIsOpen(false)}
@@ -114,7 +120,7 @@ export function CartSidebar() {
               <span>Checkout</span>
               <ArrowRight className="h-4 w-4" />
             </Link>
-            
+
             <button
               onClick={() => setIsOpen(false)}
               className="w-full h-10 text-sm text-slate-500 hover:text-slate-900"

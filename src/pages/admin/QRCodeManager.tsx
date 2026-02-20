@@ -1,11 +1,12 @@
 import { useState, useRef } from 'react';
-import { products, type Product } from '@/data/products';
+import { useDatabase } from '@/context/DatabaseContext';
+import { type Product } from '@/data/products';
 import { QRCodeSVG } from 'qrcode.react';
-import { 
-  Search, 
-  Download, 
-  QrCode, 
-  Package, 
+import {
+  Search,
+  Download,
+  QrCode,
+  Package,
   Calendar,
   CheckCircle2,
   Printer
@@ -22,6 +23,8 @@ interface QRCodeData {
 }
 
 export function QRCodeManager() {
+  const { db } = useDatabase();
+  const products = db.products;
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [batchNumber, setBatchNumber] = useState('');
@@ -76,20 +79,20 @@ export function QRCodeManager() {
     img.onload = () => {
       canvas.width = 400;
       canvas.height = 500;
-      
+
       // White background
       ctx!.fillStyle = 'white';
       ctx!.fillRect(0, 0, canvas.width, canvas.height);
-      
+
       // Draw QR code
       ctx!.drawImage(img, 50, 20, 300, 300);
-      
+
       // Add text
       ctx!.fillStyle = 'black';
       ctx!.font = 'bold 20px Arial';
       ctx!.textAlign = 'center';
       ctx!.fillText(qrData.name, 200, 350);
-      
+
       ctx!.font = '16px Arial';
       ctx!.fillText(`SKU: ${qrData.sku}`, 200, 380);
       ctx!.fillText(`Batch: ${qrData.batch}`, 200, 405);
@@ -132,7 +135,7 @@ export function QRCodeManager() {
         {/* Product Selection */}
         <div className="bg-background rounded-lg border border-border p-6">
           <h3 className="font-semibold mb-4">1. Select Product</h3>
-          
+
           <div className="relative mb-4">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <input
@@ -152,11 +155,10 @@ export function QRCodeManager() {
                   setSelectedProduct(product);
                   setBatchNumber(generateBatchNumber());
                 }}
-                className={`w-full flex items-center space-x-3 p-3 rounded-lg border transition-colors text-left ${
-                  selectedProduct?.id === product.id
+                className={`w-full flex items-center space-x-3 p-3 rounded-lg border transition-colors text-left ${selectedProduct?.id === product.id
                     ? 'border-primary bg-primary/5'
                     : 'border-border hover:bg-surface-alt'
-                }`}
+                  }`}
               >
                 <Package className="h-5 w-5 text-muted-foreground" />
                 <div className="flex-1">
@@ -174,7 +176,7 @@ export function QRCodeManager() {
         {/* QR Configuration */}
         <div className="bg-background rounded-lg border border-border p-6">
           <h3 className="font-semibold mb-4">2. Configure QR Code</h3>
-          
+
           {selectedProduct ? (
             <div className="space-y-4">
               <div>
@@ -251,7 +253,7 @@ export function QRCodeManager() {
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
             {generatedQRCodes.map((qrData, index) => (
               <div key={qrData.id} className="text-center">
-                <div 
+                <div
                   ref={qrRef}
                   className="bg-white p-3 rounded-lg border border-border inline-block"
                 >
@@ -307,7 +309,7 @@ export function QRCodeManager() {
           <div className="p-4 bg-surface-alt rounded-lg">
             <p className="font-medium mb-2">Scanning</p>
             <p className="text-muted-foreground">
-              QR codes can be scanned with any smartphone camera or QR scanner app. 
+              QR codes can be scanned with any smartphone camera or QR scanner app.
               Scanning will redirect to the product tracking page with full details.
             </p>
           </div>

@@ -1,15 +1,15 @@
 import { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { 
-  invitationCodes, 
-  generateInvitationCode, 
+import { useDatabase } from '@/context/DatabaseContext';
+import {
+  generateInvitationCode,
   type InvitationCode,
-  type InvitationCodeType 
+  type InvitationCodeType
 } from '@/data/invitations';
-import { 
-  Plus, 
-  Copy, 
-  Check, 
+import {
+  Plus,
+  Copy,
+  Check,
   X,
   Search,
   Link as LinkIcon,
@@ -23,6 +23,9 @@ import {
 
 export function InvitationCodeManagement() {
   const { user } = useAuth();
+  const { db, addInvitationCode, updateInvitationCode } = useDatabase();
+  const invitationCodes = db.invitationCodes;
+
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState<InvitationCodeType | 'all'>('all');
   const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'inactive'>('all');
@@ -42,11 +45,11 @@ export function InvitationCodeManagement() {
   // Filter codes
   const filteredCodes = invitationCodes.filter(code => {
     const matchesSearch = code.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         code.notes?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         code.createdByName.toLowerCase().includes(searchQuery.toLowerCase());
+      code.notes?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      code.createdByName.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesType = filterType === 'all' || code.type === filterType;
-    const matchesStatus = filterStatus === 'all' || 
-                         (filterStatus === 'active' ? code.isActive : !code.isActive);
+    const matchesStatus = filterStatus === 'all' ||
+      (filterStatus === 'active' ? code.isActive : !code.isActive);
     return matchesSearch && matchesType && matchesStatus;
   });
 
@@ -66,9 +69,9 @@ export function InvitationCodeManagement() {
   };
 
   const handleCreateCode = () => {
-    const prefix = newCodeType === 'admin_partner' ? 'GTP' : 
-                   newCodeType === 'partner_user' ? 'GT' : newCodePrefix;
-    
+    const prefix = newCodeType === 'admin_partner' ? 'GTP' :
+      newCodeType === 'partner_user' ? 'GT' : newCodePrefix;
+
     const newCode: InvitationCode = {
       id: `inv${Date.now()}`,
       code: generateInvitationCode(prefix),
@@ -85,7 +88,7 @@ export function InvitationCodeManagement() {
       defaultDiscountRate: newCodeType === 'admin_partner' ? newCodeDiscountRate : undefined,
     };
 
-    invitationCodes.unshift(newCode);
+    addInvitationCode(newCode);
     setShowCreateModal(false);
     resetForm();
   };
@@ -102,14 +105,13 @@ export function InvitationCodeManagement() {
   const handleToggleStatus = (codeId: string) => {
     const code = invitationCodes.find(c => c.id === codeId);
     if (code) {
-      code.isActive = !code.isActive;
+      updateInvitationCode(codeId, { isActive: !code.isActive });
     }
   };
 
   const handleDeleteCode = (codeId: string) => {
-    const index = invitationCodes.findIndex(c => c.id === codeId);
-    if (index > -1) {
-      invitationCodes.splice(index, 1);
+    if (window.confirm("Are you sure you want to deactivate this code?")) {
+      updateInvitationCode(codeId, { isActive: false });
     }
   };
 
@@ -129,7 +131,7 @@ export function InvitationCodeManagement() {
         isActive: true,
         notes: 'Bulk generated code',
       };
-      invitationCodes.unshift(newCode);
+      addInvitationCode(newCode);
       codes.push(newCode.code);
     }
     // Copy all codes to clipboard
@@ -293,7 +295,7 @@ export function InvitationCodeManagement() {
                       <span className="text-slate-500">{code.maxUses}</span>
                     </div>
                     <div className="w-20 bg-slate-100 rounded-full h-1.5 mt-1">
-                      <div 
+                      <div
                         className="bg-slate-900 h-1.5 rounded-full"
                         style={{ width: `${(code.usedCount / code.maxUses) * 100}%` }}
                       />
@@ -313,11 +315,10 @@ export function InvitationCodeManagement() {
                   <td className="px-4 py-4">
                     <button
                       onClick={() => handleToggleStatus(code.id)}
-                      className={`px-2 py-1 rounded-full text-xs font-medium transition-colors ${
-                        code.isActive 
-                          ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200' 
-                          : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                      }`}
+                      className={`px-2 py-1 rounded-full text-xs font-medium transition-colors ${code.isActive
+                        ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'
+                        : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                        }`}
                     >
                       {code.isActive ? 'Active' : 'Inactive'}
                     </button>
@@ -379,8 +380,8 @@ export function InvitationCodeManagement() {
                   <option value="admin_partner">Partner Registration</option>
                 </select>
                 <p className="text-xs text-slate-400 mt-1">
-                  {newCodeType === 'admin_partner' 
-                    ? 'Creates a partner account with discount benefits' 
+                  {newCodeType === 'admin_partner'
+                    ? 'Creates a partner account with discount benefits'
                     : 'Creates a regular customer account'}
                 </p>
               </div>
@@ -502,9 +503,8 @@ export function InvitationCodeManagement() {
                 </div>
                 <div>
                   <p className="text-sm text-slate-500">Status</p>
-                  <span className={`inline-block px-2 py-1 rounded-full text-xs mt-1 ${
-                    selectedCode.isActive ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-700'
-                  }`}>
+                  <span className={`inline-block px-2 py-1 rounded-full text-xs mt-1 ${selectedCode.isActive ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-700'
+                    }`}>
                     {selectedCode.isActive ? 'Active' : 'Inactive'}
                   </span>
                 </div>

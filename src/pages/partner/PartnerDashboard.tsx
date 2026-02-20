@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
-import { orders, partners, products } from '@/data/products';
+import { useDatabase } from '@/context/DatabaseContext';
 import { PartnerNetwork } from './PartnerNetwork';
-import { 
-  Package, 
-  ShoppingBag, 
-  Users, 
+import {
+  Package,
+  ShoppingBag,
+  Users,
   TrendingUp,
   ChevronRight,
   Clock,
@@ -20,26 +20,28 @@ import {
 
 export function PartnerDashboard() {
   const { user } = useAuth();
+  const { db } = useDatabase();
+  const { orders, partners, products } = db;
   const [activeTab, setActiveTab] = useState<'overview' | 'orders' | 'network' | 'shop'>('overview');
 
   // Get partner details
   const partnerDetails = partners.find(p => p.id === user?.partnerId);
-  
+
   // Get partner's orders
   const partnerOrders = orders.filter(o => o.partnerId === user?.partnerId);
-  
+
   // Get referred partners (downline)
   const referredPartners = partners.filter(p => p.referredBy === user?.partnerId);
-  
+
   // Get partner's referrer (upline)
-  const referrer = partnerDetails?.referredBy 
-    ? partners.find(p => p.id === partnerDetails.referredBy) 
+  const referrer = partnerDetails?.referredBy
+    ? partners.find(p => p.id === partnerDetails.referredBy)
     : null;
 
   // Calculate stats
   const totalPurchases = partnerOrders.reduce((sum, o) => sum + o.total, 0);
-  const estimatedProfit = partnerDetails?.totalResold 
-    ? partnerDetails.totalResold - totalPurchases 
+  const estimatedProfit = partnerDetails?.totalResold
+    ? partnerDetails.totalResold - totalPurchases
     : 0;
 
   const getStatusIcon = (status: string) => {
@@ -93,11 +95,10 @@ export function PartnerDashboard() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                activeTab === tab.id
+              className={`flex items-center space-x-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${activeTab === tab.id
                   ? 'bg-slate-900 text-white'
                   : 'text-slate-600 hover:bg-slate-100'
-              }`}
+                }`}
             >
               <tab.icon className="h-4 w-4" />
               <span>{tab.label}</span>
@@ -162,7 +163,7 @@ export function PartnerDashboard() {
               <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
                 <div className="p-5 border-b border-slate-100 flex items-center justify-between">
                   <h3 className="font-semibold text-slate-900">Recent Orders</h3>
-                  <button 
+                  <button
                     onClick={() => setActiveTab('orders')}
                     className="text-sm text-slate-600 hover:text-slate-900 flex items-center"
                   >
@@ -202,7 +203,7 @@ export function PartnerDashboard() {
               <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
                 <div className="p-5 border-b border-slate-100 flex items-center justify-between">
                   <h3 className="font-semibold text-slate-900">My Network</h3>
-                  <button 
+                  <button
                     onClick={() => setActiveTab('network')}
                     className="text-sm text-slate-600 hover:text-slate-900 flex items-center"
                   >
@@ -224,7 +225,7 @@ export function PartnerDashboard() {
                       </div>
                     </div>
                   )}
-                  
+
                   <div>
                     <p className="text-xs text-slate-500 uppercase tracking-wider mb-3">My Referrals ({referredPartners.length})</p>
                     {referredPartners.length > 0 ? (
@@ -238,11 +239,10 @@ export function PartnerDashboard() {
                               <p className="font-medium text-slate-900">{p.name}</p>
                               <p className="text-sm text-slate-500">{p.company}</p>
                             </div>
-                            <span className={`px-2 py-0.5 rounded-full text-xs ${
-                              p.status === 'active' ? 'bg-emerald-100 text-emerald-700' :
-                              p.status === 'pending' ? 'bg-amber-100 text-amber-700' :
-                              'bg-slate-100 text-slate-700'
-                            }`}>
+                            <span className={`px-2 py-0.5 rounded-full text-xs ${p.status === 'active' ? 'bg-emerald-100 text-emerald-700' :
+                                p.status === 'pending' ? 'bg-amber-100 text-amber-700' :
+                                  'bg-slate-100 text-slate-700'
+                              }`}>
                               {p.status}
                             </span>
                           </div>
@@ -269,8 +269,8 @@ export function PartnerDashboard() {
                 <Percent className="h-5 w-5 text-indigo-600" />
                 <span className="text-indigo-900 font-medium">Your Partner Discount: {user?.discountRate}% off all products</span>
               </div>
-              <Link 
-                to="/products" 
+              <Link
+                to="/products"
                 className="text-indigo-600 hover:text-indigo-700 text-sm font-medium flex items-center"
               >
                 Browse Catalog <ArrowUpRight className="h-4 w-4 ml-1" />

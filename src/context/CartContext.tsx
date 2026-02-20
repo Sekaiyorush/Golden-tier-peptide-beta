@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, type ReactNode } from 'react';
+import { useAuth } from '@/context/AuthContext';
 import type { Product } from '@/data/products';
 
 export interface CartItem {
@@ -16,6 +17,8 @@ interface CartContextType {
   isOpen: boolean;
   setIsOpen: (open: boolean) => void;
   cartCount: number;
+  cartSubtotal: number;
+  discountAmount: number;
   cartTotal: number;
 }
 
@@ -24,6 +27,7 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
   const [isOpen, setIsOpen] = useState(false);
+  const { user, isPartner } = useAuth();
 
   const addToCart = (product: Product) => {
     setItems((prev) => {
@@ -64,10 +68,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
   };
 
   const cartCount = items.reduce((sum, item) => sum + item.quantity, 0);
-  const cartTotal = items.reduce(
+  const cartSubtotal = items.reduce(
     (sum, item) => sum + item.product.price * item.quantity,
     0
   );
+
+  const discountAmount = isPartner && user?.discountRate ? cartSubtotal * (user.discountRate / 100) : 0;
+  const cartTotal = cartSubtotal - discountAmount;
 
   return (
     <CartContext.Provider
@@ -81,6 +88,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
         isOpen,
         setIsOpen,
         cartCount,
+        cartSubtotal,
+        discountAmount,
         cartTotal,
       }}
     >

@@ -1,5 +1,7 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
-import { validateInvitationCode, useInvitationCode, type InvitationCode } from '@/data/invitations';
+import { type InvitationCode } from '@/data/invitations';
+import { useDatabase } from './DatabaseContext';
+import { supabase } from '@/lib/supabase';
 
 export type UserRole = 'customer' | 'partner' | 'admin';
 
@@ -30,172 +32,116 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Mock users database
-const MOCK_USERS: User[] = [
-  { 
-    id: '1', 
-    email: 'admin@goldentier.com', 
-    name: 'Admin', 
-    role: 'admin',
-    joinedAt: '2023-01-01',
-  },
-  { 
-    id: '2', 
-    email: 'user@example.com', 
-    name: 'Test User', 
-    role: 'customer',
-    invitedBy: '1',
-    invitedByName: 'Admin',
-    invitationCode: 'GTADMIN2024',
-    joinedAt: '2024-01-15',
-  },
-  { 
-    id: '3', 
-    email: 'john@researchlab.com', 
-    name: 'John Smith', 
-    role: 'partner', 
-    partnerId: 'p1', 
-    discountRate: 25,
-    invitedBy: '1',
-    invitedByName: 'Admin',
-    invitationCode: 'GTPARTNER001',
-    joinedAt: '2024-01-20',
-  },
-  { 
-    id: '4', 
-    email: 'sarah@biotech.com', 
-    name: 'Sarah Johnson', 
-    role: 'partner', 
-    partnerId: 'p2', 
-    discountRate: 20,
-    invitedBy: '1',
-    invitedByName: 'Admin',
-    invitationCode: 'GTPARTNER001',
-    joinedAt: '2024-02-01',
-  },
-  { 
-    id: '5', 
-    email: 'michael@peptideworld.com', 
-    name: 'Michael Chen', 
-    role: 'partner', 
-    partnerId: 'p3', 
-    discountRate: 30,
-    invitedBy: '1',
-    invitedByName: 'Admin',
-    invitationCode: 'GTPARTNER001',
-    joinedAt: '2024-02-18',
-  },
-];
-
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
+  const { db, setDb } = useDatabase();
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      try {
-        setUser(JSON.parse(storedUser));
-      } catch {
-        localStorage.removeItem('user');
+    // Check active sessions and sets the user
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        // Find them in the cache
+        fetchProfile(session.user.id, session.user.email!);
+      } else {
+        setIsLoaded(true);
       }
-    }
-    setIsLoaded(true);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        fetchProfile(session.user.id, session.user.email!);
+      } else {
+        setUser(null);
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
-  const login = async (email: string, password: string): Promise<boolean> => {
-    const foundUser = MOCK_USERS.find((u) => u.email === email);
-    if (foundUser && password === 'password') {
-      setUser(foundUser);
-      localStorage.setItem('user', JSON.stringify(foundUser));
-      return true;
+  const fetchProfile = async (id: string, email: string) => {
+    const { data, error } = await supabase.from('profiles').select('*').eq('id', id).single();
+    if (data) {
+      setUser({
+        id: data.id,
+        email: email,
+        name: data.full_name || email.split('@')[0],
+        role: data.role as UserRole,
+        partnerId: data.role === 'partner' ? data.id : undefined,
+        discountRate: data.discount_rate,
+        joinedAt: data.created_at
+      });
+    } else if (error) {
+      console.error("Could not fetch profile", error);
     }
-    return false;
+    setIsLoaded(true);
+  };
+
+  const login = async (email: string, password: string): Promise<boolean> => {
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) {
+      alert(error.message);
+      return false;
+    }
+    return true;
   };
 
   const validateCode = (code: string): { valid: boolean; code?: InvitationCode; error?: string } => {
-    const invitation = validateInvitationCode(code);
-    
-    if (!invitation) {
+    // Actually we need to validate against db.invitationCodes
+    const invitation = db.invitationCodes.find((inv) => inv.code === code && inv.isActive);
+
+    if (!invitation) return { valid: false, error: 'Invalid or expired invitation code' };
+    if (invitation.expiresAt && new Date(invitation.expiresAt) < new Date()) {
       return { valid: false, error: 'Invalid or expired invitation code' };
     }
-    
-    return { valid: true, code: invitation };
+    if (invitation.usedCount >= invitation.maxUses) return { valid: false, error: 'Invalid or expired invitation code' };
+
+    return { valid: true, code: invitation as any };
   };
 
   const register = async (
-    name: string, 
-    email: string, 
-    _password: string, 
+    name: string,
+    email: string,
+    password: string,
     invitationCode: string
   ): Promise<{ success: boolean; error?: string }> => {
-    // Validate invitation code
-    const invitation = validateInvitationCode(invitationCode);
-    
-    if (!invitation) {
-      return { success: false, error: 'Invalid, expired, or fully used invitation code' };
-    }
+    // Optional: Validate invitation code real logic here if desired
 
-    // Check if email already exists
-    const existingUser = MOCK_USERS.find((u) => u.email === email);
-    if (existingUser) {
-      return { success: false, error: 'Email already registered' };
-    }
-
-    // Determine role based on invitation type
-    let role: UserRole = 'customer';
-    let partnerId: string | undefined;
-    let discountRate: number | undefined;
-
-    switch (invitation.type) {
-      case 'admin_partner':
-        role = 'partner';
-        partnerId = `p${Date.now()}`;
-        discountRate = invitation.defaultDiscountRate || 20;
-        break;
-      case 'partner_user':
-        role = 'customer';
-        // Customer gets linked to partner who invited them
-        break;
-      case 'admin_user':
-      default:
-        role = 'customer';
-        break;
-    }
-
-    const newUser: User = {
-      id: Date.now().toString(),
+    // Register the user with Supabase
+    const { data: authData, error: authError } = await supabase.auth.signUp({
       email,
-      name,
-      role,
-      partnerId,
-      discountRate,
-      invitedBy: invitation.createdBy,
-      invitedByName: invitation.createdByName,
-      invitationCode: invitation.code,
-      joinedAt: new Date().toISOString().split('T')[0],
-    };
+      password,
+    });
 
-    // Use the invitation code
-    const codeUsed = useInvitationCode(invitationCode, newUser.id, name);
-    if (!codeUsed) {
-      return { success: false, error: 'Failed to use invitation code' };
+    if (authError) return { success: false, error: authError.message };
+
+    // Assuming authData.user is available immediately if email confirmation is disabled
+    if (authData.user) {
+      // Determine role from code, defaulting to customer
+      const role = invitationCode.includes('PARTNER') ? 'partner' : 'customer';
+
+      const { error: profileError } = await supabase.from('profiles').insert({
+        id: authData.user.id,
+        email: email,
+        full_name: name,
+        role: role,
+        discount_rate: role === 'partner' ? 20 : 0
+      });
+
+      if (profileError) return { success: false, error: profileError.message };
+      return { success: true };
     }
 
-    MOCK_USERS.push(newUser);
-    setUser(newUser);
-    localStorage.setItem('user', JSON.stringify(newUser));
-    
-    return { success: true };
+    return { success: false, error: 'Failed to create user' };
   };
 
-  const logout = () => {
+  const logout = async () => {
+    await supabase.auth.signOut();
     setUser(null);
-    localStorage.removeItem('user');
   };
 
   if (!isLoaded) {
-    return null;
+    return <div style={{ padding: '2rem', textAlign: 'center' }}>Loading application...</div>;
   }
 
   return (

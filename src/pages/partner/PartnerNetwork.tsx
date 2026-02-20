@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { partners, customers } from '@/data/products';
-import { invitationCodes, generateInvitationCode, type InvitationCode } from '@/data/invitations';
-import { 
-  Users, 
-  Plus, 
-  Copy, 
-  Check, 
+import { useDatabase } from '@/context/DatabaseContext';
+import { generateInvitationCode, type InvitationCode } from '@/data/invitations';
+import {
+  Users,
+  Plus,
+  Copy,
+  Check,
   X,
   TrendingUp,
   UserPlus,
@@ -29,23 +29,26 @@ interface DownlineMember {
 
 export function PartnerNetwork() {
   const { user } = useAuth();
+  const { db, addInvitationCode, updatePartner, updateCustomer } = useDatabase();
+  const { partners, customers, invitationCodes } = db;
+
   const [activeTab, setActiveTab] = useState<'overview' | 'downline' | 'codes'>('overview');
   const [showCreateCodeModal, setShowCreateCodeModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingMember, setEditingMember] = useState<DownlineMember | null>(null);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
-  
+
   // Form states for creating code
   const [newCodeMaxUses, setNewCodeMaxUses] = useState(50);
   const [newCodeNotes, setNewCodeNotes] = useState('');
 
   // Get partner's invitation codes
   const myCodes = invitationCodes.filter(c => c.partnerId === user?.partnerId);
-  
+
   // Build downline data
   const buildDownline = (): DownlineMember[] => {
     const downline: DownlineMember[] = [];
-    
+
     // Get referred partners
     const referredPartners = partners.filter(p => p.referredBy === user?.partnerId);
     referredPartners.forEach(p => {
@@ -60,10 +63,10 @@ export function PartnerNetwork() {
         status: p.status,
       });
     });
-    
+
     // Get customers who used this partner's code
     const myCodeStrings = myCodes.map(c => c.code);
-    const myCustomers = customers.filter(c => 
+    const myCustomers = customers.filter(c =>
       c.invitedBy === user?.id || myCodeStrings.includes(c.invitationCode || '')
     );
     myCustomers.forEach(c => {
@@ -77,7 +80,7 @@ export function PartnerNetwork() {
         status: c.status,
       });
     });
-    
+
     return downline.sort((a, b) => new Date(b.joinedAt).getTime() - new Date(a.joinedAt).getTime());
   };
 
@@ -112,8 +115,8 @@ export function PartnerNetwork() {
       isActive: true,
       notes: newCodeNotes,
     };
-    
-    invitationCodes.push(newCode);
+
+    addInvitationCode(newCode);
     setShowCreateCodeModal(false);
     setNewCodeMaxUses(50);
     setNewCodeNotes('');
@@ -126,15 +129,14 @@ export function PartnerNetwork() {
 
   const handleSaveMemberEdit = () => {
     if (!editingMember) return;
-    
+
     // Update partner discount rate if it's a partner
     if (editingMember.type === 'partner') {
-      const partner = partners.find(p => p.id === editingMember.id);
-      if (partner && editingMember.discountRate !== undefined) {
-        partner.discountRate = editingMember.discountRate;
+      if (editingMember.discountRate !== undefined) {
+        updatePartner(editingMember.id, { discountRate: editingMember.discountRate });
       }
     }
-    
+
     setShowEditModal(false);
     setEditingMember(null);
   };
@@ -142,11 +144,12 @@ export function PartnerNetwork() {
   const handleDeactivateMember = (memberId: string) => {
     const partner = partners.find(p => p.id === memberId);
     if (partner) {
-      partner.status = partner.status === 'active' ? 'inactive' : 'active';
-    }
-    const customer = customers.find(c => c.id === memberId);
-    if (customer) {
-      customer.status = customer.status === 'active' ? 'inactive' : 'active';
+      updatePartner(memberId, { status: partner.status === 'active' ? 'inactive' : 'active' });
+    } else {
+      const customer = customers.find(c => c.id === memberId);
+      if (customer) {
+        updateCustomer(memberId, { status: customer.status === 'active' ? 'inactive' : 'active' });
+      }
     }
   };
 
@@ -168,11 +171,10 @@ export function PartnerNetwork() {
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id as any)}
-            className={`flex items-center space-x-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-              activeTab === tab.id
+            className={`flex items-center space-x-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${activeTab === tab.id
                 ? 'bg-slate-900 text-white'
                 : 'text-slate-600 hover:bg-slate-100'
-            }`}
+              }`}
           >
             <tab.icon className="h-4 w-4" />
             <span>{tab.label}</span>
@@ -245,9 +247,8 @@ export function PartnerNetwork() {
               {downline.slice(0, 5).map((member) => (
                 <div key={member.id} className="p-4 flex items-center justify-between hover:bg-slate-50">
                   <div className="flex items-center space-x-3">
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                      member.type === 'partner' ? 'bg-indigo-100' : 'bg-slate-100'
-                    }`}>
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${member.type === 'partner' ? 'bg-indigo-100' : 'bg-slate-100'
+                      }`}>
                       <span className={`font-medium ${member.type === 'partner' ? 'text-indigo-600' : 'text-slate-600'}`}>
                         {member.name.charAt(0)}
                       </span>
@@ -258,9 +259,8 @@ export function PartnerNetwork() {
                     </div>
                   </div>
                   <div className="text-right">
-                    <span className={`px-2 py-1 rounded-full text-xs ${
-                      member.type === 'partner' ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-700'
-                    }`}>
+                    <span className={`px-2 py-1 rounded-full text-xs ${member.type === 'partner' ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-700'
+                      }`}>
                       {member.type === 'partner' ? 'Partner' : 'Customer'}
                     </span>
                     <p className="text-xs text-slate-400 mt-1">{member.joinedAt}</p>
@@ -291,9 +291,8 @@ export function PartnerNetwork() {
               <div key={member.id} className="p-5">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center space-x-4">
-                    <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
-                      member.type === 'partner' ? 'bg-indigo-100' : 'bg-slate-100'
-                    }`}>
+                    <div className={`w-12 h-12 rounded-full flex items-center justify-center ${member.type === 'partner' ? 'bg-indigo-100' : 'bg-slate-100'
+                      }`}>
                       <span className={`font-medium text-lg ${member.type === 'partner' ? 'text-indigo-600' : 'text-slate-600'}`}>
                         {member.name.charAt(0)}
                       </span>
@@ -301,9 +300,8 @@ export function PartnerNetwork() {
                     <div>
                       <div className="flex items-center space-x-2">
                         <p className="font-semibold text-slate-900">{member.name}</p>
-                        <span className={`px-2 py-0.5 rounded-full text-xs ${
-                          member.type === 'partner' ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-700'
-                        }`}>
+                        <span className={`px-2 py-0.5 rounded-full text-xs ${member.type === 'partner' ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-700'
+                          }`}>
                           {member.type === 'partner' ? 'Partner' : 'Customer'}
                         </span>
                       </div>
@@ -384,13 +382,12 @@ export function PartnerNetwork() {
                     </div>
                     <p className="text-sm text-slate-500 mt-1">{code.notes || 'No notes'}</p>
                   </div>
-                  <span className={`px-2 py-1 rounded-full text-xs ${
-                    code.isActive ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-700'
-                  }`}>
+                  <span className={`px-2 py-1 rounded-full text-xs ${code.isActive ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-700'
+                    }`}>
                     {code.isActive ? 'Active' : 'Inactive'}
                   </span>
                 </div>
-                
+
                 <div className="grid grid-cols-3 gap-4 pt-4 border-t border-slate-100">
                   <div>
                     <p className="text-xs text-slate-400">Uses</p>
@@ -403,7 +400,7 @@ export function PartnerNetwork() {
                   <div>
                     <p className="text-xs text-slate-400">Status</p>
                     <div className="w-full bg-slate-100 rounded-full h-2 mt-1.5">
-                      <div 
+                      <div
                         className="bg-slate-900 h-2 rounded-full transition-all"
                         style={{ width: `${(code.usedCount / code.maxUses) * 100}%` }}
                       />
@@ -437,7 +434,7 @@ export function PartnerNetwork() {
                 <X className="h-4 w-4" />
               </button>
             </div>
-            
+
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1.5">
@@ -452,7 +449,7 @@ export function PartnerNetwork() {
                   className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-slate-200"
                 />
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1.5">
                   Notes (optional)
@@ -465,7 +462,7 @@ export function PartnerNetwork() {
                   placeholder="e.g., VIP customers, March promotion..."
                 />
               </div>
-              
+
               <div className="flex justify-end space-x-3 pt-4">
                 <button
                   onClick={() => setShowCreateCodeModal(false)}
@@ -498,12 +495,11 @@ export function PartnerNetwork() {
                 <X className="h-4 w-4" />
               </button>
             </div>
-            
+
             <div className="space-y-4">
               <div className="flex items-center space-x-3 p-4 bg-slate-50 rounded-lg">
-                <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
-                  editingMember.type === 'partner' ? 'bg-indigo-100' : 'bg-slate-100'
-                }`}>
+                <div className={`w-12 h-12 rounded-full flex items-center justify-center ${editingMember.type === 'partner' ? 'bg-indigo-100' : 'bg-slate-100'
+                  }`}>
                   <span className={`font-medium ${editingMember.type === 'partner' ? 'text-indigo-600' : 'text-slate-600'}`}>
                     {editingMember.name.charAt(0)}
                   </span>
@@ -511,9 +507,8 @@ export function PartnerNetwork() {
                 <div>
                   <p className="font-medium text-slate-900">{editingMember.name}</p>
                   <p className="text-sm text-slate-500">{editingMember.email}</p>
-                  <span className={`inline-block px-2 py-0.5 rounded-full text-xs mt-1 ${
-                    editingMember.type === 'partner' ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-700'
-                  }`}>
+                  <span className={`inline-block px-2 py-0.5 rounded-full text-xs mt-1 ${editingMember.type === 'partner' ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-700'
+                    }`}>
                     {editingMember.type === 'partner' ? 'Partner' : 'Customer'}
                   </span>
                 </div>
@@ -529,7 +524,7 @@ export function PartnerNetwork() {
                     min="5"
                     max="50"
                     value={editingMember.discountRate || 15}
-                    onChange={(e) => setEditingMember({...editingMember, discountRate: parseInt(e.target.value) || 15})}
+                    onChange={(e) => setEditingMember({ ...editingMember, discountRate: parseInt(e.target.value) || 15 })}
                     className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-slate-200"
                   />
                   <p className="text-xs text-slate-400 mt-1">
@@ -547,16 +542,15 @@ export function PartnerNetwork() {
                 </div>
                 <button
                   onClick={() => handleDeactivateMember(editingMember.id)}
-                  className={`px-3 py-1.5 rounded-lg text-sm font-medium ${
-                    editingMember.status === 'active'
+                  className={`px-3 py-1.5 rounded-lg text-sm font-medium ${editingMember.status === 'active'
                       ? 'bg-amber-100 text-amber-700 hover:bg-amber-200'
                       : 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'
-                  }`}
+                    }`}
                 >
                   {editingMember.status === 'active' ? 'Deactivate' : 'Activate'}
                 </button>
               </div>
-              
+
               <div className="flex justify-end space-x-3 pt-4">
                 <button
                   onClick={() => setShowEditModal(false)}

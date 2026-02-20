@@ -2,15 +2,18 @@ import { useState, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useCart } from '@/context/CartContext';
 import { useAuth } from '@/context/AuthContext';
-import { products, categories } from '@/data/products';
+import { useDatabase } from '@/context/DatabaseContext';
+import { categories } from '@/data/products';
 import { ShoppingCart, Search, Filter, Check, ChevronDown } from 'lucide-react';
 
 export function Products() {
+  const { db } = useDatabase();
+  const products = db.products;
   const { addToCart } = useCart();
   const { isPartner, user } = useAuth();
   const [searchParams] = useSearchParams();
   const queryParam = searchParams.get('q') || '';
-  
+
   const [searchTerm, setSearchTerm] = useState(queryParam);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>('name');
@@ -18,7 +21,7 @@ export function Products() {
 
   const filteredProducts = useMemo(() => {
     let result = products;
-    
+
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
       result = result.filter(
@@ -28,11 +31,11 @@ export function Products() {
           p.category.toLowerCase().includes(term)
       );
     }
-    
+
     if (selectedCategory !== 'all') {
       result = result.filter((p) => p.category === selectedCategory);
     }
-    
+
     result = [...result].sort((a, b) => {
       switch (sortBy) {
         case 'price-low':
@@ -44,7 +47,7 @@ export function Products() {
           return a.name.localeCompare(b.name);
       }
     });
-    
+
     return result;
   }, [searchTerm, selectedCategory, sortBy]);
 
@@ -140,9 +143,8 @@ export function Products() {
                     <Check className="h-3 w-3 text-emerald-500" />
                     <span className="text-xs font-medium text-slate-700">{product.purity}</span>
                   </div>
-                  <span className={`absolute top-4 right-4 px-2 py-1 rounded-md text-xs font-medium ${
-                    product.inStock ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'
-                  }`}>
+                  <span className={`absolute top-4 right-4 px-2 py-1 rounded-md text-xs font-medium ${product.inStock ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'
+                    }`}>
                     {product.inStock ? 'In Stock' : 'Out of Stock'}
                   </span>
                   <div className="w-24 h-24 bg-slate-200 rounded-xl flex items-center justify-center">

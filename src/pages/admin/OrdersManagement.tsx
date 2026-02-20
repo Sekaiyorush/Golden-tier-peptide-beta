@@ -1,9 +1,11 @@
 import { useState } from 'react';
-import { 
-  Search, 
-  Filter, 
-  Package, 
-  ChevronDown, 
+import { useDatabase } from '@/context/DatabaseContext';
+import { type Order } from '@/data/products';
+import {
+  Search,
+  Filter,
+  Package,
+  ChevronDown,
   ChevronUp,
   Truck,
   CheckCircle2,
@@ -11,152 +13,9 @@ import {
   XCircle
 } from 'lucide-react';
 
-interface OrderItem {
-  productId: string;
-  name: string;
-  quantity: number;
-  price: number;
-}
-
-interface Order {
-  id: string;
-  customer: {
-    name: string;
-    email: string;
-    phone: string;
-  };
-  items: OrderItem[];
-  total: number;
-  status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
-  paymentStatus: 'pending' | 'paid' | 'failed';
-  createdAt: string;
-  shippingAddress: {
-    street: string;
-    city: string;
-    state: string;
-    zip: string;
-    country: string;
-  };
-}
-
-const mockOrders: Order[] = [
-  {
-    id: 'ORD-2024-001',
-    customer: {
-      name: 'John Doe',
-      email: 'john@example.com',
-      phone: '+1 (555) 123-4567',
-    },
-    items: [
-      { productId: 'bpc-157', name: 'BPC-157', quantity: 2, price: 49.99 },
-      { productId: 'tb-500', name: 'TB-500', quantity: 1, price: 54.99 },
-    ],
-    total: 154.97,
-    status: 'delivered',
-    paymentStatus: 'paid',
-    createdAt: '2024-02-15',
-    shippingAddress: {
-      street: '123 Main St',
-      city: 'New York',
-      state: 'NY',
-      zip: '10001',
-      country: 'USA',
-    },
-  },
-  {
-    id: 'ORD-2024-002',
-    customer: {
-      name: 'Jane Smith',
-      email: 'jane@example.com',
-      phone: '+1 (555) 987-6543',
-    },
-    items: [
-      { productId: 'cjc-1295', name: 'CJC-1295', quantity: 3, price: 44.99 },
-      { productId: 'ipamorelin', name: 'Ipamorelin', quantity: 2, price: 39.99 },
-    ],
-    total: 214.95,
-    status: 'shipped',
-    paymentStatus: 'paid',
-    createdAt: '2024-02-16',
-    shippingAddress: {
-      street: '456 Oak Ave',
-      city: 'Los Angeles',
-      state: 'CA',
-      zip: '90001',
-      country: 'USA',
-    },
-  },
-  {
-    id: 'ORD-2024-003',
-    customer: {
-      name: 'Bob Johnson',
-      email: 'bob@example.com',
-      phone: '+1 (555) 456-7890',
-    },
-    items: [
-      { productId: 'melanotan-2', name: 'Melanotan II', quantity: 1, price: 59.99 },
-    ],
-    total: 59.99,
-    status: 'processing',
-    paymentStatus: 'paid',
-    createdAt: '2024-02-17',
-    shippingAddress: {
-      street: '789 Pine Rd',
-      city: 'Chicago',
-      state: 'IL',
-      zip: '60601',
-      country: 'USA',
-    },
-  },
-  {
-    id: 'ORD-2024-004',
-    customer: {
-      name: 'Alice Williams',
-      email: 'alice@example.com',
-      phone: '+1 (555) 234-5678',
-    },
-    items: [
-      { productId: 'ghrp-6', name: 'GHRP-6', quantity: 2, price: 42.99 },
-      { productId: 'bpc-157', name: 'BPC-157', quantity: 1, price: 49.99 },
-    ],
-    total: 135.97,
-    status: 'pending',
-    paymentStatus: 'pending',
-    createdAt: '2024-02-18',
-    shippingAddress: {
-      street: '321 Elm St',
-      city: 'Miami',
-      state: 'FL',
-      zip: '33101',
-      country: 'USA',
-    },
-  },
-  {
-    id: 'ORD-2024-005',
-    customer: {
-      name: 'Charlie Brown',
-      email: 'charlie@example.com',
-      phone: '+1 (555) 876-5432',
-    },
-    items: [
-      { productId: 'tb-500', name: 'TB-500', quantity: 3, price: 54.99 },
-    ],
-    total: 164.97,
-    status: 'cancelled',
-    paymentStatus: 'failed',
-    createdAt: '2024-02-14',
-    shippingAddress: {
-      street: '654 Maple Dr',
-      city: 'Seattle',
-      state: 'WA',
-      zip: '98101',
-      country: 'USA',
-    },
-  },
-];
-
 export function OrdersManagement() {
-  const [orders, setOrders] = useState<Order[]>(mockOrders);
+  const { db, updateOrder: contextUpdateOrder } = useDatabase();
+  const orders = db.orders;
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
@@ -164,8 +23,7 @@ export function OrdersManagement() {
   const filteredOrders = orders.filter((order) => {
     const matchesSearch =
       order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.customer.email.toLowerCase().includes(searchTerm.toLowerCase());
+      order.customerName.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || order.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
@@ -205,9 +63,7 @@ export function OrdersManagement() {
   };
 
   const updateOrderStatus = (orderId: string, newStatus: Order['status']) => {
-    setOrders(orders.map((order) =>
-      order.id === orderId ? { ...order, status: newStatus } : order
-    ));
+    contextUpdateOrder(orderId, { status: newStatus });
   };
 
   return (
@@ -288,8 +144,7 @@ export function OrdersManagement() {
                     </td>
                     <td className="px-4 py-3">
                       <div>
-                        <p className="font-medium">{order.customer.name}</p>
-                        <p className="text-sm text-muted-foreground">{order.customer.email}</p>
+                        <p className="font-medium">{order.customerName}</p>
                       </div>
                     </td>
                     <td className="px-4 py-3 text-sm">{order.createdAt}</td>
@@ -313,11 +168,10 @@ export function OrdersManagement() {
                       </div>
                     </td>
                     <td className="px-4 py-3">
-                      <span className={`text-xs px-2 py-1 rounded-full ${
-                        order.paymentStatus === 'paid' ? 'bg-green-100 text-green-700' :
+                      <span className={`text-xs px-2 py-1 rounded-full ${order.paymentStatus === 'paid' ? 'bg-green-100 text-green-700' :
                         order.paymentStatus === 'pending' ? 'bg-yellow-100 text-yellow-700' :
-                        'bg-red-100 text-red-700'
-                      }`}>
+                          'bg-red-100 text-red-700'
+                        }`}>
                         {order.paymentStatus}
                       </span>
                     </td>
@@ -358,18 +212,20 @@ export function OrdersManagement() {
                             </div>
                           </div>
                           <div>
-                            <h4 className="font-medium mb-3">Shipping Address</h4>
-                            <div className="p-3 bg-background rounded text-sm">
-                              <p>{order.shippingAddress.street}</p>
-                              <p>
-                                {order.shippingAddress.city}, {order.shippingAddress.state}{' '}
-                                {order.shippingAddress.zip}
-                              </p>
-                              <p>{order.shippingAddress.country}</p>
-                            </div>
-                            <div className="mt-4">
-                              <h4 className="font-medium mb-2">Contact</h4>
-                              <p className="text-sm text-muted-foreground">{order.customer.phone}</p>
+                            <h4 className="font-medium mb-3">Customer Details</h4>
+                            <div className="p-3 bg-background rounded text-sm space-y-2">
+                              <div>
+                                <span className="text-muted-foreground">ID: </span>
+                                <span>{order.customerId}</span>
+                              </div>
+                              <div>
+                                <span className="text-muted-foreground">Name: </span>
+                                <span>{order.customerName}</span>
+                              </div>
+                              <div>
+                                <span className="text-muted-foreground">Type: </span>
+                                <span className="capitalize">{order.userType}</span>
+                              </div>
                             </div>
                           </div>
                         </div>

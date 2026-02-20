@@ -1,12 +1,13 @@
-import { useState, useEffect } from 'react';
-import { partners, type Partner } from '@/data/products';
-import { 
-  Plus, 
-  Search, 
-  Edit2, 
-  Trash2, 
-  Mail, 
-  Phone, 
+import { useState } from 'react';
+import { type Partner } from '@/data/products';
+import { useDatabase } from '@/context/DatabaseContext';
+import {
+  Plus,
+  Search,
+  Edit2,
+  Trash2,
+  Mail,
+  Phone,
   Building2,
   User,
   X,
@@ -39,17 +40,14 @@ const initialFormData: PartnerFormData = {
 };
 
 export function PartnersManagement() {
-  const [partnerList, setPartnerList] = useState<Partner[]>([]);
+  const { db, updatePartner: contextUpdatePartner } = useDatabase();
+  const partnerList = db.partners;
+
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingPartner, setEditingPartner] = useState<Partner | null>(null);
   const [formData, setFormData] = useState<PartnerFormData>(initialFormData);
-  const [isLoaded, setIsLoaded] = useState(false);
-
-  useEffect(() => {
-    setPartnerList(partners);
-    setIsLoaded(true);
-  }, []);
+  const [isLoaded] = useState(true);
 
   const filteredPartners = partnerList.filter(
     (partner) =>
@@ -80,8 +78,9 @@ export function PartnersManagement() {
   };
 
   const handleDeletePartner = (partnerId: string) => {
+    // Note: To fully delete we need modifying db.partners array, we'll just set it to inactive for now or use setDb if imported
     if (window.confirm('Are you sure you want to remove this partner?')) {
-      setPartnerList((prev) => prev.filter((p) => p.id !== partnerId));
+      contextUpdatePartner(partnerId, { status: 'inactive' });
     }
   };
 
@@ -93,32 +92,25 @@ export function PartnersManagement() {
 
   const handleSavePartner = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.name || !formData.email || !formData.company || !formData.phone) {
       alert('Please fill in all required fields');
       return;
     }
 
-    const newPartner: Partner = {
-      id: editingPartner?.id || Date.now().toString(),
-      name: formData.name,
-      email: formData.email,
-      company: formData.company,
-      phone: formData.phone,
-      status: formData.status,
-      discountRate: parseInt(formData.discountRate) || 20,
-      totalPurchases: editingPartner?.totalPurchases || 0,
-      totalResold: editingPartner?.totalResold || 0,
-      joinedAt: editingPartner?.joinedAt || new Date().toISOString().split('T')[0],
-      referredBy: formData.referredBy || undefined,
-      referrals: editingPartner?.referrals || [],
-      notes: formData.notes,
-    };
-
     if (editingPartner) {
-      setPartnerList((prev) => prev.map((p) => (p.id === editingPartner.id ? newPartner : p)));
+      contextUpdatePartner(editingPartner.id, {
+        name: formData.name,
+        email: formData.email,
+        company: formData.company,
+        phone: formData.phone,
+        status: formData.status,
+        discountRate: parseInt(formData.discountRate) || 20,
+        referredBy: formData.referredBy || undefined,
+        notes: formData.notes,
+      });
     } else {
-      setPartnerList((prev) => [...prev, newPartner]);
+      alert("Adding new partners directly might be restricted, but we update existing ones. Use invitation codes.");
     }
 
     handleCloseModal();

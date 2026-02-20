@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { products, categories, type Product } from '@/data/products';
-import { 
-  Plus, 
-  Search, 
-  Edit2, 
-  Trash2, 
-  QrCode, 
+import { categories, type Product } from '@/data/products';
+import { useDatabase } from '@/context/DatabaseContext';
+import {
+  Plus,
+  Search,
+  Edit2,
+  Trash2,
+  QrCode,
   ChevronLeft,
   Package
 } from 'lucide-react';
@@ -25,7 +26,8 @@ interface ProductFormData {
 }
 
 export function ProductsManagement() {
-  const [productList, setProductList] = useState<Product[]>(products);
+  const { db, addProduct: contextAddProduct, updateProduct: contextUpdateProduct, deleteProduct: contextDeleteProduct } = useDatabase();
+  const productList = db.products;
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
@@ -86,13 +88,13 @@ export function ProductsManagement() {
 
   const handleDeleteProduct = (productId: string) => {
     if (confirm('Are you sure you want to delete this product?')) {
-      setProductList(productList.filter((p) => p.id !== productId));
+      contextDeleteProduct(productId);
     }
   };
 
   const handleSaveProduct = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     const newProduct: Product = {
       id: editingProduct?.id || Date.now().toString(),
       name: formData.name,
@@ -111,9 +113,9 @@ export function ProductsManagement() {
     };
 
     if (editingProduct) {
-      setProductList(productList.map((p) => (p.id === editingProduct.id ? newProduct : p)));
+      contextUpdateProduct(editingProduct.id, newProduct);
     } else {
-      setProductList([...productList, newProduct]);
+      contextAddProduct(newProduct);
     }
 
     setIsModalOpen(false);
@@ -191,9 +193,8 @@ export function ProductsManagement() {
                     ${product.price.toFixed(2)}
                   </td>
                   <td className="px-4 py-3 text-sm">
-                    <span className={`${
-                      product.stockQuantity < 20 ? 'text-destructive' : 'text-green-600'
-                    }`}>
+                    <span className={`${product.stockQuantity < 20 ? 'text-destructive' : 'text-green-600'
+                      }`}>
                       {product.stockQuantity}
                     </span>
                   </td>

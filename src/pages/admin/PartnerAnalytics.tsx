@@ -1,10 +1,9 @@
 import { useState } from 'react';
-import { partners, orders, customers } from '@/data/products';
-import { invitationCodes } from '@/data/invitations';
-import { 
-  TrendingUp, 
-  TrendingDown, 
-  Users, 
+import { useDatabase } from '@/context/DatabaseContext';
+import {
+  TrendingUp,
+  TrendingDown,
+  Users,
   DollarSign,
   Award,
   ArrowUpRight,
@@ -31,6 +30,8 @@ interface PartnerPerformance {
 }
 
 export function PartnerAnalytics() {
+  const { db } = useDatabase();
+  const { partners, orders, customers, invitationCodes } = db;
   const [timeRange, setTimeRange] = useState<'7d' | '30d' | '90d' | 'all'>('30d');
   const [sortBy, setSortBy] = useState<'revenue' | 'network' | 'growth'>('revenue');
 
@@ -40,23 +41,23 @@ export function PartnerAnalytics() {
       const partnerOrders = orders.filter(o => o.partnerId === partner.id);
       const totalPurchases = partnerOrders.reduce((sum, o) => sum + o.total, 0);
       const estimatedProfit = partner.totalResold ? partner.totalResold - totalPurchases : 0;
-      
+
       // Get network size (direct referrals)
       const networkSize = partners.filter(p => p.referredBy === partner.id).length;
-      
+
       // Get customer signups from partner's invitation codes
       const partnerCodes = invitationCodes.filter(c => c.partnerId === partner.id);
       const customerSignups = partnerCodes.reduce((sum, c) => sum + c.usedCount, 0);
-      
+
       // Calculate conversion rate (customers who made purchases / total signups)
-      const partnerCustomers = customers.filter(c => 
+      const partnerCustomers = customers.filter(c =>
         partnerCodes.some(code => code.code === c.invitationCode)
       );
       const customersWithOrders = partnerCustomers.filter(c => c.totalOrders > 0).length;
-      const conversionRate = customerSignups > 0 
-        ? Math.round((customersWithOrders / customerSignups) * 100) 
+      const conversionRate = customerSignups > 0
+        ? Math.round((customersWithOrders / customerSignups) * 100)
         : 0;
-      
+
       // Mock growth percentage
       const growth = Math.floor(Math.random() * 40) - 10;
 
@@ -78,7 +79,7 @@ export function PartnerAnalytics() {
   };
 
   const performanceData = calculatePerformance();
-  
+
   // Sort data
   const sortedData = [...performanceData].sort((a, b) => {
     switch (sortBy) {
@@ -91,7 +92,7 @@ export function PartnerAnalytics() {
 
   // Top performers
   const topPerformers = sortedData.slice(0, 5);
-  
+
   // Summary stats
   const totalPartnerRevenue = performanceData.reduce((sum, p) => sum + p.totalPurchases, 0);
   const totalNetworkSize = performanceData.reduce((sum, p) => sum + p.networkSize, 0);
@@ -228,12 +229,11 @@ export function PartnerAnalytics() {
           {topPerformers.map((partner, index) => (
             <div key={partner.id} className="p-5 flex items-center justify-between hover:bg-slate-50">
               <div className="flex items-center space-x-4">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm ${
-                  index === 0 ? 'bg-amber-100 text-amber-700' :
-                  index === 1 ? 'bg-slate-200 text-slate-700' :
-                  index === 2 ? 'bg-orange-100 text-orange-700' :
-                  'bg-slate-100 text-slate-600'
-                }`}>
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm ${index === 0 ? 'bg-amber-100 text-amber-700' :
+                    index === 1 ? 'bg-slate-200 text-slate-700' :
+                      index === 2 ? 'bg-orange-100 text-orange-700' :
+                        'bg-slate-100 text-slate-600'
+                  }`}>
                   {index + 1}
                 </div>
                 <div className="w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center">
@@ -255,9 +255,8 @@ export function PartnerAnalytics() {
                 </div>
                 <div className="text-right">
                   <p className="text-sm text-slate-500">Growth</p>
-                  <div className={`flex items-center justify-end space-x-1 ${
-                    partner.growth >= 0 ? 'text-emerald-600' : 'text-red-600'
-                  }`}>
+                  <div className={`flex items-center justify-end space-x-1 ${partner.growth >= 0 ? 'text-emerald-600' : 'text-red-600'
+                    }`}>
                     {partner.growth >= 0 ? (
                       <ArrowUpRight className="h-4 w-4" />
                     ) : (
@@ -327,7 +326,7 @@ export function PartnerAnalytics() {
                   <td className="px-4 py-4 text-right">
                     <div className="flex items-center justify-end space-x-2">
                       <div className="w-16 bg-slate-100 rounded-full h-2">
-                        <div 
+                        <div
                           className="bg-emerald-500 h-2 rounded-full"
                           style={{ width: `${partner.conversionRate}%` }}
                         />
@@ -336,11 +335,10 @@ export function PartnerAnalytics() {
                     </div>
                   </td>
                   <td className="px-4 py-4 text-center">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      partner.status === 'active' ? 'bg-emerald-100 text-emerald-700' :
-                      partner.status === 'pending' ? 'bg-amber-100 text-amber-700' :
-                      'bg-slate-100 text-slate-700'
-                    }`}>
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${partner.status === 'active' ? 'bg-emerald-100 text-emerald-700' :
+                        partner.status === 'pending' ? 'bg-amber-100 text-amber-700' :
+                          'bg-slate-100 text-slate-700'
+                      }`}>
                       {partner.status}
                     </span>
                   </td>
