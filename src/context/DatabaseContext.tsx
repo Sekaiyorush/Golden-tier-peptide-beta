@@ -348,14 +348,45 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
   };
 
   const updateOrder = async (id: string, updates: Partial<Order>) => {
+    // Check if we're marking as delivered — need to deduct inventory
+    const currentOrder = db.orders.find(o => o.id === id);
+    const isBeingDelivered = updates.status === 'delivered' && currentOrder?.status !== 'delivered';
+
     setDb(prev => ({
       ...prev,
       orders: prev.orders.map(o => o.id === id ? { ...o, ...updates } : o)
     }));
+
     const dbUpdates: any = {};
     if (updates.status !== undefined) dbUpdates.status = updates.status;
     if (updates.paymentStatus !== undefined) dbUpdates.payment_status = updates.paymentStatus;
     await supabase.from('orders').update(dbUpdates).eq('friendly_id', id);
+
+    // Auto-deduct inventory when order is marked as delivered
+    if (isBeingDelivered && currentOrder?.items && currentOrder.items.length > 0) {
+      for (const item of currentOrder.items) {
+        const product = db.products.find(p => p.name === item.name || p.id === item.productId);
+        if (product) {
+          // Create inventory log entry
+          await supabase.from('inventory_log').insert({
+            product_id: product.id,
+            change_quantity: -item.quantity,
+            reason: 'sold',
+            notes: `Order ${id} delivered`,
+            performed_by: null, // system action
+          });
+
+          // Update product stock
+          const newQty = Math.max(0, product.stockQuantity - item.quantity);
+          await supabase.from('products').update({
+            stock_quantity: newQty,
+            in_stock: newQty > 0,
+          }).eq('id', product.id);
+        }
+      }
+      // Refresh data to reflect new stock levels
+      await loadData();
+    }
   };
 
   // ─── Partners CRUD ──────────────────────────────────────────────
