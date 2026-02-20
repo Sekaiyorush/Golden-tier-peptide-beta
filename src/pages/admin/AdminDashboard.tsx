@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { Link, Routes, Route, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
-import { 
-  LayoutDashboard, 
-  Package, 
-  Users, 
-  QrCode, 
-  ShoppingCart, 
+import {
+  LayoutDashboard,
+  Package,
+  Users,
+  QrCode,
+  ShoppingCart,
   LogOut,
   Menu,
   X,
@@ -26,12 +26,16 @@ import { CustomersManagement } from './CustomersManagement';
 import { InvitationCodeManagement } from './InvitationCodeManagement';
 import { PartnerAnalytics } from './PartnerAnalytics';
 
+import { useDatabase } from '@/context/DatabaseContext';
+
 function DashboardHome() {
+  const { db } = useDatabase();
+
   const stats = [
-    { label: 'Total Products', value: '24', change: '+3', icon: Package, color: 'bg-blue-500' },
-    { label: 'Total Orders', value: '156', change: '+12', icon: ShoppingCart, color: 'bg-emerald-500' },
-    { label: 'Active Partners', value: '8', change: '+2', icon: Users, color: 'bg-indigo-500' },
-    { label: 'Customers', value: '124', change: '+8', icon: UserCircle, color: 'bg-amber-500' },
+    { label: 'Total Products', value: db.products.length.toString(), change: '+0', icon: Package, color: 'bg-blue-500' },
+    { label: 'Total Orders', value: db.orders.length.toString(), change: '+0', icon: ShoppingCart, color: 'bg-emerald-500' },
+    { label: 'Active Partners', value: db.partners.length.toString(), change: '+0', icon: Users, color: 'bg-indigo-500' },
+    { label: 'Customers', value: db.customers.length.toString(), change: '+0', icon: UserCircle, color: 'bg-amber-500' },
   ];
 
   return (
@@ -40,7 +44,7 @@ function DashboardHome() {
         <h2 className="text-xl font-semibold text-slate-900">Dashboard Overview</h2>
         <p className="text-slate-500">Welcome back to your admin panel</p>
       </div>
-      
+
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {stats.map((stat, index) => (
@@ -70,23 +74,18 @@ function DashboardHome() {
             </Link>
           </div>
           <div className="space-y-3">
-            {[
-              { id: '#ORD-001', customer: 'John Doe', amount: '$149.97', status: 'completed' },
-              { id: '#ORD-002', customer: 'Jane Smith', amount: '$299.94', status: 'processing' },
-              { id: '#ORD-003', customer: 'Bob Johnson', amount: '$89.99', status: 'pending' },
-            ].map((order) => (
+            {db.orders.slice(0, 5).map((order) => (
               <div key={order.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
                 <div>
                   <p className="font-medium text-slate-900">{order.id}</p>
-                  <p className="text-sm text-slate-500">{order.customer}</p>
+                  <p className="text-sm text-slate-500">{order.customerName}</p>
                 </div>
                 <div className="text-right">
-                  <p className="font-medium text-slate-900">{order.amount}</p>
-                  <span className={`text-xs px-2 py-0.5 rounded-full ${
-                    order.status === 'completed' ? 'bg-emerald-100 text-emerald-700' :
-                    order.status === 'processing' ? 'bg-blue-100 text-blue-700' :
-                    'bg-amber-100 text-amber-700'
-                  }`}>
+                  <p className="font-medium text-slate-900">${order.total}</p>
+                  <span className={`text-xs px-2 py-0.5 rounded-full ${order.status === 'delivered' ? 'bg-emerald-100 text-emerald-700' :
+                      order.status === 'processing' ? 'bg-blue-100 text-blue-700' :
+                        'bg-amber-100 text-amber-700'
+                    }`}>
                     {order.status}
                   </span>
                 </div>
@@ -115,9 +114,8 @@ function DashboardHome() {
                   <p className="text-sm text-slate-500">Threshold: {item.threshold}</p>
                 </div>
                 <div className="text-right">
-                  <span className={`text-lg font-semibold ${
-                    item.stock < 10 ? 'text-red-500' : 'text-amber-500'
-                  }`}>
+                  <span className={`text-lg font-semibold ${item.stock < 10 ? 'text-red-500' : 'text-amber-500'
+                    }`}>
                     {item.stock}
                   </span>
                   <p className="text-xs text-slate-400">units left</p>
@@ -152,9 +150,8 @@ export function AdminDashboard() {
     <div className="min-h-screen bg-slate-50 flex">
       {/* Sidebar */}
       <aside
-        className={`fixed lg:static inset-y-0 left-0 z-50 w-64 bg-white border-r border-slate-200 transform transition-transform duration-300 ${
-          isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
-        }`}
+        className={`fixed lg:static inset-y-0 left-0 z-50 w-64 bg-white border-r border-slate-200 transform transition-transform duration-300 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+          }`}
       >
         <div className="h-full flex flex-col">
           {/* Logo */}
@@ -176,11 +173,10 @@ export function AdminDashboard() {
               <Link
                 key={item.path}
                 to={item.path}
-                className={`flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-colors ${
-                  location.pathname === item.path
+                className={`flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-colors ${location.pathname === item.path
                     ? 'bg-slate-900 text-white'
                     : 'text-slate-600 hover:bg-slate-100'
-                }`}
+                  }`}
               >
                 <item.icon className="h-5 w-5" />
                 <span className="font-medium">{item.label}</span>
@@ -223,8 +219,8 @@ export function AdminDashboard() {
             {isSidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
           <h1 className="text-lg font-semibold text-slate-900">Admin Dashboard</h1>
-          <Link 
-            to="/" 
+          <Link
+            to="/"
             className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
           >
             View Site

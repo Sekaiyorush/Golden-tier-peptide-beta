@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
-import { orders, customers } from '@/data/products';
-import { 
-  Package, 
-  ShoppingBag, 
-  User, 
-  MapPin, 
+import { useDatabase } from '@/context/DatabaseContext';
+import {
+  Package,
+  ShoppingBag,
+  User,
+  MapPin,
   CreditCard,
   ChevronRight,
   Clock,
@@ -17,13 +17,14 @@ import {
 
 export function UserDashboard() {
   const { user } = useAuth();
+  const { db } = useDatabase();
   const [activeTab, setActiveTab] = useState<'overview' | 'orders' | 'profile'>('overview');
 
   // Get user's orders
-  const userOrders = orders.filter(o => o.customerId === user?.id || o.customerId.startsWith('c'));
-  
+  const userOrders = db.orders.filter(o => o.customerId === user?.id);
+
   // Get user profile
-  const userProfile = customers.find(c => c.email === user?.email) || {
+  const userProfile = db.customers.find(c => c.email === user?.email) || {
     name: user?.name,
     email: user?.email,
     totalOrders: userOrders.length,
@@ -69,11 +70,10 @@ export function UserDashboard() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                activeTab === tab.id
+              className={`flex items-center space-x-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${activeTab === tab.id
                   ? 'bg-slate-900 text-white'
                   : 'text-slate-600 hover:bg-slate-100'
-              }`}
+                }`}
             >
               <tab.icon className="h-4 w-4" />
               <span>{tab.label}</span>
@@ -125,7 +125,7 @@ export function UserDashboard() {
             <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
               <div className="p-6 border-b border-slate-100 flex items-center justify-between">
                 <h3 className="font-semibold text-slate-900">Recent Orders</h3>
-                <button 
+                <button
                   onClick={() => setActiveTab('orders')}
                   className="text-sm text-slate-600 hover:text-slate-900 flex items-center"
                 >
@@ -234,7 +234,7 @@ export function UserDashboard() {
                   />
                 </div>
               </div>
-              
+
               <div className="border-t border-slate-100 pt-6">
                 <h4 className="font-medium text-slate-900 mb-4 flex items-center">
                   <MapPin className="h-4 w-4 mr-2" />

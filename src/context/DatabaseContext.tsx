@@ -190,7 +190,42 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
   // Orders CRUD
   const addOrder = async (order: Order) => {
     setDb(prev => ({ ...prev, orders: [...prev.orders, order] }));
-    // Real implementation would safely insert into orders and order_items transactionally
+
+    // Insert order header
+    const { data: newOrder, error: orderError } = await supabase
+      .from('orders')
+      .insert({
+        friendly_id: order.id,
+        customer_id: order.customerId,
+        total_amount: order.total,
+        status: order.status,
+        payment_status: order.paymentStatus
+      })
+      .select('id')
+      .single();
+
+    if (orderError) {
+      console.error("Error creating order:", orderError);
+      return;
+    }
+
+    // Insert order line items
+    if (newOrder && order.items && order.items.length > 0) {
+      const dbOrderItems = order.items.map(item => ({
+        order_id: newOrder.id,
+        product_id: item.productId,
+        quantity: item.quantity,
+        price_at_purchase: item.price
+      }));
+
+      const { error: itemsError } = await supabase
+        .from('order_items')
+        .insert(dbOrderItems);
+
+      if (itemsError) {
+        console.error("Error creating order items:", itemsError);
+      }
+    }
   };
 
   const updateOrder = async (id: string, updates: Partial<Order>) => {
