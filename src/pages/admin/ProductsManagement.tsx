@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { categories, type Product } from '@/data/products';
+import { type Product } from '@/data/products';
 import { useDatabase } from '@/context/DatabaseContext';
 import {
   Plus,
@@ -28,6 +28,7 @@ interface ProductFormData {
 export function ProductsManagement() {
   const { db, addProduct: contextAddProduct, updateProduct: contextUpdateProduct, deleteProduct: contextDeleteProduct } = useDatabase();
   const productList = db.products;
+  const dynamicCategories = Array.from(new Set(productList.map(p => p.category))).sort();
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
@@ -37,7 +38,7 @@ export function ProductsManagement() {
     description: '',
     fullDescription: '',
     price: '',
-    category: categories[0],
+    category: '',
     purity: '99.0%',
     stockQuantity: '0',
     sku: '',
@@ -59,7 +60,7 @@ export function ProductsManagement() {
       description: '',
       fullDescription: '',
       price: '',
-      category: categories[0],
+      category: '',
       purity: '99.0%',
       stockQuantity: '0',
       sku: '',
@@ -335,17 +336,20 @@ export function ProductsManagement() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium mb-1">Category</label>
-                  <select
+                  <input
+                    type="text"
+                    list="category-options"
                     value={formData.category}
                     onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                     className="w-full px-3 py-2 border border-input rounded-lg bg-background focus:ring-primary focus:border-primary"
-                  >
-                    {categories.map((cat) => (
-                      <option key={cat} value={cat}>
-                        {cat}
-                      </option>
+                    placeholder="e.g. Healing, Metabolism"
+                    required
+                  />
+                  <datalist id="category-options">
+                    {dynamicCategories.map((cat) => (
+                      <option key={cat} value={cat} />
                     ))}
-                  </select>
+                  </datalist>
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-1">Dosage Protocol</label>

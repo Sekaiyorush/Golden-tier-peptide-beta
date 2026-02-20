@@ -3,8 +3,8 @@ import { useSearchParams } from 'react-router-dom';
 import { useCart } from '@/context/CartContext';
 import { useAuth } from '@/context/AuthContext';
 import { useDatabase } from '@/context/DatabaseContext';
-import { categories } from '@/data/products';
 import { ShoppingCart, Search, Filter, Check, ChevronDown } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 export function Products() {
   const { db } = useDatabase();
@@ -14,10 +14,11 @@ export function Products() {
   const [searchParams] = useSearchParams();
   const queryParam = searchParams.get('q') || '';
 
+  const categories = useMemo(() => Array.from(new Set(products.map(p => p.category))).sort(), [products]);
+
   const [searchTerm, setSearchTerm] = useState(queryParam);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>('name');
-  const [expandedProduct, setExpandedProduct] = useState<string | null>(null);
 
   const filteredProducts = useMemo(() => {
     let result = products;
@@ -60,7 +61,7 @@ export function Products() {
 
   return (
     <div className="min-h-screen bg-slate-50 py-12">
-      <div className="container px-4 md:px-6">
+      <div className="container mx-auto px-4 md:px-6">
         {/* Page Header */}
         <div className="mb-8">
           <h1 className="text-2xl md:text-3xl font-semibold text-slate-900">Products</h1>
@@ -138,7 +139,7 @@ export function Products() {
                 key={product.id}
                 className="bg-white rounded-xl border border-slate-200 overflow-hidden hover:shadow-sm transition-shadow"
               >
-                <div className="relative aspect-[4/3] bg-slate-100 flex items-center justify-center p-6">
+                <Link to={`/product/${product.sku}`} className="relative block aspect-[4/3] bg-slate-100 flex items-center justify-center p-6 group-hover:opacity-90 transition-opacity">
                   <div className="absolute top-4 left-4 flex items-center space-x-1 px-2 py-1 bg-white rounded-md shadow-xs">
                     <Check className="h-3 w-3 text-emerald-500" />
                     <span className="text-xs font-medium text-slate-700">{product.purity}</span>
@@ -150,40 +151,18 @@ export function Products() {
                   <div className="w-24 h-24 bg-slate-200 rounded-xl flex items-center justify-center">
                     <span className="text-slate-600 font-semibold text-xl">{product.name.split('-')[0]}</span>
                   </div>
-                </div>
+                </Link>
 
                 <div className="p-5">
                   <div className="flex items-start justify-between mb-2">
                     <div>
-                      <h3 className="font-semibold text-lg text-slate-900">{product.name}</h3>
+                      <Link to={`/product/${product.sku}`}>
+                        <h3 className="font-semibold text-lg text-slate-900 hover:text-slate-700 transition-colors">{product.name}</h3>
+                      </Link>
                       <p className="text-sm text-slate-500">{product.description}</p>
                     </div>
                   </div>
                   <p className="text-xs text-slate-400 mb-3">SKU: {product.sku}</p>
-
-                  {expandedProduct === product.id && (
-                    <div className="mb-4 p-3 bg-slate-50 rounded-lg">
-                      {product.benefits && (
-                        <div className="mb-3">
-                          <p className="text-xs font-medium text-slate-500 uppercase mb-2">Benefits</p>
-                          <ul className="space-y-1">
-                            {product.benefits.map((benefit, i) => (
-                              <li key={i} className="text-sm text-slate-600 flex items-start">
-                                <span className="text-slate-400 mr-2">•</span>
-                                {benefit}
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                      {product.dosage && (
-                        <div>
-                          <p className="text-xs font-medium text-slate-500 uppercase mb-1">Dosage</p>
-                          <p className="text-sm text-slate-600">{product.dosage}</p>
-                        </div>
-                      )}
-                    </div>
-                  )}
 
                   <div className="flex items-center justify-between pt-4 border-t border-slate-100">
                     <div>
@@ -201,12 +180,12 @@ export function Products() {
                       )}
                     </div>
                     <div className="flex items-center space-x-2">
-                      <button
-                        onClick={() => setExpandedProduct(expandedProduct === product.id ? null : product.id)}
-                        className="px-3 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+                      <Link
+                        to={`/product/${product.sku}`}
+                        className="px-3 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg transition-colors border border-transparent"
                       >
-                        {expandedProduct === product.id ? 'Less' : 'Details'}
-                      </button>
+                        Details
+                      </Link>
                       <button
                         onClick={() => addToCart(product)}
                         disabled={!product.inStock}

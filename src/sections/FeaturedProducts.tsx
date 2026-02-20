@@ -21,7 +21,7 @@ export function FeaturedProducts() {
 
   return (
     <section className="py-16 md:py-24 bg-slate-50">
-      <div className="container px-4 md:px-6">
+      <div className="container mx-auto px-4 md:px-6">
         {/* Section Header */}
         <div className="flex flex-col items-center text-center mb-12">
           <span className="text-sm font-medium text-slate-500 uppercase tracking-wider mb-3">Best Sellers</span>
@@ -46,7 +46,7 @@ export function FeaturedProducts() {
               className="group bg-white rounded-xl border border-slate-200 overflow-hidden hover:shadow-soft transition-shadow"
             >
               {/* Product Image Area */}
-              <div className="relative aspect-[4/3] bg-slate-100 flex items-center justify-center p-8">
+              <Link to={`/product/${product.sku}`} className="relative block aspect-[4/3] bg-slate-100 flex items-center justify-center p-8">
                 {/* Purity badge */}
                 <div className="absolute top-4 left-4 flex items-center space-x-1 px-2.5 py-1 bg-white rounded-md shadow-xs">
                   <Check className="h-3 w-3 text-emerald-500" />
@@ -57,15 +57,17 @@ export function FeaturedProducts() {
                 <div className="w-20 h-20 bg-slate-200 rounded-xl flex items-center justify-center group-hover:bg-slate-300 transition-colors">
                   <span className="text-slate-600 font-semibold text-lg">{product.name.split('-')[0]}</span>
                 </div>
-              </div>
+              </Link>
 
               {/* Product Info */}
               <div className="p-5">
                 <div className="flex items-start justify-between mb-2">
                   <div>
-                    <h3 className="font-semibold text-lg text-slate-900 group-hover:text-slate-700 transition-colors">
-                      {product.name}
-                    </h3>
+                    <Link to={`/product/${product.sku}`}>
+                      <h3 className="font-semibold text-lg text-slate-900 group-hover:text-slate-700 transition-colors">
+                        {product.name}
+                      </h3>
+                    </Link>
                     <p className="text-sm text-slate-500">{product.description}</p>
                   </div>
                 </div>

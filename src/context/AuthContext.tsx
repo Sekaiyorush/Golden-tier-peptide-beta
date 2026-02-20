@@ -28,6 +28,8 @@ interface AuthContextType {
   isCustomer: boolean;
   login: (email: string, password: string) => Promise<boolean>;
   register: (name: string, email: string, password: string, invitationCode: string) => Promise<{ success: boolean; error?: string }>;
+  resetPasswordForEmail: (email: string) => Promise<{ success: boolean; error?: string }>;
+  updatePassword: (password: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
   validateCode: (code: string) => { valid: boolean; code?: InvitationCode; error?: string };
 }
@@ -155,6 +157,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { success: false, error: 'Failed to create user' };
   };
 
+  const resetPasswordForEmail = async (email: string) => {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    if (error) {
+      return { success: false, error: error.message };
+    }
+    return { success: true };
+  };
+
+  const updatePassword = async (password: string) => {
+    const { error } = await supabase.auth.updateUser({ password });
+    if (error) {
+      return { success: false, error: error.message };
+    }
+    return { success: true };
+  };
+
   const logout = async () => {
     await supabase.auth.signOut();
     setUser(null);
@@ -174,6 +194,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isCustomer: user?.role === 'customer',
         login,
         register,
+        resetPasswordForEmail,
+        updatePassword,
         logout,
         validateCode,
       }}

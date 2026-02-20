@@ -14,6 +14,9 @@ import { Login } from '@/pages/Login';
 import { Register } from '@/pages/Register';
 import { AdminDashboard } from '@/pages/admin/AdminDashboard';
 import { Products } from '@/pages/Products';
+import { ProductDetails } from '@/pages/ProductDetails';
+import { ForgotPassword } from '@/pages/ForgotPassword';
+import { ResetPassword } from '@/pages/ResetPassword';
 import { UserDashboard } from '@/pages/dashboard/UserDashboard';
 import { PartnerDashboard } from '@/pages/partner/PartnerDashboard';
 
@@ -196,8 +199,11 @@ function AppContent() {
                 <Routes>
                   <Route path="/" element={<HomePage />} />
                   <Route path="/products" element={<Products />} />
+                  <Route path="/product/:sku" element={<ProductDetails />} />
                   <Route path="/login" element={<Login />} />
                   <Route path="/register" element={<Register />} />
+                  <Route path="/forgot-password" element={<ForgotPassword />} />
+                  <Route path="/reset-password" element={<ResetPassword />} />
                   <Route
                     path="/checkout"
                     element={
