@@ -11,6 +11,8 @@ export interface Product {
   sku: string;
   benefits?: string[];
   dosage?: string;
+  imageUrl?: string;
+  lowStockThreshold?: number;
   createdAt: string;
   updatedAt: string;
 }

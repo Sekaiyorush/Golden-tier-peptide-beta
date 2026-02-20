@@ -102,16 +102,16 @@ export function InvitationCodeManagement() {
     setNewCodePrefix('GT');
   };
 
-  const handleToggleStatus = (codeId: string) => {
-    const code = invitationCodes.find(c => c.id === codeId);
+  const handleToggleStatus = (codeStr: string) => {
+    const code = invitationCodes.find(c => c.code === codeStr);
     if (code) {
-      updateInvitationCode(codeId, { isActive: !code.isActive });
+      updateInvitationCode(codeStr, { isActive: !code.isActive });
     }
   };
 
-  const handleDeleteCode = (codeId: string) => {
+  const handleDeleteCode = (codeStr: string) => {
     if (window.confirm("Are you sure you want to deactivate this code?")) {
-      updateInvitationCode(codeId, { isActive: false });
+      updateInvitationCode(codeStr, { isActive: false });
     }
   };
 
@@ -263,7 +263,7 @@ export function InvitationCodeManagement() {
             </thead>
             <tbody className="divide-y divide-slate-100">
               {filteredCodes.map((code) => (
-                <tr key={code.id} className="hover:bg-slate-50">
+                <tr key={code.code} className="hover:bg-slate-50">
                   <td className="px-4 py-4">
                     <div className="flex items-center space-x-2">
                       <span className="font-mono font-semibold text-slate-900">{code.code}</span>
@@ -314,7 +314,7 @@ export function InvitationCodeManagement() {
                   </td>
                   <td className="px-4 py-4">
                     <button
-                      onClick={() => handleToggleStatus(code.id)}
+                      onClick={() => handleToggleStatus(code.code)}
                       className={`px-2 py-1 rounded-full text-xs font-medium transition-colors ${code.isActive
                         ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'
                         : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
@@ -332,7 +332,7 @@ export function InvitationCodeManagement() {
                         <Eye className="h-4 w-4" />
                       </button>
                       <button
-                        onClick={() => handleDeleteCode(code.id)}
+                        onClick={() => handleDeleteCode(code.code)}
                         className="p-2 hover:bg-red-50 rounded-lg text-slate-400 hover:text-red-600"
                       >
                         <Trash2 className="h-4 w-4" />

@@ -23,6 +23,7 @@ import { PartnerNetwork } from './PartnerNetwork';
 import { QRCodeManager } from './QRCodeManager';
 import { OrdersManagement } from './OrdersManagement';
 import { CustomersManagement } from './CustomersManagement';
+import { InventoryManagement } from './InventoryManagement';
 import { InvitationCodeManagement } from './InvitationCodeManagement';
 import { PartnerAnalytics } from './PartnerAnalytics';
 
@@ -53,7 +54,6 @@ function DashboardHome() {
               <div>
                 <p className="text-sm text-slate-500">{stat.label}</p>
                 <p className="text-2xl font-semibold text-slate-900">{stat.value}</p>
-                <p className="text-xs text-emerald-600 mt-1">{stat.change} this month</p>
               </div>
               <div className={`w-10 h-10 ${stat.color} rounded-lg flex items-center justify-center`}>
                 <stat.icon className="h-5 w-5 text-white" />
@@ -83,8 +83,8 @@ function DashboardHome() {
                 <div className="text-right">
                   <p className="font-medium text-slate-900">${order.total}</p>
                   <span className={`text-xs px-2 py-0.5 rounded-full ${order.status === 'delivered' ? 'bg-emerald-100 text-emerald-700' :
-                      order.status === 'processing' ? 'bg-blue-100 text-blue-700' :
-                        'bg-amber-100 text-amber-700'
+                    order.status === 'processing' ? 'bg-blue-100 text-blue-700' :
+                      'bg-amber-100 text-amber-700'
                     }`}>
                     {order.status}
                   </span>
@@ -103,25 +103,24 @@ function DashboardHome() {
             </Link>
           </div>
           <div className="space-y-3">
-            {[
-              { name: 'Melanotan II', stock: 15, threshold: 20 },
-              { name: 'GHRP-6', stock: 8, threshold: 25 },
-              { name: 'TB-500', stock: 12, threshold: 30 },
-            ].map((item) => (
-              <div key={item.name} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+            {db.products.filter(p => p.stockQuantity < (p.lowStockThreshold || 10)).slice(0, 5).map((item) => (
+              <div key={item.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
                 <div>
                   <p className="font-medium text-slate-900">{item.name}</p>
-                  <p className="text-sm text-slate-500">Threshold: {item.threshold}</p>
+                  <p className="text-sm text-slate-500">Threshold: {item.lowStockThreshold || 10}</p>
                 </div>
                 <div className="text-right">
-                  <span className={`text-lg font-semibold ${item.stock < 10 ? 'text-red-500' : 'text-amber-500'
+                  <span className={`text-lg font-semibold ${item.stockQuantity < 5 ? 'text-red-500' : 'text-amber-500'
                     }`}>
-                    {item.stock}
+                    {item.stockQuantity}
                   </span>
                   <p className="text-xs text-slate-400">units left</p>
                 </div>
               </div>
             ))}
+            {db.products.filter(p => p.stockQuantity < (p.lowStockThreshold || 10)).length === 0 && (
+              <p className="text-slate-500 text-sm text-center py-4">All products are well stocked.</p>
+            )}
           </div>
         </div>
       </div>
@@ -138,6 +137,7 @@ export function AdminDashboard() {
     { path: '/admin', label: 'Dashboard', icon: LayoutDashboard },
     { path: '/admin/products', label: 'Products', icon: Package },
     { path: '/admin/orders', label: 'Orders', icon: ShoppingCart },
+    { path: '/admin/inventory', label: 'Inventory', icon: Package },
     { path: '/admin/customers', label: 'Customers', icon: UserCircle },
     { path: '/admin/partners', label: 'Partners', icon: Users },
     { path: '/admin/partner-network', label: 'Partner Network', icon: Network },
@@ -174,8 +174,8 @@ export function AdminDashboard() {
                 key={item.path}
                 to={item.path}
                 className={`flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-colors ${location.pathname === item.path
-                    ? 'bg-slate-900 text-white'
-                    : 'text-slate-600 hover:bg-slate-100'
+                  ? 'bg-slate-900 text-white'
+                  : 'text-slate-600 hover:bg-slate-100'
                   }`}
               >
                 <item.icon className="h-5 w-5" />
@@ -232,6 +232,7 @@ export function AdminDashboard() {
           <Routes>
             <Route path="/" element={<DashboardHome />} />
             <Route path="/products" element={<ProductsManagement />} />
+            <Route path="/inventory" element={<InventoryManagement />} />
             <Route path="/orders" element={<OrdersManagement />} />
             <Route path="/customers" element={<CustomersManagement />} />
             <Route path="/partners" element={<PartnersManagement />} />

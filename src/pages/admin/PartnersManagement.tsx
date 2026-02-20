@@ -14,12 +14,17 @@ import {
   Percent,
   TrendingUp,
   ShoppingBag,
-  Users
+  Users,
+  Eye,
+  EyeOff,
+  Copy,
+  Check
 } from 'lucide-react';
 
 interface PartnerFormData {
   name: string;
   email: string;
+  password: string;
   company: string;
   phone: string;
   discountRate: string;
@@ -31,23 +36,27 @@ interface PartnerFormData {
 const initialFormData: PartnerFormData = {
   name: '',
   email: '',
+  password: '',
   company: '',
   phone: '',
   discountRate: '20',
-  status: 'pending',
+  status: 'active',
   referredBy: '',
   notes: '',
 };
 
 export function PartnersManagement() {
-  const { db, updatePartner: contextUpdatePartner } = useDatabase();
+  const { db, addPartner, updatePartner: contextUpdatePartner } = useDatabase();
   const partnerList = db.partners;
 
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingPartner, setEditingPartner] = useState<Partner | null>(null);
   const [formData, setFormData] = useState<PartnerFormData>(initialFormData);
-  const [isLoaded] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [createdCredentials, setCreatedCredentials] = useState<{ email: string; password: string } | null>(null);
+  const [copiedField, setCopiedField] = useState<string | null>(null);
 
   const filteredPartners = partnerList.filter(
     (partner) =>
@@ -58,7 +67,12 @@ export function PartnersManagement() {
 
   const handleAddPartner = () => {
     setEditingPartner(null);
-    setFormData(initialFormData);
+    // Generate a random password
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%';
+    let pw = '';
+    for (let i = 0; i < 12; i++) pw += chars.charAt(Math.floor(Math.random() * chars.length));
+    setFormData({ ...initialFormData, password: pw });
+    setCreatedCredentials(null);
     setIsModalOpen(true);
   };
 
@@ -67,6 +81,7 @@ export function PartnersManagement() {
     setFormData({
       name: partner.name || '',
       email: partner.email || '',
+      password: '',
       company: partner.company || '',
       phone: partner.phone || '',
       discountRate: partner.discountRate?.toString() || '20',
@@ -74,12 +89,12 @@ export function PartnersManagement() {
       referredBy: partner.referredBy || '',
       notes: partner.notes || '',
     });
+    setCreatedCredentials(null);
     setIsModalOpen(true);
   };
 
   const handleDeletePartner = (partnerId: string) => {
-    // Note: To fully delete we need modifying db.partners array, we'll just set it to inactive for now or use setDb if imported
-    if (window.confirm('Are you sure you want to remove this partner?')) {
+    if (window.confirm('Are you sure you want to deactivate this partner?')) {
       contextUpdatePartner(partnerId, { status: 'inactive' });
     }
   };
@@ -88,9 +103,16 @@ export function PartnersManagement() {
     setIsModalOpen(false);
     setEditingPartner(null);
     setFormData(initialFormData);
+    setCreatedCredentials(null);
   };
 
-  const handleSavePartner = (e: React.FormEvent) => {
+  const handleCopy = (text: string, field: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedField(field);
+    setTimeout(() => setCopiedField(null), 2000);
+  };
+
+  const handleSavePartner = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!formData.name || !formData.email || !formData.company || !formData.phone) {
@@ -98,7 +120,10 @@ export function PartnersManagement() {
       return;
     }
 
+    setIsSubmitting(true);
+
     if (editingPartner) {
+      // Update existing partner
       contextUpdatePartner(editingPartner.id, {
         name: formData.name,
         email: formData.email,
@@ -109,11 +134,36 @@ export function PartnersManagement() {
         referredBy: formData.referredBy || undefined,
         notes: formData.notes,
       });
+      setIsSubmitting(false);
+      handleCloseModal();
     } else {
-      alert("Adding new partners directly might be restricted, but we update existing ones. Use invitation codes.");
-    }
+      // Create new partner account in Supabase
+      if (!formData.password || formData.password.length < 6) {
+        alert('Password must be at least 6 characters');
+        setIsSubmitting(false);
+        return;
+      }
 
-    handleCloseModal();
+      const result = await addPartner({
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+        company: formData.company,
+        phone: formData.phone,
+        discountRate: parseInt(formData.discountRate) || 20,
+        status: formData.status,
+        referredBy: formData.referredBy || undefined,
+        notes: formData.notes,
+      });
+
+      setIsSubmitting(false);
+
+      if (result.success) {
+        setCreatedCredentials({ email: formData.email, password: formData.password });
+      } else {
+        alert(`Error creating partner: ${result.error}`);
+      }
+    }
   };
 
   const getStatusColor = (status: string) => {
@@ -128,14 +178,6 @@ export function PartnersManagement() {
         return 'bg-slate-100 text-slate-700';
     }
   };
-
-  if (!isLoaded) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin h-8 w-8 border-2 border-slate-900 border-t-transparent rounded-full" />
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-6">
@@ -234,7 +276,7 @@ export function PartnersManagement() {
                 </div>
                 <div className="flex items-center space-x-2 text-sm">
                   <Building2 className="h-4 w-4 text-slate-400 flex-shrink-0" />
-                  <span className="text-slate-600">Joined {partner.joinedAt}</span>
+                  <span className="text-slate-600">Joined {new Date(partner.joinedAt).toLocaleDateString()}</span>
                 </div>
               </div>
 
@@ -264,7 +306,7 @@ export function PartnersManagement() {
                 <button
                   onClick={() => handleDeletePartner(partner.id)}
                   className="p-2 hover:bg-red-50 rounded-lg text-slate-500 hover:text-red-600 transition-colors"
-                  title="Delete partner"
+                  title="Deactivate partner"
                 >
                   <Trash2 className="h-4 w-4" />
                 </button>
@@ -295,7 +337,7 @@ export function PartnersManagement() {
           <div className="bg-white rounded-xl max-w-md w-full max-h-[90vh] overflow-auto">
             <div className="p-5 border-b border-slate-100 flex items-center justify-between">
               <h3 className="text-lg font-semibold text-slate-900">
-                {editingPartner ? 'Edit Partner' : 'Add New Partner'}
+                {createdCredentials ? 'Partner Created!' : editingPartner ? 'Edit Partner' : 'Create Partner Account'}
               </h3>
               <button
                 onClick={handleCloseModal}
@@ -305,132 +347,213 @@ export function PartnersManagement() {
               </button>
             </div>
 
-            <form onSubmit={handleSavePartner} className="p-5 space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
-                  Full Name <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-slate-200"
-                  placeholder="Enter partner name"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
-                  Email <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="email"
-                  required
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-slate-200"
-                  placeholder="partner@company.com"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
-                  Company <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={formData.company}
-                  onChange={(e) => setFormData({ ...formData, company: e.target.value })}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-slate-200"
-                  placeholder="Company name"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
-                  Phone <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="tel"
-                  required
-                  value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-slate-200"
-                  placeholder="+1 (555) 123-4567"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
+            {createdCredentials ? (
+              // Show credentials after successful creation
+              <div className="p-5 space-y-4">
+                <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4">
+                  <p className="text-emerald-800 font-medium mb-2">✓ Partner account created successfully!</p>
+                  <p className="text-emerald-700 text-sm">Share these credentials with the partner so they can log in.</p>
+                </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Discount Rate (%)</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Email</label>
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="text"
+                      readOnly
+                      value={createdCredentials.email}
+                      className="flex-1 px-3 py-2 border border-slate-200 rounded-lg bg-slate-50"
+                    />
+                    <button onClick={() => handleCopy(createdCredentials.email, 'email')} className="p-2 hover:bg-slate-100 rounded-lg">
+                      {copiedField === 'email' ? <Check className="h-4 w-4 text-emerald-500" /> : <Copy className="h-4 w-4 text-slate-400" />}
+                    </button>
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Password</label>
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="text"
+                      readOnly
+                      value={createdCredentials.password}
+                      className="flex-1 px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 font-mono"
+                    />
+                    <button onClick={() => handleCopy(createdCredentials.password, 'password')} className="p-2 hover:bg-slate-100 rounded-lg">
+                      {copiedField === 'password' ? <Check className="h-4 w-4 text-emerald-500" /> : <Copy className="h-4 w-4 text-slate-400" />}
+                    </button>
+                  </div>
+                </div>
+                <button
+                  onClick={() => {
+                    handleCopy(`Email: ${createdCredentials.email}\nPassword: ${createdCredentials.password}`, 'both');
+                  }}
+                  className="w-full py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors"
+                >
+                  {copiedField === 'both' ? '✓ Copied!' : 'Copy Both to Clipboard'}
+                </button>
+                <button
+                  onClick={handleCloseModal}
+                  className="w-full py-2 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors"
+                >
+                  Done
+                </button>
+              </div>
+            ) : (
+              // Form for creating/editing
+              <form onSubmit={handleSavePartner} className="p-5 space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    Full Name <span className="text-red-500">*</span>
+                  </label>
                   <input
-                    type="number"
-                    min="0"
-                    max="50"
-                    value={formData.discountRate}
-                    onChange={(e) => setFormData({ ...formData, discountRate: e.target.value })}
+                    type="text"
+                    required
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-slate-200"
+                    placeholder="Enter partner name"
                   />
                 </div>
+
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Status</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    Email <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="email"
+                    required
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-slate-200"
+                    placeholder="partner@company.com"
+                    disabled={!!editingPartner}
+                  />
+                </div>
+
+                {!editingPartner && (
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Password <span className="text-red-500">*</span>
+                    </label>
+                    <div className="relative">
+                      <input
+                        type={showPassword ? 'text' : 'password'}
+                        required
+                        value={formData.password}
+                        onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                        className="w-full px-3 py-2 pr-10 border border-slate-200 rounded-lg focus:ring-2 focus:ring-slate-200"
+                        placeholder="Auto-generated password"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 p-1 hover:bg-slate-100 rounded"
+                      >
+                        {showPassword ? <EyeOff className="h-4 w-4 text-slate-400" /> : <Eye className="h-4 w-4 text-slate-400" />}
+                      </button>
+                    </div>
+                    <p className="text-xs text-slate-400 mt-1">This password will be shown after creation for you to share with the partner</p>
+                  </div>
+                )}
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    Company <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={formData.company}
+                    onChange={(e) => setFormData({ ...formData, company: e.target.value })}
+                    className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-slate-200"
+                    placeholder="Company name"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    Phone <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="tel"
+                    required
+                    value={formData.phone}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-slate-200"
+                    placeholder="+1 (555) 123-4567"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">Discount Rate (%)</label>
+                    <input
+                      type="number"
+                      min="0"
+                      max="50"
+                      value={formData.discountRate}
+                      onChange={(e) => setFormData({ ...formData, discountRate: e.target.value })}
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-slate-200"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">Status</label>
+                    <select
+                      value={formData.status}
+                      onChange={(e) => setFormData({ ...formData, status: e.target.value as Partner['status'] })}
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-slate-200"
+                    >
+                      <option value="active">Active</option>
+                      <option value="inactive">Inactive</option>
+                      <option value="pending">Pending</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Referred By (Partner)</label>
                   <select
-                    value={formData.status}
-                    onChange={(e) => setFormData({ ...formData, status: e.target.value as Partner['status'] })}
+                    value={formData.referredBy}
+                    onChange={(e) => setFormData({ ...formData, referredBy: e.target.value })}
                     className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-slate-200"
                   >
-                    <option value="active">Active</option>
-                    <option value="inactive">Inactive</option>
-                    <option value="pending">Pending</option>
+                    <option value="">None (Top Level)</option>
+                    {partnerList.filter(p => p.id !== editingPartner?.id).map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.name} - {p.company}
+                      </option>
+                    ))}
                   </select>
                 </div>
-              </div>
 
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Referred By (Partner ID)</label>
-                <select
-                  value={formData.referredBy}
-                  onChange={(e) => setFormData({ ...formData, referredBy: e.target.value })}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-slate-200"
-                >
-                  <option value="">None (Top Level)</option>
-                  {partnerList.filter(p => p.id !== editingPartner?.id).map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.name} - {p.company}
-                    </option>
-                  ))}
-                </select>
-              </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Notes</label>
+                  <textarea
+                    rows={3}
+                    value={formData.notes}
+                    onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                    className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-slate-200"
+                    placeholder="Add notes about this partner..."
+                  />
+                </div>
 
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Notes</label>
-                <textarea
-                  rows={3}
-                  value={formData.notes}
-                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-slate-200"
-                  placeholder="Add notes about this partner..."
-                />
-              </div>
-
-              <div className="flex justify-end space-x-3 pt-4">
-                <button
-                  type="button"
-                  onClick={handleCloseModal}
-                  className="px-4 py-2 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors"
-                >
-                  {editingPartner ? 'Update Partner' : 'Add Partner'}
-                </button>
-              </div>
-            </form>
+                <div className="flex justify-end space-x-3 pt-4">
+                  <button
+                    type="button"
+                    onClick={handleCloseModal}
+                    className="px-4 py-2 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="px-4 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors disabled:opacity-50"
+                  >
+                    {isSubmitting ? 'Creating...' : editingPartner ? 'Update Partner' : 'Create Partner Account'}
+                  </button>
+                </div>
+              </form>
+            )}
           </div>
         </div>
       )}

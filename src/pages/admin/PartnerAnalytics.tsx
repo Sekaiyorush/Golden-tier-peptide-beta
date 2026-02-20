@@ -58,8 +58,26 @@ export function PartnerAnalytics() {
         ? Math.round((customersWithOrders / customerSignups) * 100)
         : 0;
 
-      // Mock growth percentage
-      const growth = Math.floor(Math.random() * 40) - 10;
+      // Calculate growth based on current vs previous period
+      let growth = 0;
+      if (partnerOrders.length > 0) {
+        const _now = new Date();
+        const days = timeRange === '7d' ? 7 : timeRange === '30d' ? 30 : timeRange === '90d' ? 90 : 365;
+        const currentPeriodStart = new Date(_now.getTime() - days * 24 * 60 * 60 * 1000);
+        const prevPeriodStart = new Date(currentPeriodStart.getTime() - days * 24 * 60 * 60 * 1000);
+
+        const currentPeriodOrders = partnerOrders.filter(o => new Date(o.createdAt) >= currentPeriodStart);
+        const prevPeriodOrders = partnerOrders.filter(o => new Date(o.createdAt) >= prevPeriodStart && new Date(o.createdAt) < currentPeriodStart);
+
+        const currentRev = currentPeriodOrders.reduce((sum, o) => sum + o.total, 0);
+        const prevRev = prevPeriodOrders.reduce((sum, o) => sum + o.total, 0);
+
+        if (prevRev > 0) {
+          growth = Math.round(((currentRev - prevRev) / prevRev) * 100);
+        } else if (currentRev > 0) {
+          growth = 100;
+        }
+      }
 
       return {
         id: partner.id,
@@ -139,7 +157,6 @@ export function PartnerAnalytics() {
             <span className="text-sm text-slate-500">Partner Revenue</span>
           </div>
           <p className="text-2xl font-semibold text-slate-900">${totalPartnerRevenue.toLocaleString()}</p>
-          <p className="text-xs text-emerald-600 mt-1">+12% from last period</p>
         </div>
         <div className="bg-white p-4 rounded-xl border border-slate-200">
           <div className="flex items-center space-x-2 mb-2">
@@ -147,7 +164,6 @@ export function PartnerAnalytics() {
             <span className="text-sm text-slate-500">Network Size</span>
           </div>
           <p className="text-2xl font-semibold text-slate-900">{totalNetworkSize}</p>
-          <p className="text-xs text-emerald-600 mt-1">+5 new this month</p>
         </div>
         <div className="bg-white p-4 rounded-xl border border-slate-200">
           <div className="flex items-center space-x-2 mb-2">
@@ -155,7 +171,6 @@ export function PartnerAnalytics() {
             <span className="text-sm text-slate-500">Customer Signups</span>
           </div>
           <p className="text-2xl font-semibold text-slate-900">{totalCustomerSignups}</p>
-          <p className="text-xs text-emerald-600 mt-1">+23% from last period</p>
         </div>
         <div className="bg-white p-4 rounded-xl border border-slate-200">
           <div className="flex items-center space-x-2 mb-2">
@@ -230,9 +245,9 @@ export function PartnerAnalytics() {
             <div key={partner.id} className="p-5 flex items-center justify-between hover:bg-slate-50">
               <div className="flex items-center space-x-4">
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm ${index === 0 ? 'bg-amber-100 text-amber-700' :
-                    index === 1 ? 'bg-slate-200 text-slate-700' :
-                      index === 2 ? 'bg-orange-100 text-orange-700' :
-                        'bg-slate-100 text-slate-600'
+                  index === 1 ? 'bg-slate-200 text-slate-700' :
+                    index === 2 ? 'bg-orange-100 text-orange-700' :
+                      'bg-slate-100 text-slate-600'
                   }`}>
                   {index + 1}
                 </div>
@@ -336,8 +351,8 @@ export function PartnerAnalytics() {
                   </td>
                   <td className="px-4 py-4 text-center">
                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${partner.status === 'active' ? 'bg-emerald-100 text-emerald-700' :
-                        partner.status === 'pending' ? 'bg-amber-100 text-amber-700' :
-                          'bg-slate-100 text-slate-700'
+                      partner.status === 'pending' ? 'bg-amber-100 text-amber-700' :
+                        'bg-slate-100 text-slate-700'
                       }`}>
                       {partner.status}
                     </span>

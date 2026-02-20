@@ -168,12 +168,18 @@ export function OrdersManagement() {
                       </div>
                     </td>
                     <td className="px-4 py-3">
-                      <span className={`text-xs px-2 py-1 rounded-full ${order.paymentStatus === 'paid' ? 'bg-green-100 text-green-700' :
-                        order.paymentStatus === 'pending' ? 'bg-yellow-100 text-yellow-700' :
-                          'bg-red-100 text-red-700'
-                        }`}>
-                        {order.paymentStatus}
-                      </span>
+                      <select
+                        value={order.paymentStatus}
+                        onChange={(e) => contextUpdateOrder(order.id, { paymentStatus: e.target.value as Order['paymentStatus'] })}
+                        className={`text-xs px-2 py-1 rounded-full border-0 cursor-pointer ${order.paymentStatus === 'paid' ? 'bg-green-100 text-green-700' :
+                          order.paymentStatus === 'pending' ? 'bg-yellow-100 text-yellow-700' :
+                            'bg-red-100 text-red-700'
+                          }`}
+                      >
+                        <option value="pending">Pending</option>
+                        <option value="paid">Paid</option>
+                        <option value="failed">Failed</option>
+                      </select>
                     </td>
                     <td className="px-4 py-3">
                       <button
