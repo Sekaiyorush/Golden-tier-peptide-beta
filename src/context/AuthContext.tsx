@@ -35,7 +35,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
-  const { db, setDb } = useDatabase();
+  const { db } = useDatabase();
 
   useEffect(() => {
     // Check active sessions and sets the user

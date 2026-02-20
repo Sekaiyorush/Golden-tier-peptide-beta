@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { partners, type Partner } from '@/data/products';
-import { 
-  Search, 
-  Users, 
+import { type Partner } from '@/data/products';
+import { useDatabase } from '@/context/DatabaseContext';
+import {
+  Search,
+  Users,
   Network,
   Percent,
   TrendingUp,
@@ -18,13 +19,15 @@ interface NetworkNode {
 export function PartnerNetwork() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedPartner, setSelectedPartner] = useState<Partner | null>(null);
+  const { db } = useDatabase();
+  const partners = db.partners;
 
   // Build network tree
   const buildNetworkTree = (partnerId: string | null, level: number = 0): NetworkNode[] => {
-    const directPartners = partners.filter(p => 
+    const directPartners = partners.filter(p =>
       partnerId ? p.referredBy === partnerId : !p.referredBy
     );
-    
+
     return directPartners.map(p => ({
       partner: p,
       level,
@@ -57,20 +60,18 @@ export function PartnerNetwork() {
   // Recursive component for network tree
   const NetworkTreeNode = ({ node }: { node: NetworkNode }) => {
     const hasChildren = node.children.length > 0;
-    
+
     return (
       <div className="relative">
-        <div 
-          className={`flex items-center space-x-3 p-3 rounded-lg cursor-pointer transition-colors ${
-            selectedPartner?.id === node.partner.id 
-              ? 'bg-slate-900 text-white' 
+        <div
+          className={`flex items-center space-x-3 p-3 rounded-lg cursor-pointer transition-colors ${selectedPartner?.id === node.partner.id
+              ? 'bg-slate-900 text-white'
               : 'bg-white hover:bg-slate-50 border border-slate-200'
-          }`}
+            }`}
           onClick={() => setSelectedPartner(node.partner)}
         >
-          <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-            selectedPartner?.id === node.partner.id ? 'bg-white/20' : 'bg-slate-100'
-          }`}>
+          <div className={`w-10 h-10 rounded-full flex items-center justify-center ${selectedPartner?.id === node.partner.id ? 'bg-white/20' : 'bg-slate-100'
+            }`}>
             <User className={`h-5 w-5 ${selectedPartner?.id === node.partner.id ? 'text-white' : 'text-slate-500'}`} />
           </div>
           <div className="flex-1 min-w-0">
@@ -82,11 +83,10 @@ export function PartnerNetwork() {
             </p>
           </div>
           <div className="text-right">
-            <span className={`px-2 py-0.5 rounded-full text-xs ${
-              selectedPartner?.id === node.partner.id 
-                ? 'bg-white/20 text-white' 
+            <span className={`px-2 py-0.5 rounded-full text-xs ${selectedPartner?.id === node.partner.id
+                ? 'bg-white/20 text-white'
                 : getStatusColor(node.partner.status)
-            }`}>
+              }`}>
               {node.partner.discountRate}% off
             </span>
             <p className={`text-xs mt-1 ${selectedPartner?.id === node.partner.id ? 'text-white/70' : 'text-slate-400'}`}>
@@ -94,7 +94,7 @@ export function PartnerNetwork() {
             </p>
           </div>
         </div>
-        
+
         {hasChildren && (
           <div className="ml-6 mt-2 space-y-2 relative">
             <div className="absolute left-0 top-0 bottom-4 w-px bg-slate-200" />
@@ -192,7 +192,7 @@ export function PartnerNetwork() {
                     <p className="text-sm text-slate-500">{selectedPartner.company}</p>
                   </div>
                 </div>
-                
+
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span className="text-slate-500">Email</span>

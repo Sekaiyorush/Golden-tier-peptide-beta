@@ -1,12 +1,15 @@
 import { Link } from 'react-router-dom';
 import { useCart } from '@/context/CartContext';
 import { useAuth } from '@/context/AuthContext';
-import { featuredProducts } from '@/data/products';
+import { useDatabase } from '@/context/DatabaseContext';
 import { ShoppingCart, ArrowRight, Check } from 'lucide-react';
 
 export function FeaturedProducts() {
   const { addToCart } = useCart();
   const { isPartner, user } = useAuth();
+  const { db } = useDatabase();
+
+  const featuredProducts = db.products.slice(0, 3);
 
   // Calculate partner price if applicable
   const getPrice = (price: number) => {
@@ -49,7 +52,7 @@ export function FeaturedProducts() {
                   <Check className="h-3 w-3 text-emerald-500" />
                   <span className="text-xs font-medium text-slate-700">{product.purity}</span>
                 </div>
-                
+
                 {/* Product visual */}
                 <div className="w-20 h-20 bg-slate-200 rounded-xl flex items-center justify-center group-hover:bg-slate-300 transition-colors">
                   <span className="text-slate-600 font-semibold text-lg">{product.name.split('-')[0]}</span>
