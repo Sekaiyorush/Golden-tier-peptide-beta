@@ -8,7 +8,7 @@ const drawVariants = {
         pathLength: 1,
         opacity: 0.4,
         transition: {
-            pathLength: { delay: 0.8, type: "spring", duration: 4.5, bounce: 0 },
+            pathLength: { delay: 0.8, type: "spring" as const, duration: 4.5, bounce: 0 },
             opacity: { delay: 0.8, duration: 2 }
         }
     }

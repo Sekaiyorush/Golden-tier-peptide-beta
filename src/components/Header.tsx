@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import { useCart } from '@/context/CartContext';
 import { useLanguage } from '@/context/LanguageContext';
 import { useAuth } from '@/context/AuthContext';
-import { useDatabase } from '@/context/DatabaseContext';
 import { SearchBar } from './SearchBar';
 import { Menu, X, ShoppingCart, User, LogOut, LayoutDashboard, Globe } from 'lucide-react';
 
@@ -13,7 +12,6 @@ export function Header() {
   const { toggleCart, cartCount } = useCart();
   const { language, toggleLanguage } = useLanguage();
   const { isAuthenticated, isAdmin, isPartner, logout } = useAuth();
-  const { db } = useDatabase();
 
   const getDashboardLink = () => {
     if (isAdmin) return '/admin';
