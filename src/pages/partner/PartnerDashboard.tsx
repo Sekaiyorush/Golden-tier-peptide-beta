@@ -78,21 +78,22 @@ export function PartnerDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 py-8">
-      <div className="container px-4 md:px-6">
+    <div className="min-h-screen bg-transparent py-14 relative overflow-hidden">
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-amber-50/40 via-white to-white pointer-events-none -z-10" />
+      <div className="container px-6 md:px-12 max-w-7xl mx-auto relative z-10">
         {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center space-x-3 mb-2">
-            <h1 className="text-2xl md:text-3xl font-semibold text-slate-900">Partner Dashboard</h1>
-            <span className="px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-sm font-medium">
-              {user?.discountRate}% Discount
+        <div className="mb-12 text-center md:text-left">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-3">
+            <h1 className="text-4xl md:text-5xl font-serif text-slate-900 tracking-tight">Partner Dashboard</h1>
+            <span className="px-5 py-2 bg-gradient-to-r from-gold-400 to-gold-600 text-white rounded-full text-sm font-semibold tracking-wide shadow-md w-fit mx-auto md:mx-0">
+              {user?.discountRate}% Advantage
             </span>
           </div>
-          <p className="text-slate-500">Welcome back, {user?.name}</p>
+          <p className="text-slate-500 font-light text-lg">Welcome back, {user?.name}</p>
         </div>
 
         {/* Tabs */}
-        <div className="flex flex-wrap gap-1 bg-white p-1 rounded-lg border border-slate-200 mb-6 w-fit">
+        <div className="flex flex-wrap justify-center md:justify-start gap-2 mb-10">
           {[
             { id: 'overview', label: 'Overview', icon: Package },
             { id: 'shop', label: 'Partner Shop', icon: ShoppingBag },
@@ -103,9 +104,9 @@ export function PartnerDashboard() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${activeTab === tab.id
-                ? 'bg-slate-900 text-white'
-                : 'text-slate-600 hover:bg-slate-100'
+              className={`flex items-center space-x-2 px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-300 ${activeTab === tab.id
+                ? 'bg-gradient-to-r from-gold-500 to-gold-600 text-white shadow-md shadow-gold-500/20'
+                : 'bg-white/60 backdrop-blur-md text-slate-600 border border-transparent hover:border-gold-200 hover:bg-gold-50/50 hover:text-gold-700'
                 }`}
             >
               <tab.icon className="h-4 w-4" />
@@ -116,64 +117,64 @@ export function PartnerDashboard() {
 
         {/* Overview Tab */}
         {activeTab === 'overview' && (
-          <div className="space-y-6">
+          <div className="space-y-8">
             {/* Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="bg-white p-6 rounded-xl border border-slate-200">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="bg-white/60 backdrop-blur-xl p-6 rounded-[2rem] border border-gold-200/50 shadow-[0_4px_20px_rgb(0,0,0,0.03)] hover:shadow-lg transition-shadow">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-slate-500">Discount Rate</p>
-                    <p className="text-2xl font-semibold text-indigo-600">{user?.discountRate}%</p>
+                    <p className="text-xs font-bold tracking-widest uppercase text-slate-400 mb-2">Discount Rate</p>
+                    <p className="text-3xl font-serif text-slate-900">{user?.discountRate}%</p>
                   </div>
-                  <div className="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center">
-                    <Percent className="h-6 w-6 text-indigo-600" />
+                  <div className="w-12 h-12 bg-gradient-to-br from-gold-400 to-gold-600 rounded-xl flex items-center justify-center shadow-lg shadow-gold-500/20">
+                    <Percent className="h-6 w-6 text-white" />
                   </div>
                 </div>
               </div>
-              <div className="bg-white p-6 rounded-xl border border-slate-200">
+              <div className="bg-white/60 backdrop-blur-xl p-6 rounded-[2rem] border border-gold-200/50 shadow-[0_4px_20px_rgb(0,0,0,0.03)] hover:shadow-lg transition-shadow">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-slate-500">Total Purchases</p>
-                    <p className="text-2xl font-semibold text-slate-900">${totalPurchases.toFixed(2)}</p>
+                    <p className="text-xs font-bold tracking-widest uppercase text-slate-400 mb-2">Total Purchases</p>
+                    <p className="text-3xl font-serif text-slate-900">${totalPurchases.toFixed(2)}</p>
                   </div>
-                  <div className="w-12 h-12 bg-slate-100 rounded-lg flex items-center justify-center">
-                    <ShoppingBag className="h-6 w-6 text-slate-600" />
+                  <div className="w-12 h-12 bg-white border border-gold-200 rounded-xl flex items-center justify-center">
+                    <ShoppingBag className="h-6 w-6 text-gold-600" />
                   </div>
                 </div>
               </div>
-              <div className="bg-white p-6 rounded-xl border border-slate-200">
+              <div className="bg-white/60 backdrop-blur-xl p-6 rounded-[2rem] border border-gold-200/50 shadow-[0_4px_20px_rgb(0,0,0,0.03)] hover:shadow-lg transition-shadow">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-slate-500">Est. Profit</p>
-                    <p className="text-2xl font-semibold text-emerald-600">${estimatedProfit.toFixed(2)}</p>
+                    <p className="text-xs font-bold tracking-widest uppercase text-slate-400 mb-2">Est. Profit</p>
+                    <p className="text-3xl font-serif text-emerald-600">${estimatedProfit.toFixed(2)}</p>
                   </div>
-                  <div className="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center">
+                  <div className="w-12 h-12 bg-emerald-50 border border-emerald-100 rounded-xl flex items-center justify-center">
                     <TrendingUp className="h-6 w-6 text-emerald-600" />
                   </div>
                 </div>
               </div>
-              <div className="bg-white p-6 rounded-xl border border-slate-200">
+              <div className="bg-white/60 backdrop-blur-xl p-6 rounded-[2rem] border border-gold-200/50 shadow-[0_4px_20px_rgb(0,0,0,0.03)] hover:shadow-lg transition-shadow">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-slate-500">Network Size</p>
-                    <p className="text-2xl font-semibold text-slate-900">{referredPartners.length}</p>
+                    <p className="text-xs font-bold tracking-widest uppercase text-slate-400 mb-2">Network Size</p>
+                    <p className="text-3xl font-serif text-slate-900">{referredPartners.length}</p>
                   </div>
-                  <div className="w-12 h-12 bg-slate-100 rounded-lg flex items-center justify-center">
-                    <Users className="h-6 w-6 text-slate-600" />
+                  <div className="w-12 h-12 bg-slate-900 rounded-xl flex items-center justify-center">
+                    <Users className="h-6 w-6 text-gold-400" />
                   </div>
                 </div>
               </div>
             </div>
 
             {/* Partner Info Cards */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               {/* Recent Orders */}
-              <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-                <div className="p-5 border-b border-slate-100 flex items-center justify-between">
-                  <h3 className="font-semibold text-slate-900">Recent Orders</h3>
+              <div className="bg-white/60 backdrop-blur-xl rounded-[2rem] border border-gold-200/50 overflow-hidden shadow-sm">
+                <div className="p-6 border-b border-gold-100/50 flex items-center justify-between">
+                  <h3 className="font-serif text-xl tracking-tight text-slate-900">Recent Orders</h3>
                   <button
                     onClick={() => setActiveTab('orders')}
-                    className="text-sm text-slate-600 hover:text-slate-900 flex items-center"
+                    className="text-sm font-medium text-slate-500 hover:text-gold-600 flex items-center transition-colors"
                   >
                     View all <ChevronRight className="h-4 w-4 ml-1" />
                   </button>
@@ -216,17 +217,17 @@ export function PartnerDashboard() {
               </div>
 
               {/* Network Preview */}
-              <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-                <div className="p-5 border-b border-slate-100 flex items-center justify-between">
-                  <h3 className="font-semibold text-slate-900">My Network</h3>
+              <div className="bg-white/60 backdrop-blur-xl rounded-[2rem] border border-gold-200/50 overflow-hidden shadow-sm">
+                <div className="p-6 border-b border-gold-100/50 flex items-center justify-between">
+                  <h3 className="font-serif text-xl tracking-tight text-slate-900">My Network</h3>
                   <button
                     onClick={() => setActiveTab('network')}
-                    className="text-sm text-slate-600 hover:text-slate-900 flex items-center"
+                    className="text-sm font-medium text-slate-500 hover:text-gold-600 flex items-center transition-colors"
                   >
                     View all <ChevronRight className="h-4 w-4 ml-1" />
                   </button>
                 </div>
-                <div className="p-5">
+                <div className="p-6">
                   {referrer && (
                     <div className="mb-4 p-4 bg-slate-50 rounded-lg">
                       <p className="text-xs text-slate-500 uppercase tracking-wider mb-2">My Referrer</p>
@@ -279,23 +280,26 @@ export function PartnerDashboard() {
 
         {/* Partner Shop Tab */}
         {activeTab === 'shop' && (
-          <div className="space-y-6">
-            <div className="bg-indigo-50 border border-indigo-100 rounded-xl p-4 flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <Percent className="h-5 w-5 text-indigo-600" />
-                <span className="text-indigo-900 font-medium">Your Partner Discount: {user?.discountRate}% off all products</span>
+          <div className="space-y-8">
+            <div className="bg-gradient-to-r from-gold-500 to-gold-600 rounded-[2rem] p-8 flex flex-col md:flex-row items-center justify-between shadow-xl relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 blur-3xl -translate-y-1/2 translate-x-1/2 rounded-full pointer-events-none" />
+              <div className="flex items-center space-x-4 relative z-10 mb-4 md:mb-0">
+                <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-sm border border-white/30">
+                  <Percent className="h-6 w-6 text-white" />
+                </div>
+                <span className="text-white text-lg font-serif tracking-wide">Your Exclusive Advantage: <span className="font-bold">{user?.discountRate}%</span></span>
               </div>
               <Link
                 to="/products"
-                className="text-indigo-600 hover:text-indigo-700 text-sm font-medium flex items-center"
+                className="bg-white text-gold-600 hover:bg-gold-50 px-6 py-3 rounded-xl text-sm font-bold tracking-widest uppercase flex items-center transition-all shadow-md relative z-10"
               >
-                Browse Catalog <ArrowUpRight className="h-4 w-4 ml-1" />
+                Browse Catalog <ArrowUpRight className="h-4 w-4 ml-2" />
               </Link>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {products.map((product) => (
-                <div key={product.id} className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+                <div key={product.id} className="bg-white/60 backdrop-blur-xl rounded-[2rem] border border-gold-200/50 overflow-hidden shadow-sm hover:shadow-lg transition-all group">
                   <div className="aspect-[4/3] bg-slate-100 flex items-center justify-center p-6 overflow-hidden">
                     {product.imageUrl ? (
                       <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover rounded-xl shadow-inner" />
@@ -326,47 +330,47 @@ export function PartnerDashboard() {
 
         {/* Orders Tab */}
         {activeTab === 'orders' && (
-          <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-            <div className="p-5 border-b border-slate-100">
-              <h3 className="font-semibold text-slate-900">Order History</h3>
+          <div className="bg-white/60 backdrop-blur-xl rounded-[2rem] border border-gold-200/50 overflow-hidden shadow-sm">
+            <div className="p-6 md:p-8 border-b border-gold-100/50">
+              <h3 className="font-serif text-2xl tracking-tight text-slate-900">Order History</h3>
             </div>
-            <div className="divide-y divide-slate-100">
+            <div className="divide-y divide-gold-100/30">
               {partnerOrders.map((order) => (
-                <div key={order.id} className="p-6">
-                  <div className="flex items-center justify-between mb-4">
+                <div key={order.id} className="p-6 md:p-8">
+                  <div className="flex flex-wrap gap-4 items-center justify-between mb-6">
                     <div>
-                      <p className="font-medium text-slate-900">{order.id}</p>
-                      <p className="text-sm text-slate-500">{order.createdAt}</p>
+                      <p className="font-bold tracking-widest text-slate-900 uppercase text-xs mb-1">{order.id}</p>
+                      <p className="text-sm font-light text-slate-500">{order.createdAt}</p>
                     </div>
-                    <span className={`inline-flex items-center space-x-1 px-3 py-1 rounded-full text-sm ${getStatusColor(order.status)}`}>
+                    <span className={`inline-flex items-center space-x-1 px-4 py-1.5 rounded-full text-xs font-semibold tracking-wide uppercase ${getStatusColor(order.status)}`}>
                       {getStatusIcon(order.status)}
-                      <span className="capitalize">{order.status}</span>
+                      <span className="ml-1">{order.status}</span>
                     </span>
                   </div>
-                  <div className="space-y-2">
+                  <div className="space-y-3 bg-white/50 rounded-2xl p-5 border border-gold-100/50">
                     {order.items.map((item, idx) => (
                       <div key={idx} className="flex items-center justify-between text-sm">
-                        <span className="text-slate-600">{item.quantity}x {item.name}</span>
-                        <span className="text-slate-900">${(item.price * item.quantity).toFixed(2)}</span>
+                        <span className="text-slate-600 font-light">{item.quantity}x <span className="font-medium text-slate-900">{item.name}</span></span>
+                        <span className="text-slate-900 font-medium">${(item.price * item.quantity).toFixed(2)}</span>
                       </div>
                     ))}
                   </div>
-                  <div className="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between">
+                  <div className="mt-6 flex items-center justify-between">
                     <button
                       onClick={() => setSelectedOrderId(order.id)}
-                      className="text-sm text-indigo-600 font-medium hover:text-indigo-700 flex items-center"
+                      className="text-sm text-gold-600 font-bold tracking-wide uppercase hover:text-gold-700 flex items-center group"
                     >
-                      <Eye className="h-4 w-4 mr-1.5" /> View Details & Tracking
+                      <Eye className="h-4 w-4 mr-2 group-hover:scale-110 transition-transform" /> View Tracking
                     </button>
-                    <span className="font-semibold text-slate-900">Total (with discount): ${order.total.toFixed(2)}</span>
+                    <span className="font-serif text-xl text-slate-900">${order.total.toFixed(2)}</span>
                   </div>
                 </div>
               ))}
               {partnerOrders.length === 0 && (
-                <div className="p-12 text-center">
-                  <ShoppingBag className="h-12 w-12 text-slate-300 mx-auto mb-4" />
-                  <p className="text-slate-500 mb-2">No orders yet</p>
-                  <button onClick={() => setActiveTab('shop')} className="text-slate-900 underline">Shop with discount</button>
+                <div className="p-16 text-center">
+                  <ShoppingBag className="h-16 w-16 text-gold-200 mx-auto mb-6" />
+                  <p className="text-slate-500 mb-4 font-light text-lg">No acquisitions recorded yet.</p>
+                  <button onClick={() => setActiveTab('shop')} className="text-gold-600 font-bold tracking-widest uppercase hover:text-gold-700 transition-colors text-sm">Access Partner Shop</button>
                 </div>
               )}
             </div>

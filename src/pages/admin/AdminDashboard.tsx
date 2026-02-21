@@ -35,10 +35,10 @@ function DashboardHome() {
   const { db } = useDatabase();
 
   const stats = [
-    { label: 'Total Products', value: db.products.length.toString(), change: '+0', icon: Package, color: 'bg-blue-500' },
-    { label: 'Total Orders', value: db.orders.length.toString(), change: '+0', icon: ShoppingCart, color: 'bg-emerald-500' },
-    { label: 'Active Partners', value: db.partners.length.toString(), change: '+0', icon: Users, color: 'bg-indigo-500' },
-    { label: 'Customers', value: db.customers.length.toString(), change: '+0', icon: UserCircle, color: 'bg-amber-500' },
+    { label: 'Total Products', value: db.products.length.toString(), change: '+0', icon: Package, color: 'bg-gradient-to-br from-gold-400 to-gold-600' },
+    { label: 'Total Orders', value: db.orders.length.toString(), change: '+0', icon: ShoppingCart, color: 'bg-gradient-to-br from-gold-400 to-gold-600' },
+    { label: 'Active Partners', value: db.partners.length.toString(), change: '+0', icon: Users, color: 'bg-gradient-to-br from-gold-400 to-gold-600' },
+    { label: 'Customers', value: db.customers.length.toString(), change: '+0', icon: UserCircle, color: 'bg-gradient-to-br from-gold-400 to-gold-600' },
   ];
 
   return (
@@ -51,14 +51,14 @@ function DashboardHome() {
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {stats.map((stat, index) => (
-          <div key={index} className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+          <div key={index} className="bg-white/60 backdrop-blur-xl p-6 rounded-[2rem] border border-gold-200/50 shadow-[0_4px_20px_rgb(0,0,0,0.03)] selection:bg-gold-200/30">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-slate-500">{stat.label}</p>
-                <p className="text-2xl font-semibold text-slate-900">{stat.value}</p>
+                <p className="text-sm font-medium tracking-wide uppercase text-slate-500 mb-1">{stat.label}</p>
+                <p className="text-3xl font-serif text-slate-900">{stat.value}</p>
               </div>
-              <div className={`w-10 h-10 ${stat.color} rounded-lg flex items-center justify-center`}>
-                <stat.icon className="h-5 w-5 text-white" />
+              <div className={`w-12 h-12 ${stat.color} rounded-2xl flex items-center justify-center shadow-lg shadow-gold-500/20`}>
+                <stat.icon className="h-6 w-6 text-white" />
               </div>
             </div>
           </div>
@@ -68,9 +68,9 @@ function DashboardHome() {
       {/* Recent Activity */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Recent Orders */}
-        <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold text-slate-900">Recent Orders</h3>
+        <div className="bg-white/60 backdrop-blur-xl rounded-[2rem] border border-gold-200/50 p-6 shadow-[0_4px_20px_rgb(0,0,0,0.03)]">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="font-serif text-xl tracking-tight text-slate-900">Recent Orders</h3>
             <Link to="/admin/orders" className="text-sm text-slate-600 hover:text-slate-900">
               View all →
             </Link>
@@ -97,9 +97,9 @@ function DashboardHome() {
         </div>
 
         {/* Low Stock Alerts */}
-        <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold text-slate-900">Low Stock Alerts</h3>
+        <div className="bg-white/60 backdrop-blur-xl rounded-[2rem] border border-gold-200/50 p-6 shadow-[0_4px_20px_rgb(0,0,0,0.03)]">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="font-serif text-xl tracking-tight text-slate-900">Low Stock Alerts</h3>
             <Link to="/admin/products" className="text-sm text-slate-600 hover:text-slate-900">
               Manage →
             </Link>
@@ -150,22 +150,23 @@ export function AdminDashboard() {
   ];
 
   return (
-    <div className="min-h-screen bg-slate-50 flex">
+    <div className="min-h-screen bg-transparent flex relative overflow-hidden">
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-amber-50/40 via-white to-white pointer-events-none -z-10" />
       {/* Sidebar */}
       <aside
-        className={`fixed lg:static inset-y-0 left-0 z-50 w-64 bg-white border-r border-slate-200 transform transition-transform duration-300 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+        className={`fixed lg:static inset-y-0 left-0 z-50 w-64 bg-white/80 backdrop-blur-xl border-r border-gold-200/50 transform transition-transform duration-300 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
           }`}
       >
         <div className="h-full flex flex-col">
           {/* Logo */}
-          <div className="p-5 border-b border-slate-200">
-            <Link to="/" className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-slate-900 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">GT</span>
+          <div className="p-6 border-b border-gold-100/50">
+            <Link to="/" className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-gold-400 to-gold-600 rounded-xl flex items-center justify-center shadow-lg shadow-gold-500/20">
+                <span className="text-white font-serif font-bold text-lg">GT</span>
               </div>
               <div>
-                <span className="text-lg font-semibold text-slate-900">Golden Tier</span>
-                <span className="block text-xs text-slate-500">Admin</span>
+                <span className="text-xl font-serif text-slate-900 tracking-tight">Golden Tier</span>
+                <span className="block text-[10px] uppercase tracking-widest text-gold-600 font-semibold">Admin</span>
               </div>
             </Link>
           </div>
@@ -176,9 +177,9 @@ export function AdminDashboard() {
               <Link
                 key={item.path}
                 to={item.path}
-                className={`flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-colors ${location.pathname === item.path
-                  ? 'bg-slate-900 text-white'
-                  : 'text-slate-600 hover:bg-slate-100'
+                className={`flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 ${location.pathname === item.path
+                  ? 'bg-gradient-to-r from-gold-500 to-gold-600 text-white shadow-md'
+                  : 'text-slate-600 hover:bg-gold-50/50 hover:text-gold-700'
                   }`}
               >
                 <item.icon className="h-5 w-5" />
@@ -188,9 +189,9 @@ export function AdminDashboard() {
           </nav>
 
           {/* User */}
-          <div className="p-3 border-t border-slate-200">
-            <div className="flex items-center space-x-3 p-3 bg-slate-50 rounded-lg mb-2">
-              <div className="w-9 h-9 bg-slate-900 rounded-full flex items-center justify-center">
+          <div className="p-4 border-t border-gold-100/50">
+            <div className="flex items-center space-x-3 p-3 bg-white/50 border border-gold-100/50 rounded-2xl mb-3 shadow-sm">
+              <div className="w-10 h-10 bg-slate-900 rounded-xl flex items-center justify-center shadow-inner">
                 <span className="text-white font-medium text-sm">
                   {user?.name?.charAt(0).toUpperCase()}
                 </span>
@@ -212,26 +213,26 @@ export function AdminDashboard() {
       </aside>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 z-10">
         {/* Header */}
-        <header className="bg-white border-b border-slate-200 p-4 flex items-center justify-between sticky top-0 z-40">
+        <header className="bg-white/60 backdrop-blur-xl border-b border-gold-200/50 p-4 lg:p-6 flex items-center justify-between sticky top-0 z-40">
           <button
             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-            className="lg:hidden p-2 hover:bg-slate-100 rounded-lg transition-colors"
+            className="lg:hidden p-2 hover:bg-gold-50/50 hover:text-gold-600 rounded-xl transition-colors"
           >
-            {isSidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            {isSidebarOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
           </button>
-          <h1 className="text-lg font-semibold text-slate-900">Admin Dashboard</h1>
+          <h1 className="text-xl font-serif text-slate-900 tracking-tight hidden sm:block">Command Center</h1>
           <Link
             to="/"
-            className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+            className="px-5 py-2.5 text-sm font-semibold text-slate-700 bg-white border border-slate-200 hover:border-gold-300 hover:bg-gold-50 hover:text-gold-700 rounded-full transition-all duration-300 shadow-sm"
           >
-            View Site
+            View Live Site
           </Link>
         </header>
 
         {/* Content */}
-        <main className="flex-1 p-6 overflow-auto">
+        <main className="flex-1 p-4 md:p-8 overflow-auto [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:bg-gold-200/50 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-gold-300/50">
           <Routes>
             <Route path="/" element={<DashboardHome />} />
             <Route path="/products" element={<ProductsManagement />} />

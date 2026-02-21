@@ -1,43 +1,63 @@
 export function Privacy() {
     return (
-        <div className="min-h-screen bg-slate-50 py-16">
-            <div className="container mx-auto px-4 md:px-6 max-w-3xl">
-                <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mb-8">Privacy Policy</h1>
+        <div className="min-h-screen bg-transparent py-16 relative overflow-hidden">
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-amber-50/40 via-white to-white pointer-events-none -z-10" />
 
-                <div className="bg-white rounded-xl border border-slate-200 p-8 shadow-sm prose prose-slate max-w-none">
-                    <h3>1. Information We Collect</h3>
+            <div className="container mx-auto px-6 md:px-12 max-w-4xl relative z-10">
+                <div className="text-center mb-12">
+                    <span className="text-[10px] font-bold tracking-[0.2em] uppercase text-gold-500 mb-4 block">Data Security</span>
+                    <h1 className="text-4xl md:text-5xl font-serif text-slate-900 tracking-tight">Privacy Policy</h1>
+                </div>
+
+                <div className="bg-white/60 backdrop-blur-xl rounded-[2rem] border border-gold-200/50 p-10 md:p-14 shadow-[0_8px_30px_rgb(0,0,0,0.04)] prose prose-slate max-w-none prose-headings:font-serif prose-headings:font-normal prose-headings:tracking-tight prose-h3:text-2xl prose-h3:text-slate-900 prose-h3:mb-4 prose-h4:text-lg prose-h4:text-slate-800 prose-p:text-slate-500 prose-p:font-light prose-p:leading-relaxed prose-li:text-slate-500 prose-li:font-light prose-strong:text-slate-800 prose-strong:font-semibold">
+                    <h3 className="flex items-center gap-3">
+                        <span className="w-8 h-px bg-gold-400 inline-block" />
+                        1. Information We Collect
+                    </h3>
                     <p>
-                        When you create an account, place an order, or contact us, we may collect the following information:
+                        When you create an elite account, place an order authorization, or contact our concierge, we discreetly collect the following telemetry:
                     </p>
-                    <ul>
-                        <li>Name and contact information (email, phone)</li>
-                        <li>Shipping and billing addresses</li>
-                        <li>Order history and research affiliation details (if applicable)</li>
+                    <ul className="marker:text-gold-500">
+                        <li>Name and primary contact information (email, verified phone)</li>
+                        <li>Encrypted logistics and billing addresses</li>
+                        <li>Acquisition history and institutional research affiliations (contingent on partner status)</li>
                     </ul>
 
-                    <h3>2. How We Use Your Information</h3>
+                    <h3 className="flex items-center gap-3 mt-10">
+                        <span className="w-8 h-px bg-gold-400 inline-block" />
+                        2. How We Utilize Your Telemetry
+                    </h3>
                     <p>
-                        We use the information we collect to:
+                        We deploy encrypted information precisely to:
                     </p>
-                    <ul>
-                        <li>Process and fulfill your orders accurately</li>
-                        <li>Communicate with you regarding order statuses or customer service inquiries</li>
-                        <li>Improve our website, security, and service offerings</li>
+                    <ul className="marker:text-gold-500">
+                        <li>Process and execute secure compound authorizations flawlessly</li>
+                        <li>Communicate critical updates pertaining to vector tracking or concierge inquiries</li>
+                        <li>Evolve our platform infrastructure, security protocols, and exclusive offerings</li>
                     </ul>
 
-                    <h3>3. Data Protection & Security</h3>
+                    <h3 className="flex items-center gap-3 mt-10">
+                        <span className="w-8 h-px bg-gold-400 inline-block" />
+                        3. Defense & Encryption
+                    </h3>
                     <p>
-                        We implement industry-standard security measures, including encryption and secure server hosting, to protect your personal data. We do not store full credit card details on our servers; payments are processed securely through certified gateways.
+                        We enforce strict, military-grade defensive protocols, encompassing end-to-end encryption frameworks and heavily isolated server infrastructure, protecting all telemetry. We explicitly do not log or store full financial details internally; transactions pass securely through compliant, sovereign-grade gateways.
                     </p>
 
-                    <h3>4. Information Sharing</h3>
+                    <h3 className="flex items-center gap-3 mt-10">
+                        <span className="w-8 h-px bg-gold-400 inline-block" />
+                        4. Sovereign Non-Sharing Policy
+                    </h3>
                     <p>
-                        We do not sell, trade, or rent your personal information to third parties. We may share necessary details with trusted logistics partners strictly for the purpose of order fulfillment.
+                        Golden Tier firmly does not broker, distribute, or rent your identity telemetry to arbitrary third parties. Relevant data chunks are exclusively relayed to vetted, sworn logistics integrators, solely to execute physical fulfillment sequences.
                     </p>
 
-                    <h3>5. Your Rights</h3>
+                    <h3 className="flex items-center gap-3 mt-10">
+                        <span className="w-8 h-px bg-gold-400 inline-block" />
+                        5. Client Supremacy
+                    </h3>
                     <p>
-                        You have the right to request access to, correction of, or deletion of your personal data. Please contact our support team at support@goldentierpeptide.com for any data-related requests.
+                        You command supreme authority to demand access to, real-time modification of, or total destruction of your personal data node. To execute these directives, petition the support tier via <a href="mailto:support@goldentierpeptide.com" className="text-gold-600 hover:text-gold-700 font-semibold transition-colors">support@goldentierpeptide.com</a>.
                     </p>
                 </div>
             </div>

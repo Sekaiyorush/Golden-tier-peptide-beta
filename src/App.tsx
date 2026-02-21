@@ -116,10 +116,13 @@ function AppContent() {
               </Routes>
             ) : (
               // Authenticated users see the full site
-              <div className="min-h-screen bg-white">
+              <div className="min-h-screen bg-white text-slate-800 font-sans selection:bg-amber-200 flex flex-col relative overflow-hidden">
+                {/* Dynamic Background Elements */}
+                <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-amber-50/50 via-white to-white pointer-events-none -z-10" />
+
                 <Header />
                 {isPartner && <CartSidebar />}
-                <main>
+                <main className="flex-1 relative z-10">
                   <Routes>
                     {/* Admin Routes */}
                     <Route
