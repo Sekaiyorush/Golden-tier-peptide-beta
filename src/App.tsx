@@ -4,6 +4,7 @@ import { CartProvider } from '@/context/CartContext';
 import { AuthProvider, useAuth } from '@/context/AuthContext';
 import { DatabaseProvider } from '@/context/DatabaseContext';
 import { ToastProvider } from '@/components/ui/Toast';
+import { PremiumEffects } from '@/components/PremiumEffects';
 import { BackToTop } from '@/components/ui/BackToTop';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
@@ -117,6 +118,7 @@ function AppContent() {
             ) : (
               // Authenticated users see the full site
               <div className="min-h-screen bg-white text-slate-800 font-sans selection:bg-amber-200 flex flex-col relative overflow-hidden">
+                <PremiumEffects />
                 {/* Dynamic Background Elements */}
                 <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-amber-50/50 via-white to-white pointer-events-none -z-10" />
 
