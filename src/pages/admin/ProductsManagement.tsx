@@ -23,6 +23,7 @@ interface ProductFormData {
   sku: string;
   benefits: string;
   dosage: string;
+  imageUrl: string;
 }
 
 export function ProductsManagement() {
@@ -44,6 +45,7 @@ export function ProductsManagement() {
     sku: '',
     benefits: '',
     dosage: '',
+    imageUrl: '',
   });
 
   const filteredProducts = productList.filter(
@@ -66,6 +68,7 @@ export function ProductsManagement() {
       sku: '',
       benefits: '',
       dosage: '',
+      imageUrl: '',
     });
     setIsModalOpen(true);
   };
@@ -83,6 +86,7 @@ export function ProductsManagement() {
       sku: product.sku,
       benefits: product.benefits?.join('\n') || '',
       dosage: product.dosage || '',
+      imageUrl: product.imageUrl || '',
     });
     setIsModalOpen(true);
   };
@@ -109,6 +113,7 @@ export function ProductsManagement() {
       sku: formData.sku,
       benefits: formData.benefits.split('\n').filter(Boolean),
       dosage: formData.dosage,
+      imageUrl: formData.imageUrl,
       createdAt: editingProduct?.createdAt || new Date().toISOString().split('T')[0],
       updatedAt: new Date().toISOString().split('T')[0],
     };
@@ -297,6 +302,17 @@ export function ProductsManagement() {
                   value={formData.fullDescription}
                   onChange={(e) => setFormData({ ...formData, fullDescription: e.target.value })}
                   className="w-full px-3 py-2 border border-input rounded-lg bg-background focus:ring-primary focus:border-primary"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1">Image URL</label>
+                <input
+                  type="url"
+                  value={formData.imageUrl}
+                  onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
+                  className="w-full px-3 py-2 border border-input rounded-lg bg-background focus:ring-primary focus:border-primary"
+                  placeholder="https://example.com/image.jpg"
                 />
               </div>
 

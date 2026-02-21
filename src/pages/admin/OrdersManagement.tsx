@@ -219,18 +219,31 @@ export function OrdersManagement() {
                           </div>
                           <div>
                             <h4 className="font-medium mb-3">Customer Details</h4>
-                            <div className="p-3 bg-background rounded text-sm space-y-2">
+                            <div className="p-3 bg-background rounded text-sm space-y-3">
                               <div>
-                                <span className="text-muted-foreground">ID: </span>
-                                <span>{order.customerId}</span>
+                                <h5 className="font-medium text-xs text-muted-foreground mb-1">ACCOUNT</h5>
+                                <div><span className="text-muted-foreground">ID: </span><span>{order.customerId}</span></div>
+                                <div><span className="text-muted-foreground">Name: </span><span>{order.customerName}</span></div>
+                                <div><span className="text-muted-foreground">Type: </span><span className="capitalize">{order.userType}</span></div>
                               </div>
-                              <div>
-                                <span className="text-muted-foreground">Name: </span>
-                                <span>{order.customerName}</span>
-                              </div>
-                              <div>
-                                <span className="text-muted-foreground">Type: </span>
-                                <span className="capitalize">{order.userType}</span>
+                              <div className="pt-3 border-t border-border">
+                                <h5 className="font-medium text-xs text-muted-foreground mb-1">SHIPPING & PAYMENT</h5>
+                                <div><span className="text-muted-foreground">Method: </span><span className="capitalize">{order.paymentMethod?.replace('_', ' ') || 'N/A'}</span></div>
+                                <div><span className="text-muted-foreground">Name: </span><span>{order.shippingName || 'N/A'}</span></div>
+                                <div><span className="text-muted-foreground">Email: </span><span>{order.shippingEmail || 'N/A'}</span></div>
+                                <div><span className="text-muted-foreground">Phone: </span><span>{order.shippingPhone || 'N/A'}</span></div>
+                                {order.shippingAddress && (
+                                  <div className="mt-1 text-xs">
+                                    <p>{order.shippingAddress}</p>
+                                    <p>{order.shippingCity}, {order.shippingState} {order.shippingZip}</p>
+                                    <p>{order.shippingCountry}</p>
+                                  </div>
+                                )}
+                                {order.shippingNotes && (
+                                  <div className="mt-2 text-xs italic text-muted-foreground">
+                                    Note: {order.shippingNotes}
+                                  </div>
+                                )}
                               </div>
                             </div>
                           </div>

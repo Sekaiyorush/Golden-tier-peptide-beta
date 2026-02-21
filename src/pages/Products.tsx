@@ -148,8 +148,14 @@ export function Products() {
                     }`}>
                     {product.inStock ? 'In Stock' : 'Out of Stock'}
                   </span>
-                  <div className="w-24 h-24 bg-slate-200 rounded-xl flex items-center justify-center">
-                    <span className="text-slate-600 font-semibold text-xl">{product.name.split('-')[0]}</span>
+                  <div className="absolute inset-0 bg-slate-100 flex items-center justify-center overflow-hidden">
+                    {product.imageUrl ? (
+                      <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                    ) : (
+                      <div className="w-24 h-24 bg-slate-200 rounded-xl flex items-center justify-center">
+                        <span className="text-slate-600 font-semibold text-xl">{product.name.split('-')[0]}</span>
+                      </div>
+                    )}
                   </div>
                 </Link>
 

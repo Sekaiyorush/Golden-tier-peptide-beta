@@ -115,11 +115,7 @@ export function Login() {
           </div>
         </div>
 
-        <div className="mt-6 text-center">
-          <p className="text-xs text-slate-400">
-            Demo: admin@goldentier.com / password
-          </p>
-        </div>
+
       </div>
     </div>
   );

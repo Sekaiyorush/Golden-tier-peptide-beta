@@ -12,25 +12,66 @@ import {
   Clock,
   CheckCircle2,
   Truck,
-  Box
+  Box,
+  Eye
 } from 'lucide-react';
+import { OrderDetailsModal } from '@/components/OrderDetailsModal';
 
 export function UserDashboard() {
   const { user } = useAuth();
-  const { db } = useDatabase();
+  const { db, updateCustomer } = useDatabase();
   const [activeTab, setActiveTab] = useState<'overview' | 'orders' | 'profile'>('overview');
+  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   // Get user's orders
   const userOrders = db.orders.filter(o => o.customerId === user?.id);
 
   // Get user profile
   const userProfile = db.customers.find(c => c.email === user?.email) || {
-    name: user?.name,
-    email: user?.email,
+    id: user?.id || '',
+    name: user?.name || '',
+    email: user?.email || '',
+    phone: '',
+    address: undefined,
     totalOrders: userOrders.length,
     totalSpent: userOrders.reduce((sum, o) => sum + o.total, 0),
     joinedAt: '2024-01-01',
     status: 'active'
+  };
+
+  const [formData, setFormData] = useState({
+    name: userProfile.name,
+    phone: userProfile.phone || '',
+    street: userProfile.address?.street || '',
+    city: userProfile.address?.city || '',
+    state: userProfile.address?.state || '',
+    zip: userProfile.address?.zip || '',
+    country: userProfile.address?.country || '',
+  });
+
+  const handleSaveProfile = async () => {
+    setIsSaving(true);
+    try {
+      await updateCustomer(userProfile.id, {
+        name: formData.name,
+        phone: formData.phone,
+        address: {
+          street: formData.street,
+          city: formData.city,
+          state: formData.state,
+          zip: formData.zip,
+          country: formData.country,
+        }
+      });
+      setIsEditingProfile(false);
+    } catch (e) {
+      console.error(e);
+      alert('Failed to save profile. Please try again.');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const getStatusIcon = (status: string) => {
@@ -71,8 +112,8 @@ export function UserDashboard() {
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
               className={`flex items-center space-x-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${activeTab === tab.id
-                  ? 'bg-slate-900 text-white'
-                  : 'text-slate-600 hover:bg-slate-100'
+                ? 'bg-slate-900 text-white'
+                : 'text-slate-600 hover:bg-slate-100'
                 }`}
             >
               <tab.icon className="h-4 w-4" />
@@ -134,22 +175,30 @@ export function UserDashboard() {
               </div>
               <div className="divide-y divide-slate-100">
                 {userOrders.slice(0, 3).map((order) => (
-                  <div key={order.id} className="p-4 flex items-center justify-between hover:bg-slate-50">
+                  <div key={order.id} className="p-4 flex items-center justify-between hover:bg-slate-50 transition-colors">
                     <div className="flex items-center space-x-4">
                       <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center">
                         <Box className="h-5 w-5 text-slate-500" />
                       </div>
                       <div>
                         <p className="font-medium text-slate-900">{order.id}</p>
-                        <p className="text-sm text-slate-500">{order.createdAt}</p>
+                        <p className="text-sm text-slate-500">{new Date(order.createdAt).toLocaleDateString()}</p>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <p className="font-medium text-slate-900">${order.total.toFixed(2)}</p>
-                      <span className={`inline-flex items-center space-x-1 px-2 py-0.5 rounded-full text-xs ${getStatusColor(order.status)}`}>
-                        {getStatusIcon(order.status)}
-                        <span className="capitalize">{order.status}</span>
-                      </span>
+                    <div className="text-right flex items-center space-x-4">
+                      <div>
+                        <p className="font-medium text-slate-900">${order.total.toFixed(2)}</p>
+                        <span className={`inline-flex items-center space-x-1 px-2 py-0.5 rounded-full text-xs ${getStatusColor(order.status)}`}>
+                          {getStatusIcon(order.status)}
+                          <span className="capitalize">{order.status}</span>
+                        </span>
+                      </div>
+                      <button
+                        onClick={() => setSelectedOrderId(order.id)}
+                        className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                      >
+                        <Eye className="h-5 w-5" />
+                      </button>
                     </div>
                   </div>
                 ))}
@@ -191,8 +240,13 @@ export function UserDashboard() {
                     ))}
                   </div>
                   <div className="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between">
-                    <span className="text-sm text-slate-500">Total</span>
-                    <span className="font-semibold text-slate-900">${order.total.toFixed(2)}</span>
+                    <button
+                      onClick={() => setSelectedOrderId(order.id)}
+                      className="text-sm text-indigo-600 font-medium hover:text-indigo-700 flex items-center"
+                    >
+                      <Eye className="h-4 w-4 mr-1.5" /> View Details & Tracking
+                    </button>
+                    <span className="font-semibold text-slate-900">Total: ${order.total.toFixed(2)}</span>
                   </div>
                 </div>
               ))}
@@ -210,8 +264,45 @@ export function UserDashboard() {
         {/* Profile Tab */}
         {activeTab === 'profile' && (
           <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-            <div className="p-6 border-b border-slate-100">
+            <div className="p-6 border-b border-slate-100 flex items-center justify-between">
               <h3 className="font-semibold text-slate-900">Profile Information</h3>
+              {!isEditingProfile ? (
+                <button
+                  onClick={() => setIsEditingProfile(true)}
+                  className="text-sm font-medium text-indigo-600 hover:text-indigo-700"
+                >
+                  Edit Profile
+                </button>
+              ) : (
+                <div className="flex space-x-3">
+                  <button
+                    onClick={() => {
+                      setIsEditingProfile(false);
+                      // Reset form
+                      setFormData({
+                        name: userProfile.name,
+                        phone: userProfile.phone || '',
+                        street: userProfile.address?.street || '',
+                        city: userProfile.address?.city || '',
+                        state: userProfile.address?.state || '',
+                        zip: userProfile.address?.zip || '',
+                        country: userProfile.address?.country || '',
+                      });
+                    }}
+                    className="text-sm font-medium text-slate-600 hover:text-slate-700"
+                    disabled={isSaving}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleSaveProfile}
+                    className="text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 px-3 py-1.5 rounded-lg disabled:opacity-50"
+                    disabled={isSaving}
+                  >
+                    {isSaving ? 'Saving...' : 'Save Changes'}
+                  </button>
+                </div>
+              )}
             </div>
             <div className="p-6 space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -219,36 +310,114 @@ export function UserDashboard() {
                   <label className="block text-sm font-medium text-slate-700 mb-2">Full Name</label>
                   <input
                     type="text"
-                    value={user?.name}
-                    readOnly
-                    className="w-full px-4 py-2 border border-slate-200 rounded-lg bg-slate-50 text-slate-600"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    readOnly={!isEditingProfile}
+                    className={`w-full px-4 py-2 border rounded-lg ${isEditingProfile ? 'bg-white border-slate-300 focus:ring-2 focus:ring-indigo-500' : 'bg-slate-50 border-slate-200 text-slate-600'}`}
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">Email</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Email (Cannot be changed)</label>
                   <input
                     type="email"
-                    value={user?.email}
+                    value={userProfile.email}
                     readOnly
-                    className="w-full px-4 py-2 border border-slate-200 rounded-lg bg-slate-50 text-slate-600"
+                    className="w-full px-4 py-2 border border-slate-200 rounded-lg bg-slate-50 text-slate-400"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Phone</label>
+                  <input
+                    type="text"
+                    value={formData.phone}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    readOnly={!isEditingProfile}
+                    className={`w-full px-4 py-2 border rounded-lg ${isEditingProfile ? 'bg-white border-slate-300 focus:ring-2 focus:ring-indigo-500' : 'bg-slate-50 border-slate-200 text-slate-600'}`}
+                    placeholder="e.g., +1 (555) 123-4567"
                   />
                 </div>
               </div>
 
               <div className="border-t border-slate-100 pt-6">
                 <h4 className="font-medium text-slate-900 mb-4 flex items-center">
-                  <MapPin className="h-4 w-4 mr-2" />
+                  <MapPin className="h-4 w-4 mr-2 text-indigo-500" />
                   Shipping Address
                 </h4>
-                <div className="p-4 bg-slate-50 rounded-lg">
-                  <p className="text-slate-600">No address saved yet.</p>
-                  <button className="mt-2 text-sm text-slate-900 underline">Add address</button>
-                </div>
+
+                {isEditingProfile ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium text-slate-700 mb-1">Street Address</label>
+                      <input
+                        type="text"
+                        value={formData.street}
+                        onChange={(e) => setFormData({ ...formData, street: e.target.value })}
+                        className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">City</label>
+                      <input
+                        type="text"
+                        value={formData.city}
+                        onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                        className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">State / Province</label>
+                      <input
+                        type="text"
+                        value={formData.state}
+                        onChange={(e) => setFormData({ ...formData, state: e.target.value })}
+                        className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">ZIP / Postal Code</label>
+                      <input
+                        type="text"
+                        value={formData.zip}
+                        onChange={(e) => setFormData({ ...formData, zip: e.target.value })}
+                        className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">Country</label>
+                      <input
+                        type="text"
+                        value={formData.country}
+                        onChange={(e) => setFormData({ ...formData, country: e.target.value })}
+                        className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="p-4 bg-slate-50 rounded-lg border border-slate-100">
+                    {userProfile.address?.street ? (
+                      <address className="not-italic text-slate-600">
+                        {userProfile.address.street}<br />
+                        {userProfile.address.city}, {userProfile.address.state} {userProfile.address.zip}<br />
+                        {userProfile.address.country}
+                      </address>
+                    ) : (
+                      <p className="text-slate-500 text-sm">No address saved yet. Click 'Edit Profile' to add one.</p>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           </div>
         )}
       </div>
+
+      {/* Modals */}
+      {selectedOrderId && (
+        <OrderDetailsModal
+          order={userOrders.find(o => o.id === selectedOrderId)!}
+          onClose={() => setSelectedOrderId(null)}
+        />
+      )}
     </div>
   );
 }

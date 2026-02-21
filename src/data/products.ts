@@ -90,4 +90,14 @@ export interface Order {
   createdAt: string;
   userType: 'customer' | 'partner';
   partnerId?: string;
+  shippingName?: string;
+  shippingEmail?: string;
+  shippingPhone?: string;
+  shippingAddress?: string;
+  shippingCity?: string;
+  shippingState?: string;
+  shippingZip?: string;
+  shippingCountry?: string;
+  shippingNotes?: string;
+  paymentMethod?: string;
 }

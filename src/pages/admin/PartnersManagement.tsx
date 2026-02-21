@@ -5,7 +5,6 @@ import {
   Plus,
   Search,
   Edit2,
-  Trash2,
   Mail,
   Phone,
   Building2,
@@ -18,7 +17,8 @@ import {
   Eye,
   EyeOff,
   Copy,
-  Check
+  Check,
+  Trash2
 } from 'lucide-react';
 
 interface PartnerFormData {
@@ -46,7 +46,7 @@ const initialFormData: PartnerFormData = {
 };
 
 export function PartnersManagement() {
-  const { db, addPartner, updatePartner: contextUpdatePartner } = useDatabase();
+  const { db, addPartner, updatePartner: contextUpdatePartner, deletePartner } = useDatabase();
   const partnerList = db.partners;
 
   const [searchTerm, setSearchTerm] = useState('');
@@ -93,9 +93,12 @@ export function PartnersManagement() {
     setIsModalOpen(true);
   };
 
-  const handleDeletePartner = (partnerId: string) => {
-    if (window.confirm('Are you sure you want to deactivate this partner?')) {
-      contextUpdatePartner(partnerId, { status: 'inactive' });
+  const handleDeletePartner = async (partner: Partner) => {
+    if (window.confirm(`Are you SURE you want to completely delete the partner account for ${partner.name}? This action cannot be undone and will permanently remove their access.`)) {
+      const result = await deletePartner(partner.id);
+      if (!result.success) {
+        alert(`Failed to delete partner: ${result.error}`);
+      }
     }
   };
 
@@ -304,9 +307,9 @@ export function PartnersManagement() {
                   <Edit2 className="h-4 w-4" />
                 </button>
                 <button
-                  onClick={() => handleDeletePartner(partner.id)}
-                  className="p-2 hover:bg-red-50 rounded-lg text-slate-500 hover:text-red-600 transition-colors"
-                  title="Deactivate partner"
+                  onClick={() => handleDeletePartner(partner)}
+                  className="p-2 rounded-lg transition-colors hover:bg-red-50 text-slate-500 hover:text-red-600"
+                  title="Delete partner permanently"
                 >
                   <Trash2 className="h-4 w-4" />
                 </button>

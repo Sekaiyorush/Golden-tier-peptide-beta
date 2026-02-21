@@ -3,6 +3,16 @@ import type { Product, Partner, Customer, Order } from '@/data/products';
 import type { InvitationCode } from '@/data/invitations';
 import type { User } from './AuthContext';
 import { supabase } from '@/lib/supabase';
+import { createClient } from '@supabase/supabase-js';
+import { emailService } from '@/lib/emailService';
+
+export interface SiteSettings {
+  contactEmail: string;
+  contactPhone: string;
+  contactLocation: string;
+  businessHours: string;
+  shippingInfo: string;
+}
 
 // We manage global mapped state here for optimistic UI updates
 export interface AppDatabase {
@@ -13,6 +23,7 @@ export interface AppDatabase {
   invitationCodes: InvitationCode[];
   users: User[];
   inventoryLogs: InventoryLog[];
+  siteSettings: SiteSettings;
 }
 
 export interface InventoryLog {
@@ -44,6 +55,7 @@ interface DatabaseContextType {
   // Partners
   addPartner: (data: { name: string; email: string; password: string; company: string; phone: string; discountRate: number; status: string; referredBy?: string; notes?: string }) => Promise<{ success: boolean; error?: string }>;
   updatePartner: (id: string, updates: Partial<Partner>) => void;
+  deletePartner: (id: string) => Promise<{ success: boolean; error?: string }>;
 
   // Customers
   updateCustomer: (id: string, updates: Partial<Customer>) => void;
@@ -55,6 +67,9 @@ interface DatabaseContextType {
 
   // Inventory
   addInventoryLog: (log: Omit<InventoryLog, 'id' | 'createdAt' | 'performedByName'>) => Promise<void>;
+
+  // Site Settings
+  updateSiteSettings: (updates: Partial<SiteSettings>) => Promise<boolean>;
 }
 
 const DatabaseContext = createContext<DatabaseContextType | undefined>(undefined);
@@ -66,7 +81,14 @@ const INITIAL_DB_STATE: AppDatabase = {
   orders: [],
   invitationCodes: [],
   users: [],
-  inventoryLogs: []
+  inventoryLogs: [],
+  siteSettings: {
+    contactEmail: 'support@goldentierpeptide.com',
+    contactPhone: 'Contact via email first',
+    contactLocation: 'United States',
+    businessHours: 'Mon-Fri, 9AM-5PM',
+    shippingInfo: 'Shipping worldwide'
+  }
 };
 
 export function DatabaseProvider({ children }: { children: ReactNode }) {
@@ -88,10 +110,24 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
         supabase.from('orders').select('*'),
         supabase.from('invitation_codes').select('*'),
         supabase.from('order_items').select('*, products(name)'),
-        supabase.from('inventory_log').select('*, profiles(full_name)')
+        supabase.from('inventory_log').select('*, profiles(full_name)'),
+        supabase.from('site_settings').select('*').eq('id', 'default').single()
       ]);
 
       if (products && profiles) {
+        // Parse settings
+        const loadedSettings = arguments[0][6]?.data || null;
+        let siteSettings = INITIAL_DB_STATE.siteSettings;
+        if (loadedSettings) {
+          siteSettings = {
+            contactEmail: loadedSettings.contact_email,
+            contactPhone: loadedSettings.contact_phone,
+            contactLocation: loadedSettings.contact_location,
+            businessHours: loadedSettings.business_hours,
+            shippingInfo: loadedSettings.shipping_info
+          };
+        }
+
         // Build a lookup map for profiles
         const profileMap = new Map(profiles.map(p => [p.id, p]));
 
@@ -152,7 +188,17 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
             paymentStatus: o.payment_status,
             createdAt: o.created_at,
             userType: customerProfile?.role === 'partner' ? 'partner' as const : 'customer' as const,
-            partnerId: customerProfile?.role === 'partner' ? o.customer_id : undefined
+            partnerId: customerProfile?.role === 'partner' ? o.customer_id : undefined,
+            shippingName: o.shipping_name,
+            shippingEmail: o.shipping_email,
+            shippingPhone: o.shipping_phone,
+            shippingAddress: o.shipping_address,
+            shippingCity: o.shipping_city,
+            shippingState: o.shipping_state,
+            shippingZip: o.shipping_zip,
+            shippingCountry: o.shipping_country,
+            shippingNotes: o.shipping_notes,
+            paymentMethod: o.payment_method
           };
         });
 
@@ -247,6 +293,7 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
           orders: mappedOrders,
           invitationCodes: mappedCodes,
           inventoryLogs: mappedLogs,
+          siteSettings,
         });
       }
     } catch (err) {
@@ -277,7 +324,8 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
       in_stock: product.inStock,
       stock_quantity: product.stockQuantity,
       benefits: product.benefits,
-      dosage: product.dosage
+      dosage: product.dosage,
+      image_url: product.imageUrl
     });
     if (error) console.error(error);
   };
@@ -299,6 +347,7 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
     if (updates.benefits !== undefined) dbUpdates.benefits = updates.benefits;
     if (updates.dosage !== undefined) dbUpdates.dosage = updates.dosage;
     if (updates.sku !== undefined) dbUpdates.sku = updates.sku;
+    if (updates.imageUrl !== undefined) dbUpdates.image_url = updates.imageUrl;
 
     await supabase.from('products').update(dbUpdates).eq('id', id);
   };
@@ -319,7 +368,17 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
         customer_id: order.customerId,
         total_amount: order.total,
         status: order.status,
-        payment_status: order.paymentStatus
+        payment_status: order.paymentStatus,
+        shipping_name: order.shippingName,
+        shipping_email: order.shippingEmail,
+        shipping_phone: order.shippingPhone,
+        shipping_address: order.shippingAddress,
+        shipping_city: order.shippingCity,
+        shipping_state: order.shippingState,
+        shipping_zip: order.shippingZip,
+        shipping_country: order.shippingCountry,
+        shipping_notes: order.shippingNotes,
+        payment_method: order.paymentMethod
       })
       .select('id')
       .single();
@@ -344,6 +403,12 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
       if (itemsError) {
         console.error("Error creating order items:", itemsError);
       }
+    }
+
+    // Send mock order confirmation email
+    const customer = db.customers.find(c => c.id === order.customerId);
+    if (customer) {
+      await emailService.sendOrderConfirmation(customer.email, order.id, order.total);
     }
   };
 
@@ -387,6 +452,14 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
       // Refresh data to reflect new stock levels
       await loadData();
     }
+
+    // Send mock status update email if status changed
+    if (updates.status && currentOrder?.status !== updates.status) {
+      const customer = db.customers.find(c => c.id === currentOrder?.customerId);
+      if (customer) {
+        await emailService.sendOrderStatusUpdate(customer.email, id, updates.status);
+      }
+    }
   };
 
   // ─── Partners CRUD ──────────────────────────────────────────────
@@ -395,8 +468,15 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
     phone: string; discountRate: number; status: string; referredBy?: string; notes?: string;
   }): Promise<{ success: boolean; error?: string }> => {
     try {
+      // Use a temporary client so it doesn't log out the currently active admin
+      const tempAuthClient = createClient(
+        import.meta.env.VITE_SUPABASE_URL,
+        import.meta.env.VITE_SUPABASE_ANON_KEY,
+        { auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false } }
+      );
+
       // Create auth user via signUp
-      const { data: authData, error: authError } = await supabase.auth.signUp({
+      const { data: authData, error: authError } = await tempAuthClient.auth.signUp({
         email: data.email,
         password: data.password,
       });
@@ -404,7 +484,7 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
       if (authError) return { success: false, error: authError.message };
       if (!authData.user) return { success: false, error: 'Failed to create user account' };
 
-      // Create profile with partner role
+      // Create profile with partner role using the main client so RLS (Admins can insert profiles) works
       const { error: profileError } = await supabase.from('profiles').insert({
         id: authData.user.id,
         email: data.email,
@@ -441,6 +521,27 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
     if (updates.phone !== undefined) dbUpdates.phone_number = updates.phone;
     if (updates.referredBy !== undefined) dbUpdates.invited_by = updates.referredBy;
     await supabase.from('profiles').update(dbUpdates).eq('id', id);
+  };
+
+  const deletePartner = async (id: string): Promise<{ success: boolean; error?: string }> => {
+    try {
+      const { error } = await supabase.rpc('delete_user', { user_id: id });
+
+      if (error) {
+        console.error("Error from RPC delete:", error);
+        return { success: false, error: error.message };
+      }
+
+      setDb(prev => ({
+        ...prev,
+        partners: prev.partners.filter(p => p.id !== id)
+      }));
+
+      return { success: true };
+    } catch (err: any) {
+      console.error("Error deleting partner:", err);
+      return { success: false, error: err.message };
+    }
   };
 
   // ─── Customers CRUD ──────────────────────────────────────────────
@@ -528,15 +629,38 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
     await loadData();
   };
 
+  // ─── Site Settings ──────────────────────────────────────────────
+  const updateSiteSettings = async (updates: Partial<SiteSettings>): Promise<boolean> => {
+    setDb(prev => ({
+      ...prev,
+      siteSettings: { ...prev.siteSettings, ...updates }
+    }));
+
+    const dbUpdates: any = {};
+    if (updates.contactEmail !== undefined) dbUpdates.contact_email = updates.contactEmail;
+    if (updates.contactPhone !== undefined) dbUpdates.contact_phone = updates.contactPhone;
+    if (updates.contactLocation !== undefined) dbUpdates.contact_location = updates.contactLocation;
+    if (updates.businessHours !== undefined) dbUpdates.business_hours = updates.businessHours;
+    if (updates.shippingInfo !== undefined) dbUpdates.shipping_info = updates.shippingInfo;
+
+    const { error } = await supabase.from('site_settings').update(dbUpdates).eq('id', 'default');
+    if (error) {
+      console.error("Error updating site settings:", error);
+      return false;
+    }
+    return true;
+  };
+
   return (
     <DatabaseContext.Provider value={{
       db, setDb, isLoading, refreshData: loadData,
       addProduct, updateProduct, deleteProduct,
       addOrder, updateOrder,
-      addPartner, updatePartner,
+      addPartner, updatePartner, deletePartner,
       updateCustomer,
       addInvitationCode, updateInvitationCode, deleteInvitationCode,
       addInventoryLog,
+      updateSiteSettings,
     }}>
       {children}
     </DatabaseContext.Provider>

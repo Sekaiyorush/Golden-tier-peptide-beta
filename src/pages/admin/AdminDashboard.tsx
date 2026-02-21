@@ -13,7 +13,8 @@ import {
   UserCircle,
   Network,
   Link as LinkIcon,
-  BarChart3
+  BarChart3,
+  Settings
 } from 'lucide-react';
 
 // Admin sub-pages
@@ -26,6 +27,7 @@ import { CustomersManagement } from './CustomersManagement';
 import { InventoryManagement } from './InventoryManagement';
 import { InvitationCodeManagement } from './InvitationCodeManagement';
 import { PartnerAnalytics } from './PartnerAnalytics';
+import { SettingsManagement } from './SettingsManagement';
 
 import { useDatabase } from '@/context/DatabaseContext';
 
@@ -144,6 +146,7 @@ export function AdminDashboard() {
     { path: '/admin/partner-analytics', label: 'Analytics', icon: BarChart3 },
     { path: '/admin/invitation-codes', label: 'Invitation Codes', icon: LinkIcon },
     { path: '/admin/qr-codes', label: 'QR Codes', icon: QrCode },
+    { path: '/admin/settings', label: 'Settings', icon: Settings },
   ];
 
   return (
@@ -240,6 +243,7 @@ export function AdminDashboard() {
             <Route path="/partner-analytics" element={<PartnerAnalytics />} />
             <Route path="/invitation-codes" element={<InvitationCodeManagement />} />
             <Route path="/qr-codes" element={<QRCodeManager />} />
+            <Route path="/settings" element={<SettingsManagement />} />
           </Routes>
         </main>
       </div>

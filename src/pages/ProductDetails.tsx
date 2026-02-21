@@ -81,8 +81,12 @@ export function ProductDetails() {
                                 </span>
                             )}
 
-                            <div className="w-48 h-48 md:w-64 md:h-64 bg-slate-200 rounded-2xl flex items-center justify-center shadow-inner">
-                                <span className="text-slate-700 font-bold text-3xl md:text-5xl">{product.name.split('-')[0]}</span>
+                            <div className="w-48 h-48 md:w-64 md:h-64 bg-slate-200 rounded-2xl flex items-center justify-center shadow-inner overflow-hidden">
+                                {product.imageUrl ? (
+                                    <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover" />
+                                ) : (
+                                    <span className="text-slate-700 font-bold text-3xl md:text-5xl">{product.name.split('-')[0]}</span>
+                                )}
                             </div>
                         </div>
 

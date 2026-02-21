@@ -1,8 +1,14 @@
 import { Link } from 'react-router-dom';
-import { Mail, MapPin, Phone } from 'lucide-react';
+import { useDatabase } from '@/context/DatabaseContext';
+import { Mail, MapPin } from 'lucide-react';
 
 export function Footer() {
+  const { db } = useDatabase();
+  const settings = db.siteSettings;
   const currentYear = new Date().getFullYear();
+
+  // Show top 5 products dynamically
+  const topProducts = db.products.slice(0, 5);
 
   return (
     <footer className="bg-slate-900 text-white">
@@ -21,22 +27,30 @@ export function Footer() {
             </p>
           </div>
 
-          {/* Products Column */}
+          {/* Products Column — Dynamic from DB */}
           <div>
             <h4 className="text-sm font-semibold uppercase tracking-wider text-slate-400 mb-4">
               Products
             </h4>
             <ul className="space-y-2">
-              {['BPC-157', 'TB-500', 'CJC-1295', 'Ipamorelin', 'GHRP-6'].map((product) => (
-                <li key={product}>
-                  <Link 
-                    to={`/products`} 
-                    className="text-slate-400 hover:text-white transition-colors text-sm"
-                  >
-                    {product}
+              {topProducts.length > 0 ? (
+                topProducts.map((product) => (
+                  <li key={product.id}>
+                    <Link
+                      to={`/product/${product.sku}`}
+                      className="text-slate-400 hover:text-white transition-colors text-sm"
+                    >
+                      {product.name}
+                    </Link>
+                  </li>
+                ))
+              ) : (
+                <li>
+                  <Link to="/products" className="text-slate-400 hover:text-white transition-colors text-sm">
+                    View All Products
                   </Link>
                 </li>
-              ))}
+              )}
             </ul>
           </div>
 
@@ -48,9 +62,11 @@ export function Footer() {
             <ul className="space-y-2">
               {[
                 { label: 'About Us', href: '/about' },
-                { label: 'Quality Control', href: '/quality' },
-                { label: 'Shipping & Returns', href: '/shipping' },
+                { label: 'Research & Quality', href: '/research' },
                 { label: 'Contact Support', href: '/contact' },
+                { label: 'Shipping & Returns', href: '/shipping' },
+                { label: 'Terms of Service', href: '/terms' },
+                { label: 'Privacy Policy', href: '/privacy' },
               ].map((item) => (
                 <li key={item.label}>
                   <Link to={item.href} className="text-slate-400 hover:text-white transition-colors text-sm">
@@ -67,20 +83,15 @@ export function Footer() {
               Contact
             </h4>
             <ul className="space-y-3">
+              <li className="flex items-center space-x-3">
+                <Mail className="h-4 w-4 text-slate-400 flex-shrink-0" />
+                <span className="text-slate-400 text-sm">{settings.contactEmail}</span>
+              </li>
               <li className="flex items-start space-x-3">
                 <MapPin className="h-4 w-4 text-slate-400 mt-0.5 flex-shrink-0" />
                 <span className="text-slate-400 text-sm">
-                  123 Research Blvd, Suite 100<br />
-                  San Diego, CA 92121
+                  {settings.contactLocation}
                 </span>
-              </li>
-              <li className="flex items-center space-x-3">
-                <Phone className="h-4 w-4 text-slate-400 flex-shrink-0" />
-                <span className="text-slate-400 text-sm">+1 (800) 555-0123</span>
-              </li>
-              <li className="flex items-center space-x-3">
-                <Mail className="h-4 w-4 text-slate-400 flex-shrink-0" />
-                <span className="text-slate-400 text-sm">support@goldentier.com</span>
               </li>
             </ul>
           </div>

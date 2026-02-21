@@ -13,16 +13,23 @@ import {
   CheckCircle2,
   Truck,
   Box,
-  Percent,
+  CreditCard,
+  Landmark,
+  ArrowUpRight,
   UserPlus,
-  ArrowUpRight
+  Eye,
+  Percent
 } from 'lucide-react';
+import { OrderDetailsModal } from '@/components/OrderDetailsModal';
 
 export function PartnerDashboard() {
   const { user } = useAuth();
   const { db } = useDatabase();
   const { orders, partners, products } = db;
-  const [activeTab, setActiveTab] = useState<'overview' | 'orders' | 'network' | 'shop'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'orders' | 'network' | 'shop' | 'payouts'>('overview');
+  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+  const [payoutAmount, setPayoutAmount] = useState('');
+  const [payoutMethod, setPayoutMethod] = useState('bank');
 
   // Get partner details
   const partnerDetails = partners.find(p => p.id === user?.partnerId);
@@ -91,13 +98,14 @@ export function PartnerDashboard() {
             { id: 'shop', label: 'Partner Shop', icon: ShoppingBag },
             { id: 'orders', label: 'Orders', icon: Box },
             { id: 'network', label: 'My Network', icon: Users },
+            { id: 'payouts', label: 'Payouts', icon: Landmark },
           ].map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
               className={`flex items-center space-x-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${activeTab === tab.id
-                  ? 'bg-slate-900 text-white'
-                  : 'text-slate-600 hover:bg-slate-100'
+                ? 'bg-slate-900 text-white'
+                : 'text-slate-600 hover:bg-slate-100'
                 }`}
             >
               <tab.icon className="h-4 w-4" />
@@ -182,12 +190,20 @@ export function PartnerDashboard() {
                           <p className="text-sm text-slate-500">{order.createdAt}</p>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <p className="font-medium text-slate-900">${order.total.toFixed(2)}</p>
-                        <span className={`inline-flex items-center space-x-1 px-2 py-0.5 rounded-full text-xs ${getStatusColor(order.status)}`}>
-                          {getStatusIcon(order.status)}
-                          <span className="capitalize">{order.status}</span>
-                        </span>
+                      <div className="text-right flex items-center space-x-4">
+                        <div>
+                          <p className="font-medium text-slate-900">${order.total.toFixed(2)}</p>
+                          <span className={`inline-flex items-center space-x-1 px-2 py-0.5 rounded-full text-xs ${getStatusColor(order.status)}`}>
+                            {getStatusIcon(order.status)}
+                            <span className="capitalize">{order.status}</span>
+                          </span>
+                        </div>
+                        <button
+                          onClick={() => setSelectedOrderId(order.id)}
+                          className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                        >
+                          <Eye className="h-5 w-5" />
+                        </button>
                       </div>
                     </div>
                   ))}
@@ -240,8 +256,8 @@ export function PartnerDashboard() {
                               <p className="text-sm text-slate-500">{p.company}</p>
                             </div>
                             <span className={`px-2 py-0.5 rounded-full text-xs ${p.status === 'active' ? 'bg-emerald-100 text-emerald-700' :
-                                p.status === 'pending' ? 'bg-amber-100 text-amber-700' :
-                                  'bg-slate-100 text-slate-700'
+                              p.status === 'pending' ? 'bg-amber-100 text-amber-700' :
+                                'bg-slate-100 text-slate-700'
                               }`}>
                               {p.status}
                             </span>
@@ -280,10 +296,14 @@ export function PartnerDashboard() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {products.map((product) => (
                 <div key={product.id} className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-                  <div className="aspect-[4/3] bg-slate-100 flex items-center justify-center p-6">
-                    <div className="w-20 h-20 bg-slate-200 rounded-xl flex items-center justify-center">
-                      <span className="text-slate-600 font-semibold">{product.name.split('-')[0]}</span>
-                    </div>
+                  <div className="aspect-[4/3] bg-slate-100 flex items-center justify-center p-6 overflow-hidden">
+                    {product.imageUrl ? (
+                      <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover rounded-xl shadow-inner" />
+                    ) : (
+                      <div className="w-20 h-20 bg-slate-200 rounded-xl flex items-center justify-center shadow-inner">
+                        <span className="text-slate-600 font-semibold">{product.name.split('-')[0]}</span>
+                      </div>
+                    )}
                   </div>
                   <div className="p-5">
                     <h3 className="font-semibold text-slate-900">{product.name}</h3>
@@ -332,8 +352,13 @@ export function PartnerDashboard() {
                     ))}
                   </div>
                   <div className="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between">
-                    <span className="text-sm text-slate-500">Total (with discount)</span>
-                    <span className="font-semibold text-slate-900">${order.total.toFixed(2)}</span>
+                    <button
+                      onClick={() => setSelectedOrderId(order.id)}
+                      className="text-sm text-indigo-600 font-medium hover:text-indigo-700 flex items-center"
+                    >
+                      <Eye className="h-4 w-4 mr-1.5" /> View Details & Tracking
+                    </button>
+                    <span className="font-semibold text-slate-900">Total (with discount): ${order.total.toFixed(2)}</span>
                   </div>
                 </div>
               ))}
@@ -352,7 +377,99 @@ export function PartnerDashboard() {
         {activeTab === 'network' && (
           <PartnerNetwork />
         )}
+
+        {/* Payouts Tab */}
+        {activeTab === 'payouts' && (
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* Balances */}
+              <div className="col-span-1 md:col-span-2 bg-white rounded-xl border border-slate-200 p-6">
+                <h3 className="font-semibold text-slate-900 mb-6">Earnings Overview</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
+                    <p className="text-sm text-slate-500 mb-1">Available to Withdraw</p>
+                    <p className="text-3xl font-bold text-slate-900">${estimatedProfit.toFixed(2)}</p>
+                  </div>
+                  <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
+                    <p className="text-sm text-slate-500 mb-1">Total Lifetime Earnings</p>
+                    <p className="text-xl font-semibold text-slate-700">${estimatedProfit.toFixed(2)}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Request form */}
+              <div className="col-span-1 bg-white rounded-xl border border-slate-200 p-6">
+                <h3 className="font-semibold text-slate-900 mb-4">Request Payout</h3>
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    if (Number(payoutAmount) > estimatedProfit) {
+                      alert('You cannot withdraw more than your available balance.');
+                    } else if (Number(payoutAmount) < 50) {
+                      alert('Minimum withdrawal amount is $50.00');
+                    } else {
+                      alert('Payout request submitted successfully. Processing takes 2-3 business days.');
+                      setPayoutAmount('');
+                    }
+                  }}
+                  className="space-y-4"
+                >
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1.5">Amount ($)</label>
+                    <input
+                      type="number"
+                      min="50"
+                      step="0.01"
+                      required
+                      value={payoutAmount}
+                      onChange={(e) => setPayoutAmount(e.target.value)}
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-slate-400"
+                      placeholder="Min $50.00"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1.5">Payout Method</label>
+                    <select
+                      value={payoutMethod}
+                      onChange={(e) => setPayoutMethod(e.target.value)}
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white"
+                    >
+                      <option value="bank">Bank Transfer (ACH)</option>
+                      <option value="crypto">Cryptocurrency (USDC/USDT)</option>
+                    </select>
+                  </div>
+                  <button
+                    type="submit"
+                    className="w-full py-2 bg-slate-900 text-white rounded-lg text-sm font-medium hover:bg-slate-800 transition-colors"
+                  >
+                    Submit Request
+                  </button>
+                  <p className="text-xs text-slate-500 text-center">Minimum withdrawal: $50.00</p>
+                </form>
+              </div>
+            </div>
+
+            {/* Payout History */}
+            <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+              <div className="p-5 border-b border-slate-100">
+                <h3 className="font-semibold text-slate-900">Payout History</h3>
+              </div>
+              <div className="p-8 text-center">
+                <CreditCard className="h-10 w-10 text-slate-300 mx-auto mb-3" />
+                <p className="text-slate-500 text-sm">No payout history available yet.</p>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
+
+      {/* Modals */}
+      {selectedOrderId && (
+        <OrderDetailsModal
+          order={partnerOrders.find(o => o.id === selectedOrderId)!}
+          onClose={() => setSelectedOrderId(null)}
+        />
+      )}
     </div>
   );
 }
