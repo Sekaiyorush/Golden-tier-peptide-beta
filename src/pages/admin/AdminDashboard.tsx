@@ -28,107 +28,7 @@ import { InventoryManagement } from './InventoryManagement';
 import { InvitationCodeManagement } from './InvitationCodeManagement';
 import { PartnerAnalytics } from './PartnerAnalytics';
 import { SettingsManagement } from './SettingsManagement';
-
-import { useDatabase } from '@/context/DatabaseContext';
-
-function DashboardHome() {
-  const { db } = useDatabase();
-
-  const stats = [
-    { label: 'Total Products', value: db.products.length.toString(), change: '+0', icon: Package, color: 'bg-gradient-to-br from-gold-400 to-gold-600' },
-    { label: 'Total Orders', value: db.orders.length.toString(), change: '+0', icon: ShoppingCart, color: 'bg-gradient-to-br from-gold-400 to-gold-600' },
-    { label: 'Active Partners', value: db.partners.length.toString(), change: '+0', icon: Users, color: 'bg-gradient-to-br from-gold-400 to-gold-600' },
-    { label: 'Customers', value: db.customers.length.toString(), change: '+0', icon: UserCircle, color: 'bg-gradient-to-br from-gold-400 to-gold-600' },
-  ];
-
-  return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-xl font-semibold text-slate-900">Dashboard Overview</h2>
-        <p className="text-slate-500">Welcome back to your admin panel</p>
-      </div>
-
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {stats.map((stat, index) => (
-          <div key={index} className="bg-white/60 backdrop-blur-xl p-6 rounded-[2rem] border border-gold-200/50 shadow-[0_4px_20px_rgb(0,0,0,0.03)] selection:bg-gold-200/30">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium tracking-wide uppercase text-slate-500 mb-1">{stat.label}</p>
-                <p className="text-3xl font-serif text-slate-900">{stat.value}</p>
-              </div>
-              <div className={`w-12 h-12 ${stat.color} rounded-2xl flex items-center justify-center shadow-lg shadow-gold-500/20`}>
-                <stat.icon className="h-6 w-6 text-white" />
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Recent Activity */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Recent Orders */}
-        <div className="bg-white/60 backdrop-blur-xl rounded-[2rem] border border-gold-200/50 p-6 shadow-[0_4px_20px_rgb(0,0,0,0.03)]">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="font-serif text-xl tracking-tight text-slate-900">Recent Orders</h3>
-            <Link to="/admin/orders" className="text-sm text-slate-600 hover:text-slate-900">
-              View all →
-            </Link>
-          </div>
-          <div className="space-y-3">
-            {db.orders.slice(0, 5).map((order) => (
-              <div key={order.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
-                <div>
-                  <p className="font-medium text-slate-900">{order.id}</p>
-                  <p className="text-sm text-slate-500">{order.customerName}</p>
-                </div>
-                <div className="text-right">
-                  <p className="font-medium text-slate-900">${order.total}</p>
-                  <span className={`text-xs px-2 py-0.5 rounded-full ${order.status === 'delivered' ? 'bg-emerald-100 text-emerald-700' :
-                    order.status === 'processing' ? 'bg-blue-100 text-blue-700' :
-                      'bg-amber-100 text-amber-700'
-                    }`}>
-                    {order.status}
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Low Stock Alerts */}
-        <div className="bg-white/60 backdrop-blur-xl rounded-[2rem] border border-gold-200/50 p-6 shadow-[0_4px_20px_rgb(0,0,0,0.03)]">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="font-serif text-xl tracking-tight text-slate-900">Low Stock Alerts</h3>
-            <Link to="/admin/products" className="text-sm text-slate-600 hover:text-slate-900">
-              Manage →
-            </Link>
-          </div>
-          <div className="space-y-3">
-            {db.products.filter(p => p.stockQuantity < (p.lowStockThreshold || 10)).slice(0, 5).map((item) => (
-              <div key={item.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
-                <div>
-                  <p className="font-medium text-slate-900">{item.name}</p>
-                  <p className="text-sm text-slate-500">Threshold: {item.lowStockThreshold || 10}</p>
-                </div>
-                <div className="text-right">
-                  <span className={`text-lg font-semibold ${item.stockQuantity < 5 ? 'text-red-500' : 'text-amber-500'
-                    }`}>
-                    {item.stockQuantity}
-                  </span>
-                  <p className="text-xs text-slate-400">units left</p>
-                </div>
-              </div>
-            ))}
-            {db.products.filter(p => p.stockQuantity < (p.lowStockThreshold || 10)).length === 0 && (
-              <p className="text-slate-500 text-sm text-center py-4">All products are well stocked.</p>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
+import { DashboardAnalytics } from '@/components/admin/DashboardAnalytics';
 
 export function AdminDashboard() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -229,7 +129,7 @@ export function AdminDashboard() {
         {/* Content */}
         <main className="flex-1 p-4 md:p-8 overflow-auto [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:bg-gold-200/50 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-gold-300/50">
           <Routes>
-            <Route path="/" element={<DashboardHome />} />
+            <Route path="/" element={<DashboardAnalytics />} />
             <Route path="/products" element={<ProductsManagement />} />
             <Route path="/inventory" element={<InventoryManagement />} />
             <Route path="/orders" element={<OrdersManagement />} />
