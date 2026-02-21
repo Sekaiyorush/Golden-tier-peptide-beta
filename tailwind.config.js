@@ -105,11 +105,32 @@ module.exports = {
           "0%,70%,100%": { opacity: "1" },
           "20%,50%": { opacity: "0" },
         },
+        "gradient-x": {
+          "0%, 100%": {
+            "background-size": "200% 200%",
+            "background-position": "left center"
+          },
+          "50%": {
+            "background-size": "200% 200%",
+            "background-position": "right center"
+          }
+        },
+        "shimmer": {
+          "0%": {
+            transform: "translateX(-150%)"
+          },
+          "100%": {
+            transform: "translateX(150%)"
+          }
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         "caret-blink": "caret-blink 1.25s ease-out infinite",
+        "gradient-x": "gradient-x 5s ease infinite",
+        "shimmer": "shimmer 3s infinite",
+        "spin-slow": "spin 8s linear infinite",
       },
     },
   },

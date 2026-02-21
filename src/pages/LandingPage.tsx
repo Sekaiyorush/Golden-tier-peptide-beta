@@ -1,99 +1,165 @@
 import { Link } from 'react-router-dom';
 import { useDatabase } from '@/context/DatabaseContext';
-import { Beaker, ArrowRight, Shield, FlaskConical, Award } from 'lucide-react';
+import { motion, useScroll, useTransform, useSpring } from 'framer-motion';
 
 export function LandingPage() {
     const { db } = useDatabase();
     const { companyName, companyDescription } = db.siteSettings;
+    const { scrollY } = useScroll();
+    const ySpring = useSpring(scrollY, { stiffness: 40, damping: 20 });
+    const yTitle = useTransform(ySpring, [0, 500], [0, 150]);
+
+    // Generate 25 floating gold particles
+    const particles = Array.from({ length: 25 }).map((_, i) => ({
+        id: i,
+        size: Math.random() * 4 + 1,
+        x: Math.random() * 100,
+        y: Math.random() * 100,
+        duration: Math.random() * 15 + 15,
+        delay: Math.random() * 5,
+    }));
 
     return (
-        <div className="min-h-screen bg-slate-950 flex flex-col">
-            {/* Subtle background pattern */}
-            <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-slate-950 to-black" />
+        <div className="min-h-screen bg-white flex flex-col relative overflow-hidden font-sans">
 
-            {/* Header */}
-            <header className="relative z-10 flex items-center justify-between px-6 md:px-12 py-6">
-                <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-gradient-to-br from-amber-400 to-amber-600 rounded-xl flex items-center justify-center shadow-lg shadow-amber-500/20">
-                        <Beaker className="h-5 w-5 text-white" />
-                    </div>
-                    <span className="text-xl font-bold text-white tracking-tight">{companyName}</span>
-                </div>
-                <div className="flex items-center space-x-3">
+            {/* Dynamic Gold Particles Background */}
+            <div className="absolute inset-0 pointer-events-none z-0">
+                {particles.map((p) => (
+                    <motion.div
+                        key={p.id}
+                        className="absolute rounded-full bg-gradient-to-br from-[#D4AF37] to-[#AA771C] opacity-30 shadow-[0_0_8px_rgba(212,175,55,0.6)]"
+                        style={{
+                            width: p.size,
+                            height: p.size,
+                            left: `${p.x}%`,
+                            top: `${p.y}%`,
+                        }}
+                        animate={{
+                            y: ["0vh", "-100vh"],
+                            x: ["0vw", `${(Math.random() - 0.5) * 20}vw`],
+                            opacity: [0, 0.4, 0],
+                        }}
+                        transition={{
+                            duration: p.duration,
+                            repeat: Infinity,
+                            ease: "linear",
+                            delay: p.delay,
+                        }}
+                    />
+                ))}
+            </div>
+
+            {/* Subtle background glow */}
+            <div className="absolute inset-0 pointer-events-none z-0 bg-[radial-gradient(ellipse_at_center,_rgba(212,175,55,0.03)_0%,_rgba(255,255,255,1)_60%)]" />
+
+            {/* Header - Ultra Minimal */}
+            <header className="relative z-20 flex items-center justify-between px-8 py-10 w-full max-w-7xl mx-auto">
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 1.5, ease: "easeOut" }}
+                    className="text-sm font-bold tracking-[0.3em] uppercase text-[#AA771C]"
+                >
+                    {companyName}
+                </motion.div>
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 1.5, ease: "easeOut", delay: 0.2 }}
+                    className="flex items-center space-x-8"
+                >
                     <Link
                         to="/login"
-                        className="px-5 py-2.5 text-sm font-medium text-slate-300 hover:text-white transition-colors rounded-lg hover:bg-white/5"
+                        className="text-xs font-semibold tracking-widest uppercase text-slate-400 hover:text-[#D4AF37] transition-colors duration-500"
                     >
                         Sign In
                     </Link>
                     <Link
                         to="/register"
-                        className="px-5 py-2.5 text-sm font-medium text-slate-900 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 rounded-lg transition-all shadow-lg shadow-amber-500/20 hover:shadow-amber-500/30"
+                        className="relative px-6 py-2 text-xs font-semibold tracking-widest uppercase text-white bg-[#111] overflow-hidden group"
                     >
-                        Register
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[#D4AF37]/30 to-transparent -translate-x-[150%] animate-[shimmer_3s_infinite]" />
+                        <span className="relative z-10">Register</span>
+                        {/* Animated Gold Bottom Border on Hover */}
+                        <span className="absolute bottom-0 left-0 w-0 h-[2px] bg-gradient-to-r from-[#D4AF37] to-[#F3E5AB] transition-all duration-500 ease-out group-hover:w-full" />
                     </Link>
-                </div>
+                </motion.div>
             </header>
 
-            {/* Hero Section */}
-            <main className="relative z-10 flex-1 flex items-center justify-center px-6 md:px-12">
-                <div className="max-w-4xl mx-auto text-center">
-                    {/* Badge */}
-                    <div className="inline-flex items-center space-x-2 px-4 py-2 bg-white/5 border border-white/10 rounded-full mb-8 backdrop-blur-sm">
-                        <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
-                        <span className="text-sm text-slate-400 font-medium">Research Grade Compounds</span>
-                    </div>
+            {/* Hero Section - Extreme Negative Space */}
+            <main className="relative z-10 flex-1 flex flex-col items-center justify-center px-6">
 
-                    {/* Title */}
-                    <h1 className="text-5xl md:text-7xl font-bold text-white leading-tight mb-6 tracking-tight">
-                        {companyName}
-                    </h1>
+                {/* Animated Accent Line */}
+                <motion.div
+                    initial={{ height: 0 }}
+                    animate={{ height: 60 }}
+                    transition={{ duration: 1.5, ease: [0.22, 1, 0.36, 1], delay: 0.4 }}
+                    className="w-[1px] bg-gradient-to-b from-transparent via-[#D4AF37] to-transparent mb-12"
+                />
 
-                    {/* Description */}
-                    <p className="text-lg md:text-xl text-slate-400 max-w-2xl mx-auto leading-relaxed mb-10">
-                        {companyDescription}
-                    </p>
+                <motion.div
+                    style={{ y: yTitle }}
+                    className="max-w-4xl mx-auto text-center"
+                >
+                    {/* Main Title - Shiny Gold Gradient */}
+                    <motion.h1
+                        initial={{ opacity: 0, y: 20, filter: "blur(10px)" }}
+                        animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                        transition={{ duration: 1.5, ease: [0.22, 1, 0.36, 1], delay: 0.5 }}
+                        className="text-[4rem] sm:text-[6rem] lg:text-[8rem] font-serif tracking-tight leading-[0.9] text-transparent bg-clip-text bg-gradient-to-r from-[#AA771C] via-[#F3E5AB] to-[#D4AF37] animate-gradient-x bg-[length:200%_auto] pb-4"
+                    >
+                        Purity.
+                        <br />
+                        Precision.
+                    </motion.h1>
 
-                    {/* CTAs */}
-                    <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ duration: 1.5, delay: 1 }}
+                        className="mt-12"
+                    >
+                        <p className="text-sm md:text-base font-light tracking-[0.2em] text-slate-400 max-w-xl mx-auto leading-relaxed uppercase">
+                            {companyDescription}
+                        </p>
+                    </motion.div>
+
+                    {/* Luxury CTA Button */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 1.5, ease: [0.22, 1, 0.36, 1], delay: 1.2 }}
+                        className="mt-20 flex justify-center"
+                    >
                         <Link
                             to="/login"
-                            className="group w-full sm:w-auto inline-flex items-center justify-center px-8 py-4 text-base font-semibold text-slate-900 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 rounded-xl transition-all shadow-xl shadow-amber-500/20 hover:shadow-amber-500/30"
+                            className="group relative flex items-center justify-center w-32 h-32 rounded-full border border-[#D4AF37]/30 hover:border-[#D4AF37] transition-colors duration-700 mx-auto"
                         >
-                            Sign In to Continue
-                            <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-                        </Link>
-                        <Link
-                            to="/register"
-                            className="w-full sm:w-auto inline-flex items-center justify-center px-8 py-4 text-base font-medium text-slate-300 border border-white/10 hover:bg-white/5 hover:border-white/20 rounded-xl transition-all backdrop-blur-sm"
-                        >
-                            Create Account
-                        </Link>
-                    </div>
+                            {/* Rotating glowing arc */}
+                            <div className="absolute inset-[-1px] rounded-full bg-gradient-to-tr from-[#D4AF37] to-transparent opacity-0 group-hover:opacity-100 animate-spin-slow transition-opacity duration-700" />
+                            <div className="absolute inset-[1px] rounded-full bg-white z-0" />
 
-                    {/* Trust Indicators */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-3xl mx-auto">
-                        <div className="flex items-center justify-center space-x-3 px-6 py-4 bg-white/[0.03] border border-white/[0.06] rounded-xl backdrop-blur-sm">
-                            <Shield className="h-5 w-5 text-amber-400 shrink-0" />
-                            <span className="text-sm text-slate-400">99%+ Purity Guaranteed</span>
-                        </div>
-                        <div className="flex items-center justify-center space-x-3 px-6 py-4 bg-white/[0.03] border border-white/[0.06] rounded-xl backdrop-blur-sm">
-                            <FlaskConical className="h-5 w-5 text-amber-400 shrink-0" />
-                            <span className="text-sm text-slate-400">Lab Certified Quality</span>
-                        </div>
-                        <div className="flex items-center justify-center space-x-3 px-6 py-4 bg-white/[0.03] border border-white/[0.06] rounded-xl backdrop-blur-sm">
-                            <Award className="h-5 w-5 text-amber-400 shrink-0" />
-                            <span className="text-sm text-slate-400">Trusted by Researchers</span>
-                        </div>
-                    </div>
-                </div>
+                            <span className="relative z-10 text-[10px] font-bold tracking-[0.3em] uppercase text-[#AA771C] group-hover:text-[#D4AF37] transition-colors duration-500">
+                                Enter <br /><span className="mt-1 block">Portal</span>
+                            </span>
+                        </Link>
+                    </motion.div>
+                </motion.div>
             </main>
 
-            {/* Footer */}
-            <footer className="relative z-10 text-center py-8 px-6">
-                <p className="text-sm text-slate-600">
-                    © {new Date().getFullYear()} {companyName}. All rights reserved. For research use only.
-                </p>
+            {/* Footer - Bare Minimum */}
+            <footer className="relative z-20 text-center py-12 px-6">
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 2, delay: 1.5 }}
+                    className="flex flex-col items-center justify-center space-y-4"
+                >
+                    <div className="w-[1px] h-12 bg-gradient-to-b from-[#D4AF37]/50 to-transparent" />
+                    <p className="text-[10px] font-medium tracking-widest text-[#D4AF37]/60 uppercase">
+                        © {new Date().getFullYear()} {companyName}
+                    </p>
+                </motion.div>
             </footer>
         </div>
     );
