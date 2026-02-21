@@ -2,7 +2,7 @@ from PIL import Image, ImageDraw
 import numpy as np
 
 # Load image and convert to RGBA
-img = Image.open(r'C:\Users\USER\.gemini\antigravity\brain\ba68a1a6-36cd-475b-be10-dee0b52944ce\media__1771706465883.png').convert('RGBA')
+img = Image.open(r'C:\Users\USER\.gemini\antigravity\brain\ba68a1a6-36cd-475b-be10-dee0b52944ce\media__1771707403651.jpg').convert('RGBA')
 arr = np.array(img)
 
 # Assuming it's black text on white background or transparent background
@@ -11,7 +11,7 @@ r, g, b, a = arr[:,:,0], arr[:,:,1], arr[:,:,2], arr[:,:,3]
 
 # Create a mask for dark pixels (non-white)
 # Threshold for darkness, say < 128 is logo
-mask = (r < 128) & (g < 128) & (b < 128) & (a > 0)
+mask = (r < 128) & (g < 128) & (b < 128)
 
 # Make non-logo pixels transparent
 arr[~mask] = [0, 0, 0, 0]
