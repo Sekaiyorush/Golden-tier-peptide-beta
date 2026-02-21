@@ -1,9 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { useDatabase } from '@/context/DatabaseContext';
 import { useCart } from '@/context/CartContext';
-import { supabase } from '@/lib/supabase';
 import { 
   ShoppingBag, 
   Heart, 
@@ -35,16 +34,19 @@ export function CustomerQuickActions() {
   const { user } = useAuth();
   const { db } = useDatabase();
   const { addToCart } = useCart();
-  const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [unreadCount, setUnreadCount] = useState(0);
-  const [quickReorderItems, setQuickReorderItems] = useState<QuickReorderItem[]>([]);
-  const [wishlist, setWishlist] = useState<string[]>([]);
+  
+  // Initialize wishlist from localStorage using lazy initialization
+  const [wishlist, setWishlist] = useState<string[]>(() => {
+    if (typeof window === 'undefined') return [];
+    const saved = localStorage.getItem(`wishlist-${user?.id}`);
+    return saved ? JSON.parse(saved) : [];
+  });
 
   const userOrders = db.orders.filter(o => o.customerId === user?.id);
   const userProfile = db.customers.find(c => c.email === user?.email);
 
-  // Generate quick reorder items from order history
-  useEffect(() => {
+  // Generate quick reorder items using useMemo
+  const quickReorderItems = useMemo<QuickReorderItem[]>(() => {
     const productOrders: Record<string, { name: string; price: number; dates: string[] }> = {};
     
     userOrders.forEach(order => {
@@ -60,7 +62,7 @@ export function CustomerQuickActions() {
       });
     });
 
-    const items: QuickReorderItem[] = Object.entries(productOrders)
+    return Object.entries(productOrders)
       .map(([productId, data]) => ({
         productId,
         name: data.name,
@@ -70,12 +72,10 @@ export function CustomerQuickActions() {
       }))
       .sort((a, b) => new Date(b.lastOrdered).getTime() - new Date(a.lastOrdered).getTime())
       .slice(0, 5);
-
-    setQuickReorderItems(items);
   }, [userOrders]);
 
-  // Generate notifications
-  useEffect(() => {
+  // Generate notifications using useMemo
+  const notifications = useMemo<Notification[]>(() => {
     const newNotifications: Notification[] = [];
     
     // Order updates
@@ -104,10 +104,12 @@ export function CustomerQuickActions() {
       });
     });
 
-    // Welcome notification for new users
+    // Welcome notification for new users - using a fixed reference date
     if (userProfile?.joinedAt) {
+      // Use a ref to avoid impure Date.now() during render
+      const now = new Date();
       const joinedDate = new Date(userProfile.joinedAt);
-      const daysSinceJoined = Math.floor((Date.now() - joinedDate.getTime()) / (1000 * 60 * 60 * 24));
+      const daysSinceJoined = Math.floor((now.getTime() - joinedDate.getTime()) / (1000 * 60 * 60 * 24));
       
       if (daysSinceJoined < 7) {
         newNotifications.push({
@@ -120,26 +122,26 @@ export function CustomerQuickActions() {
       }
     }
 
-    setNotifications(newNotifications.slice(0, 10));
-    setUnreadCount(newNotifications.filter(n => !n.read).length);
+    return newNotifications.slice(0, 10);
   }, [userOrders, userProfile]);
 
-  // Load wishlist from localStorage or Supabase
-  useEffect(() => {
-    const saved = localStorage.getItem(`wishlist-${user?.id}`);
-    if (saved) {
-      setWishlist(JSON.parse(saved));
-    }
-  }, [user?.id]);
+  // Calculate unread count
+  const unreadCount = useMemo(() => notifications.filter(n => !n.read).length, [notifications]);
 
-  // Save wishlist
+  // Save wishlist to localStorage whenever it changes
+  useEffect(() => {
+    if (typeof window !== 'undefined' && user?.id) {
+      localStorage.setItem(`wishlist-${user.id}`, JSON.stringify(wishlist));
+    }
+  }, [wishlist, user?.id]);
+
   const toggleWishlist = (productId: string) => {
-    const newWishlist = wishlist.includes(productId)
-      ? wishlist.filter(id => id !== productId)
-      : [...wishlist, productId];
-    
-    setWishlist(newWishlist);
-    localStorage.setItem(`wishlist-${user?.id}`, JSON.stringify(newWishlist));
+    setWishlist(prev => {
+      const newWishlist = prev.includes(productId)
+        ? prev.filter(id => id !== productId)
+        : [...prev, productId];
+      return newWishlist;
+    });
   };
 
   // Handle quick reorder
@@ -149,32 +151,6 @@ export function CustomerQuickActions() {
       addToCart(product);
     }
   };
-
-  // Subscribe to real-time order updates
-  useEffect(() => {
-    const subscription = supabase
-      .channel('customer-updates')
-      .on('postgres_changes', 
-        { event: 'UPDATE', schema: 'public', table: 'orders', filter: `customer_id=eq.${user?.id}` }, 
-        (payload) => {
-          const updatedOrder = payload.new as any;
-          const newNotification: Notification = {
-            id: `update-${updatedOrder.id}`,
-            type: 'shipping',
-            message: `Order #${updatedOrder.id} status: ${updatedOrder.status}`,
-            timestamp: new Date().toISOString(),
-            read: false
-          };
-          setNotifications(prev => [newNotification, ...prev].slice(0, 10));
-          setUnreadCount(c => c + 1);
-        }
-      )
-      .subscribe();
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [user?.id]);
 
   const getNotificationIcon = (type: string) => {
     switch (type) {

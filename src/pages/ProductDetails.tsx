@@ -3,7 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useCart } from '@/context/CartContext';
 import { useAuth } from '@/context/AuthContext';
 import { useDatabase } from '@/context/DatabaseContext';
-import { useToast } from '@/components/ui/Toast';
+import { useToast } from '@/components/ui/useToast';
 import { SEO } from '@/components/SEO';
 import { Breadcrumbs } from '@/components/Breadcrumbs';
 import { ShoppingCart, Check, ShieldCheck, ArrowLeft, Plus, Minus, FileText } from 'lucide-react';
@@ -13,7 +13,7 @@ export function ProductDetails() {
     const { db } = useDatabase();
     const { addToCart } = useCart();
     const { isPartner, user } = useAuth();
-    const { toast } = useToast();
+    const { addToast } = useToast();
     const navigate = useNavigate();
 
     const [quantity, setQuantity] = useState(1);
@@ -55,7 +55,7 @@ export function ProductDetails() {
         for (let i = 0; i < quantity; i++) {
             addToCart(product);
         }
-        toast(`Added ${quantity}x ${product.name} to your cart.`, 'success');
+        addToast({ message: `Added ${quantity}x ${product.name} to your cart.`, type: 'success' });
     };
 
     return (

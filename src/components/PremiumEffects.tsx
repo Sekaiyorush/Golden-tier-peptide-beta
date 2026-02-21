@@ -1,14 +1,5 @@
-import { useEffect, useState } from 'react';
-
 export function PremiumEffects() {
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (!mounted) return null;
-
+  // Global styles injection - no state needed
   return (
     <>
       {/* Gold Shimmer Animation */}

@@ -13,6 +13,7 @@ export interface Product {
   dosage?: string;
   imageUrl?: string;
   lowStockThreshold?: number;
+  isNew?: boolean;
   createdAt: string;
   updatedAt: string;
 }

@@ -41,7 +41,7 @@ export function ProductCard({ product, index = 0 }: ProductCardProps) {
       <div className="relative bg-white/60 backdrop-blur-xl rounded-[2rem] border border-gold-200/50 overflow-hidden shadow-[0_4px_20px_rgb(0,0,0,0.03)] hover:shadow-[0_20px_60px_rgb(0,0,0,0.12)] transition-all duration-500 hover:-translate-y-2">
         
         {/* Badge - Featured/New */}
-        {(product as any).isNew && (
+        {product.isNew && (
           <div className="absolute top-4 left-4 z-20 flex items-center space-x-1 px-3 py-1.5 bg-gradient-to-r from-emerald-400 to-emerald-600 text-white text-[10px] font-bold tracking-widest uppercase rounded-full shadow-lg">
             <Sparkles className="h-3 w-3" />
             <span>New</span>

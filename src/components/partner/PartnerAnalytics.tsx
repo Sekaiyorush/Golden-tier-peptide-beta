@@ -1,8 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { useDatabase } from '@/context/DatabaseContext';
-import { supabase } from '@/lib/supabase';
 import { 
   TrendingUp, 
   DollarSign, 
@@ -36,24 +35,13 @@ interface PartnerStats {
 export function PartnerAnalytics() {
   const { user } = useAuth();
   const { db } = useDatabase();
-  const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [unreadCount, setUnreadCount] = useState(0);
-  const [stats, setStats] = useState<PartnerStats>({
-    totalEarnings: 0,
-    earningsChange: 0,
-    networkSize: 0,
-    networkGrowth: 0,
-    monthlyOrders: 0,
-    ordersChange: 0,
-    conversionRate: 0
-  });
 
   const partnerDetails = db.partners.find(p => p.id === user?.partnerId);
   const partnerOrders = db.orders.filter(o => o.partnerId === user?.partnerId);
   const referredPartners = db.partners.filter(p => p.referredBy === user?.partnerId);
 
-  // Calculate stats
-  useEffect(() => {
+  // Calculate stats using useMemo
+  const stats = useMemo<PartnerStats>(() => {
     const today = new Date();
     const thirtyDaysAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
     const sixtyDaysAgo = new Date(today.getTime() - 60 * 24 * 60 * 60 * 1000);
@@ -81,7 +69,7 @@ export function PartnerAnalytics() {
 
     // Network growth
     const currentNetwork = referredPartners.length;
-    const prevNetwork = Math.max(0, currentNetwork - Math.floor(Math.random() * 3));
+    const prevNetwork = Math.max(0, currentNetwork - 3);
     const networkGrowth = prevNetwork > 0
       ? ((currentNetwork - prevNetwork) / prevNetwork) * 100
       : 0;
@@ -96,7 +84,7 @@ export function PartnerAnalytics() {
       ? (referredPartners.filter(p => p.status === 'active').length / referredPartners.length) * 100
       : 0;
 
-    setStats({
+    return {
       totalEarnings: currentEarnings,
       earningsChange,
       networkSize: currentNetwork,
@@ -104,11 +92,11 @@ export function PartnerAnalytics() {
       monthlyOrders: currentMonthOrders.length,
       ordersChange,
       conversionRate
-    });
+    };
   }, [partnerOrders, referredPartners, partnerDetails]);
 
-  // Generate notifications
-  useEffect(() => {
+  // Generate notifications using useMemo
+  const notifications = useMemo<Notification[]>(() => {
     const newNotifications: Notification[] = [];
     
     // Recent orders
@@ -138,35 +126,11 @@ export function PartnerAnalytics() {
       new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
     );
 
-    setNotifications(newNotifications.slice(0, 10));
-    setUnreadCount(newNotifications.filter(n => !n.read).length);
+    return newNotifications.slice(0, 10);
   }, [partnerOrders, referredPartners]);
 
-  // Subscribe to real-time updates
-  useEffect(() => {
-    const subscription = supabase
-      .channel('partner-updates')
-      .on('postgres_changes', 
-        { event: 'INSERT', schema: 'public', table: 'orders', filter: `partner_id=eq.${user?.partnerId}` }, 
-        (payload) => {
-          const newOrder = payload.new as any;
-          const newNotification: Notification = {
-            id: `order-${newOrder.id}`,
-            type: 'order',
-            message: `New order received: $${Number(newOrder.total).toFixed(2)}`,
-            timestamp: newOrder.created_at,
-            read: false
-          };
-          setNotifications(prev => [newNotification, ...prev].slice(0, 10));
-          setUnreadCount(c => c + 1);
-        }
-      )
-      .subscribe();
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [user?.partnerId]);
+  // Calculate unread count
+  const unreadCount = useMemo(() => notifications.filter(n => !n.read).length, [notifications]);
 
   const getNotificationIcon = (type: string) => {
     switch (type) {

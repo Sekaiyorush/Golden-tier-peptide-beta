@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useDatabase } from '@/context/DatabaseContext';
 import { supabase } from '@/lib/supabase';
@@ -34,20 +34,9 @@ interface DashboardStats {
 
 export function DashboardAnalytics() {
   const { db } = useDatabase();
-  const [activities, setActivities] = useState<Activity[]>([]);
-  const [stats, setStats] = useState<DashboardStats>({
-    totalRevenue: 0,
-    revenueChange: 0,
-    totalOrders: 0,
-    ordersChange: 0,
-    newCustomers: 0,
-    customersChange: 0,
-    lowStockCount: 0
-  });
-  const [unreadCount, setUnreadCount] = useState(0);
 
-  // Calculate stats from real data
-  useEffect(() => {
+  // Calculate stats using useMemo instead of useEffect to avoid cascading renders
+  const stats = useMemo<DashboardStats>(() => {
     const today = new Date();
     const thirtyDaysAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
     const sixtyDaysAgo = new Date(today.getTime() - 60 * 24 * 60 * 60 * 1000);
@@ -88,7 +77,7 @@ export function DashboardAnalytics() {
       p.stockQuantity < (p.lowStockThreshold || 10)
     ).length;
 
-    setStats({
+    return {
       totalRevenue: currentRevenue,
       revenueChange,
       totalOrders: currentMonthOrders.length,
@@ -96,11 +85,11 @@ export function DashboardAnalytics() {
       newCustomers: currentCustomers,
       customersChange,
       lowStockCount
-    });
+    };
   }, [db.orders, db.customers, db.products]);
 
-  // Generate activity feed
-  useEffect(() => {
+  // Generate initial activities
+  const initialActivities = useMemo<Activity[]>(() => {
     const newActivities: Activity[] = [];
     
     // Recent orders
@@ -133,9 +122,12 @@ export function DashboardAnalytics() {
       new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
     );
 
-    setActivities(newActivities.slice(0, 10));
-    setUnreadCount(newActivities.filter(a => !a.read).length);
+    return newActivities.slice(0, 10);
   }, [db.orders, db.products]);
+
+  // Initialize state with computed values
+  const [activities, setActivities] = useState<Activity[]>(initialActivities);
+  const [unreadCount, setUnreadCount] = useState(() => initialActivities.filter(a => !a.read).length);
 
   // Subscribe to real-time updates
   useEffect(() => {
@@ -144,7 +136,7 @@ export function DashboardAnalytics() {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, (payload) => {
         // Refresh activities when new order comes in
         if (payload.eventType === 'INSERT') {
-          const newOrder = payload.new as any;
+          const newOrder = payload.new as { id: string; total: number; created_at: string };
           const newActivity: Activity = {
             id: `order-${newOrder.id}`,
             type: 'order',
@@ -275,7 +267,7 @@ export function DashboardAnalytics() {
         </div>
       </div>
 
-      {/* Activity Feed */}
+      {/* Activity Feed & Quick Actions */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Recent Activity */}
         <div className="lg:col-span-2 bg-white/60 backdrop-blur-xl rounded-[2rem] border border-gold-200/50 p-6 shadow-[0_4px_20px_rgb(0,0,0,0.03)]">
