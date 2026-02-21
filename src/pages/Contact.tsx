@@ -1,14 +1,21 @@
 import { Mail, MapPin, Phone, MessageSquare } from 'lucide-react';
 import { useDatabase } from '@/context/DatabaseContext';
+import { SEO } from '@/components/SEO';
+import { Breadcrumbs } from '@/components/Breadcrumbs';
 
 export function Contact() {
     const { db } = useDatabase();
     const settings = db.siteSettings;
 
     return (
-        <div className="min-h-screen bg-slate-50 py-16">
+        <div className="min-h-screen bg-slate-50 py-12">
+            <SEO
+                title="Contact Support"
+                description="Get in touch with Golden Tier Peptide. We're here to help with any inquiries about our research products, shipping, or your orders."
+            />
             <div className="container mx-auto px-4 md:px-6 max-w-4xl">
-                <div className="text-center mb-12">
+                <Breadcrumbs />
+                <div className="text-center mb-12 mt-6">
                     <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">Contact Us</h1>
                     <p className="text-lg text-slate-500">
                         Have questions? We're here to help with any inquiries about our products or services.

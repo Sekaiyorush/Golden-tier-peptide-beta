@@ -153,7 +153,7 @@ export function UserDashboard() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-slate-500">Member Since</p>
-                    <p className="text-2xl font-semibold text-slate-900">{userProfile.joinedAt}</p>
+                    <p className="text-2xl font-semibold text-slate-900">{new Date(userProfile.joinedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
                   </div>
                   <div className="w-12 h-12 bg-slate-100 rounded-lg flex items-center justify-center">
                     <User className="h-6 w-6 text-slate-600" />

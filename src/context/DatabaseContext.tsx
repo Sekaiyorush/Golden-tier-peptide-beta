@@ -12,6 +12,8 @@ export interface SiteSettings {
   contactLocation: string;
   businessHours: string;
   shippingInfo: string;
+  companyName: string;
+  companyDescription: string;
 }
 
 // We manage global mapped state here for optimistic UI updates
@@ -87,7 +89,9 @@ const INITIAL_DB_STATE: AppDatabase = {
     contactPhone: 'Contact via email first',
     contactLocation: 'United States',
     businessHours: 'Mon-Fri, 9AM-5PM',
-    shippingInfo: 'Shipping worldwide'
+    shippingInfo: 'Shipping worldwide',
+    companyName: 'Golden Tier Peptide',
+    companyDescription: 'Premium research-grade peptides for laboratory use.'
   }
 };
 
@@ -103,7 +107,8 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
         { data: ordersRaw },
         { data: codes },
         { data: orderItemsRaw },
-        { data: inventoryLogsRaw }
+        { data: inventoryLogsRaw },
+        { data: settingsData }
       ] = await Promise.all([
         supabase.from('products').select('*'),
         supabase.from('profiles').select('*'),
@@ -116,15 +121,16 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
 
       if (products && profiles) {
         // Parse settings
-        const loadedSettings = arguments[0][6]?.data || null;
         let siteSettings = INITIAL_DB_STATE.siteSettings;
-        if (loadedSettings) {
+        if (settingsData) {
           siteSettings = {
-            contactEmail: loadedSettings.contact_email,
-            contactPhone: loadedSettings.contact_phone,
-            contactLocation: loadedSettings.contact_location,
-            businessHours: loadedSettings.business_hours,
-            shippingInfo: loadedSettings.shipping_info
+            contactEmail: settingsData.contact_email || siteSettings.contactEmail,
+            contactPhone: settingsData.contact_phone || siteSettings.contactPhone,
+            contactLocation: settingsData.contact_location || siteSettings.contactLocation,
+            businessHours: settingsData.business_hours || siteSettings.businessHours,
+            shippingInfo: settingsData.shipping_info || siteSettings.shippingInfo,
+            companyName: settingsData.company_name || siteSettings.companyName,
+            companyDescription: settingsData.company_description || siteSettings.companyDescription
           };
         }
 
@@ -642,6 +648,8 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
     if (updates.contactLocation !== undefined) dbUpdates.contact_location = updates.contactLocation;
     if (updates.businessHours !== undefined) dbUpdates.business_hours = updates.businessHours;
     if (updates.shippingInfo !== undefined) dbUpdates.shipping_info = updates.shippingInfo;
+    if (updates.companyName !== undefined) dbUpdates.company_name = updates.companyName;
+    if (updates.companyDescription !== undefined) dbUpdates.company_description = updates.companyDescription;
 
     const { error } = await supabase.from('site_settings').update(dbUpdates).eq('id', 'default');
     if (error) {

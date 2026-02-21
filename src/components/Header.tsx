@@ -4,7 +4,7 @@ import { useCart } from '@/context/CartContext';
 import { useLanguage } from '@/context/LanguageContext';
 import { useAuth } from '@/context/AuthContext';
 import { SearchBar } from './SearchBar';
-import { Menu, X, ShoppingCart, User, LogOut, LayoutDashboard } from 'lucide-react';
+import { Menu, X, ShoppingCart, User, LogOut, LayoutDashboard, Globe } from 'lucide-react';
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -62,22 +62,26 @@ export function Header() {
         <div className="flex items-center space-x-3">
           <button
             onClick={toggleLanguage}
-            className="text-sm text-slate-600 hover:text-slate-900 px-2 py-1 rounded-md hover:bg-slate-100 transition-colors"
+            className="flex items-center space-x-1 text-sm text-slate-600 hover:text-slate-900 px-2 py-1 rounded-md hover:bg-slate-100 transition-colors"
+            title="Switch language"
           >
-            {language.toUpperCase()}
+            <Globe className="h-4 w-4" />
+            <span>{language.toUpperCase()}</span>
           </button>
 
-          <button
-            onClick={toggleCart}
-            className="relative p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors"
-          >
-            <ShoppingCart className="h-5 w-5" />
-            {cartCount > 0 && (
-              <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-slate-900 text-[10px] font-medium text-white">
-                {cartCount}
-              </span>
-            )}
-          </button>
+          {isPartner && (
+            <button
+              onClick={toggleCart}
+              className="relative p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors"
+            >
+              <ShoppingCart className="h-5 w-5" />
+              {cartCount > 0 && (
+                <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-slate-900 text-[10px] font-medium text-white">
+                  {cartCount}
+                </span>
+              )}
+            </button>
+          )}
 
           {isAuthenticated ? (
             <div className="hidden md:flex items-center space-x-2">
@@ -148,6 +152,9 @@ export function Header() {
       {/* Mobile Menu */}
       {isMenuOpen && (
         <div className="md:hidden border-t border-slate-200 bg-white p-4">
+          <div className="mb-3">
+            <SearchBar />
+          </div>
           <nav className="flex flex-col space-y-1">
             <Link
               to="/products"
@@ -177,7 +184,7 @@ export function Header() {
             >
               Contact
             </Link>
-            
+
             {isAuthenticated ? (
               <>
                 <div className="border-t border-slate-200 my-2" />

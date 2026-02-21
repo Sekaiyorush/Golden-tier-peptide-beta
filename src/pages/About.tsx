@@ -1,16 +1,29 @@
 import { Shield, Award, Microscope, Users } from 'lucide-react';
+import { SEO } from '@/components/SEO';
+import { Breadcrumbs } from '@/components/Breadcrumbs';
 
 export function About() {
     return (
-        <div className="min-h-screen bg-slate-50 py-16">
-            <div className="container mx-auto px-4 md:px-6 max-w-4xl">
-                <div className="text-center mb-12">
-                    <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">About Golden Tier Peptide</h1>
-                    <p className="text-lg text-slate-500 max-w-2xl mx-auto">
-                        We are a premium research peptide supplier committed to purity, rigorous testing, and exceptional quality for the scientific community.
-                    </p>
-                </div>
+        <div className="min-h-screen bg-white">
+            <SEO
+                title="About Us"
+                description="Learn about Golden Tier Peptide's mission to provide the highest-purity, reliable research compounds for scientific exploration."
+            />
+            <Breadcrumbs />
 
+            {/* Hero Section */}
+            <section className="bg-slate-900 text-white py-20">
+                <div className="container mx-auto px-4 md:px-6 max-w-4xl">
+                    <div className="max-w-3xl">
+                        <h1 className="text-4xl md:text-5xl font-bold mb-6">Our Mission</h1>
+                        <p className="text-lg text-slate-300 leading-relaxed">
+                            We are a premium research peptide supplier committed to purity, rigorous testing, and exceptional quality for the scientific community.
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <div className="container mx-auto px-4 md:px-6 max-w-4xl py-16">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
                     {[
                         { icon: Shield, title: 'Quality Assurance', desc: 'Every batch undergoes third-party HPLC and mass spectrometry testing to guarantee purity levels above 99%.' },

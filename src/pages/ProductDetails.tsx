@@ -1,8 +1,11 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useCart } from '@/context/CartContext';
 import { useAuth } from '@/context/AuthContext';
 import { useDatabase } from '@/context/DatabaseContext';
+import { useToast } from '@/components/ui/Toast';
+import { SEO } from '@/components/SEO';
+import { Breadcrumbs } from '@/components/Breadcrumbs';
 import { ShoppingCart, Check, ShieldCheck, ArrowLeft, Plus, Minus, FileText } from 'lucide-react';
 
 export function ProductDetails() {
@@ -10,6 +13,8 @@ export function ProductDetails() {
     const { db } = useDatabase();
     const { addToCart } = useCart();
     const { isPartner, user } = useAuth();
+    const { toast } = useToast();
+    const navigate = useNavigate();
 
     const [quantity, setQuantity] = useState(1);
 
@@ -49,17 +54,26 @@ export function ProductDetails() {
         for (let i = 0; i < quantity; i++) {
             addToCart(product);
         }
-        // Optional: add a success toast
+        toast(`Added ${quantity}x ${product.name} to your cart.`, 'success');
     };
 
     return (
         <div className="min-h-screen bg-slate-50 py-12">
+            <SEO
+                title={product.name}
+                description={product.description || `Premium research grade ${product.name}. >99% purity guaranteed for laboratory research.`}
+            />
+
             <div className="container mx-auto px-4 md:px-6">
-                {/* Back Link */}
-                <Link to="/products" className="inline-flex items-center text-sm text-slate-500 hover:text-slate-900 mb-8 transition-colors">
+                <Breadcrumbs />
+
+                <button
+                    onClick={() => navigate('/products')}
+                    className="inline-flex items-center text-sm text-slate-500 hover:text-slate-900 mb-8 mt-4 transition-colors"
+                >
                     <ArrowLeft className="h-4 w-4 mr-2" />
                     Back to all products
-                </Link>
+                </button>
 
                 <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
                     <div className="grid grid-cols-1 md:grid-cols-2">
@@ -102,49 +116,58 @@ export function ProductDetails() {
                                 <p className="text-slate-600 leading-relaxed text-lg">{product.description}</p>
                             </div>
 
-                            <div className="mb-8">
-                                <div className="flex items-end gap-3 mb-2">
-                                    <span className="text-4xl font-bold text-slate-900">${currentPrice.toFixed(2)}</span>
-                                    {isPartner && user?.discountRate && (
-                                        <span className="text-lg text-slate-400 line-through mb-1">${product.price.toFixed(2)}</span>
-                                    )}
-                                </div>
-                                {isPartner && user?.discountRate && (
-                                    <p className="text-sm text-emerald-600 font-medium">Your partner discount ({user.discountRate}%) has been applied.</p>
-                                )}
-                            </div>
-
-                            <div className="flex items-center gap-4 mb-8">
-                                <div className="flex flex-col gap-2">
-                                    <span className="text-sm font-medium text-slate-700">Quantity</span>
-                                    <div className="flex items-center bg-slate-100 rounded-lg p-1 w-fit border border-slate-200">
-                                        <button
-                                            onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                                            className="p-2 hover:bg-white rounded-md transition-colors"
-                                        >
-                                            <Minus className="h-4 w-4" />
-                                        </button>
-                                        <span className="w-12 text-center font-semibold text-slate-900">{quantity}</span>
-                                        <button
-                                            onClick={() => setQuantity(quantity + 1)}
-                                            className="p-2 hover:bg-white rounded-md transition-colors"
-                                        >
-                                            <Plus className="h-4 w-4" />
-                                        </button>
+                            {isPartner ? (
+                                <>
+                                    <div className="mb-8">
+                                        <div className="flex items-end gap-3 mb-2">
+                                            <span className="text-4xl font-bold text-slate-900">${currentPrice.toFixed(2)}</span>
+                                            {user?.discountRate && (
+                                                <span className="text-lg text-slate-400 line-through mb-1">${product.price.toFixed(2)}</span>
+                                            )}
+                                        </div>
+                                        {user?.discountRate && (
+                                            <p className="text-sm text-emerald-600 font-medium">Your partner discount ({user.discountRate}%) has been applied.</p>
+                                        )}
                                     </div>
-                                </div>
 
-                                <div className="flex-1 flex flex-col justify-end pt-7">
-                                    <button
-                                        onClick={handleAddToCart}
-                                        disabled={!product.inStock}
-                                        className="w-full h-12 flex items-center justify-center space-x-2 bg-slate-900 text-white rounded-lg font-medium hover:bg-slate-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                    >
-                                        <ShoppingCart className="h-5 w-5" />
-                                        <span>{product.inStock ? 'Add to Cart' : 'Out of Stock'}</span>
-                                    </button>
+                                    <div className="flex items-center gap-4 mb-8">
+                                        <div className="flex flex-col gap-2">
+                                            <span className="text-sm font-medium text-slate-700">Quantity</span>
+                                            <div className="flex items-center bg-slate-100 rounded-lg p-1 w-fit border border-slate-200">
+                                                <button
+                                                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                                                    className="p-2 hover:bg-white rounded-md transition-colors"
+                                                >
+                                                    <Minus className="h-4 w-4" />
+                                                </button>
+                                                <span className="w-12 text-center font-semibold text-slate-900">{quantity}</span>
+                                                <button
+                                                    onClick={() => setQuantity(quantity + 1)}
+                                                    className="p-2 hover:bg-white rounded-md transition-colors"
+                                                >
+                                                    <Plus className="h-4 w-4" />
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex-1 flex flex-col justify-end pt-7">
+                                            <button
+                                                onClick={handleAddToCart}
+                                                disabled={!product.inStock}
+                                                className="w-full h-12 flex items-center justify-center space-x-2 bg-slate-900 text-white rounded-lg font-medium hover:bg-slate-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                            >
+                                                <ShoppingCart className="h-5 w-5" />
+                                                <span>{product.inStock ? 'Add to Cart' : 'Out of Stock'}</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </>
+                            ) : (
+                                <div className="mb-8 p-4 bg-slate-50 border border-slate-200 rounded-xl">
+                                    <p className="text-sm font-medium text-slate-700 mb-1">Partner Pricing Only</p>
+                                    <p className="text-sm text-slate-500">Pricing and purchasing is available exclusively for verified partners. <a href="/contact" className="text-indigo-600 hover:text-indigo-700 font-medium">Contact us</a> to learn about our partner program.</p>
                                 </div>
-                            </div>
+                            )}
 
                             {/* Extras Grid */}
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-8 border-t border-slate-100">

@@ -1,16 +1,19 @@
 import { useState, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useCart } from '@/context/CartContext';
-import { useAuth } from '@/context/AuthContext';
+
 import { useDatabase } from '@/context/DatabaseContext';
+import { SEO } from '@/components/SEO';
+import { Breadcrumbs } from '@/components/Breadcrumbs';
 import { ShoppingCart, Search, Filter, Check, ChevronDown } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '@/context/AuthContext'; // Keep useAuth for partner discount logic
 
 export function Products() {
-  const { db } = useDatabase();
+  const { db, isLoading } = useDatabase();
   const products = db.products;
   const { addToCart } = useCart();
-  const { isPartner, user } = useAuth();
+  const { isPartner, user } = useAuth(); // Keep useAuth for partner discount logic
   const [searchParams] = useSearchParams();
   const queryParam = searchParams.get('q') || '';
 
@@ -50,7 +53,7 @@ export function Products() {
     });
 
     return result;
-  }, [searchTerm, selectedCategory, sortBy]);
+  }, [searchTerm, selectedCategory, sortBy, products]); // Added products to dependency array
 
   const getDiscountedPrice = (price: number) => {
     if (isPartner && user?.discountRate) {
@@ -61,9 +64,13 @@ export function Products() {
 
   return (
     <div className="min-h-screen bg-slate-50 py-12">
-      <div className="container mx-auto px-4 md:px-6">
-        {/* Page Header */}
-        <div className="mb-8">
+      <SEO
+        title="Research Peptides & Compounds"
+        description="Browse our complete catalog of premium research peptides and laboratory compounds. Over 99% purity guaranteed."
+      />
+      <div className="container mx-auto px-4">
+        <Breadcrumbs />
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4 mt-6">
           <h1 className="text-2xl md:text-3xl font-semibold text-slate-900">Products</h1>
           <p className="text-slate-500 mt-1">Browse our complete catalog of research peptides</p>
           {isPartner && (
@@ -132,7 +139,27 @@ export function Products() {
         </div>
 
         {/* Products Grid */}
-        {filteredProducts.length > 0 ? (
+        {isLoading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="bg-white rounded-xl border border-slate-200 overflow-hidden animate-pulse">
+                <div className="aspect-[4/3] bg-slate-200" />
+                <div className="p-5 space-y-3">
+                  <div className="h-5 bg-slate-200 rounded w-3/4" />
+                  <div className="h-4 bg-slate-200 rounded w-full" />
+                  <div className="h-3 bg-slate-200 rounded w-1/3 mt-2" />
+                  <div className="flex justify-between pt-4 border-t border-slate-100">
+                    <div className="h-6 bg-slate-200 rounded w-20" />
+                    <div className="flex space-x-2">
+                      <div className="h-9 bg-slate-200 rounded w-16" />
+                      <div className="h-9 bg-slate-200 rounded w-16" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : filteredProducts.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredProducts.map((product) => (
               <div
@@ -180,9 +207,9 @@ export function Products() {
                           </p>
                         </div>
                       ) : (
-                        <p className="text-xl font-semibold text-slate-900">
-                          ${product.price.toFixed(2)}
-                        </p>
+                        <span className="inline-flex items-center px-2.5 py-1 bg-slate-100 text-slate-500 rounded-md text-xs font-medium">
+                          Partner Only
+                        </span>
                       )}
                     </div>
                     <div className="flex items-center space-x-2">
@@ -192,14 +219,16 @@ export function Products() {
                       >
                         Details
                       </Link>
-                      <button
-                        onClick={() => addToCart(product)}
-                        disabled={!product.inStock}
-                        className="flex items-center space-x-2 px-4 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        <ShoppingCart className="h-4 w-4" />
-                        <span>Add</span>
-                      </button>
+                      {isPartner && (
+                        <button
+                          onClick={() => addToCart(product)}
+                          disabled={!product.inStock}
+                          className="flex items-center space-x-2 px-4 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          <ShoppingCart className="h-4 w-4" />
+                          <span>Add</span>
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>

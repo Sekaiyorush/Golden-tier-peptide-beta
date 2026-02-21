@@ -7,7 +7,7 @@ import { ShoppingCart, ArrowRight, Check } from 'lucide-react';
 export function FeaturedProducts() {
   const { addToCart } = useCart();
   const { isPartner, user } = useAuth();
-  const { db } = useDatabase();
+  const { db, isLoading } = useDatabase();
 
   const featuredProducts = db.products.slice(0, 3);
 
@@ -40,64 +40,93 @@ export function FeaturedProducts() {
 
         {/* Products Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {featuredProducts.map((product) => (
-            <div
-              key={product.id}
-              className="group bg-white rounded-xl border border-slate-200 overflow-hidden hover:shadow-soft transition-shadow"
-            >
-              {/* Product Image Area */}
-              <Link to={`/product/${product.sku}`} className="relative block aspect-[4/3] bg-slate-100 flex items-center justify-center p-8">
-                {/* Purity badge */}
-                <div className="absolute top-4 left-4 flex items-center space-x-1 px-2.5 py-1 bg-white rounded-md shadow-xs">
-                  <Check className="h-3 w-3 text-emerald-500" />
-                  <span className="text-xs font-medium text-slate-700">{product.purity}</span>
-                </div>
-
-                {/* Product visual */}
-                <div className="w-20 h-20 bg-slate-200 rounded-xl flex items-center justify-center group-hover:bg-slate-300 transition-colors">
-                  <span className="text-slate-600 font-semibold text-lg">{product.name.split('-')[0]}</span>
-                </div>
-              </Link>
-
-              {/* Product Info */}
-              <div className="p-5">
-                <div className="flex items-start justify-between mb-2">
-                  <div>
-                    <Link to={`/product/${product.sku}`}>
-                      <h3 className="font-semibold text-lg text-slate-900 group-hover:text-slate-700 transition-colors">
-                        {product.name}
-                      </h3>
-                    </Link>
-                    <p className="text-sm text-slate-500">{product.description}</p>
+          {isLoading ? (
+            // Skeleton loading cards
+            Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="bg-white rounded-xl border border-slate-200 overflow-hidden animate-pulse">
+                <div className="aspect-[4/3] bg-slate-200" />
+                <div className="p-5 space-y-3">
+                  <div className="h-5 bg-slate-200 rounded w-3/4" />
+                  <div className="h-4 bg-slate-200 rounded w-full" />
+                  <div className="flex justify-between pt-4 border-t border-slate-100">
+                    <div className="h-6 bg-slate-200 rounded w-20" />
+                    <div className="h-9 bg-slate-200 rounded w-16" />
                   </div>
-                </div>
-
-                <div className="flex items-center justify-between pt-4 border-t border-slate-100">
-                  <div>
-                    {isPartner ? (
-                      <div>
-                        <span className="text-xs text-slate-400 line-through">${product.price.toFixed(2)}</span>
-                        <p className="text-xl font-semibold text-indigo-600">
-                          ${getPrice(product.price).toFixed(2)}
-                        </p>
-                      </div>
-                    ) : (
-                      <p className="text-xl font-semibold text-slate-900">
-                        ${product.price.toFixed(2)}
-                      </p>
-                    )}
-                  </div>
-                  <button
-                    onClick={() => addToCart(product)}
-                    className="flex items-center space-x-2 px-4 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors text-sm"
-                  >
-                    <ShoppingCart className="h-4 w-4" />
-                    <span>Add</span>
-                  </button>
                 </div>
               </div>
+            ))
+          ) : featuredProducts.length === 0 ? (
+            <div className="col-span-3 text-center py-12">
+              <p className="text-slate-500">Products coming soon. Check back shortly!</p>
             </div>
-          ))}
+          ) : (
+            featuredProducts.map((product) => (
+              <div
+                key={product.id}
+                className="group bg-white rounded-xl border border-slate-200 overflow-hidden hover:shadow-soft transition-shadow"
+              >
+                {/* Product Image Area */}
+                <Link to={`/product/${product.sku}`} className="relative block aspect-[4/3] bg-slate-100 overflow-hidden">
+                  {/* Purity badge */}
+                  <div className="absolute top-4 left-4 z-10 flex items-center space-x-1 px-2.5 py-1 bg-white rounded-md shadow-xs">
+                    <Check className="h-3 w-3 text-emerald-500" />
+                    <span className="text-xs font-medium text-slate-700">{product.purity}</span>
+                  </div>
+
+                  {/* Product image or fallback */}
+                  {product.imageUrl ? (
+                    <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-slate-100">
+                      <div className="w-20 h-20 bg-slate-200 rounded-xl flex items-center justify-center group-hover:bg-slate-300 transition-colors">
+                        <span className="text-slate-600 font-semibold text-lg">{product.name.split('-')[0]}</span>
+                      </div>
+                    </div>
+                  )}
+                </Link>
+
+                {/* Product Info */}
+                <div className="p-5">
+                  <div className="flex items-start justify-between mb-2">
+                    <div>
+                      <Link to={`/product/${product.sku}`}>
+                        <h3 className="font-semibold text-lg text-slate-900 group-hover:text-slate-700 transition-colors">
+                          {product.name}
+                        </h3>
+                      </Link>
+                      <p className="text-sm text-slate-500">{product.description}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-4 border-t border-slate-100">
+                    <div>
+                      {isPartner ? (
+                        <div>
+                          <span className="text-xs text-slate-400 line-through">${product.price.toFixed(2)}</span>
+                          <p className="text-xl font-semibold text-indigo-600">
+                            ${getPrice(product.price).toFixed(2)}
+                          </p>
+                        </div>
+                      ) : (
+                        <span className="inline-flex items-center px-2.5 py-1 bg-slate-100 text-slate-500 rounded-md text-xs font-medium">
+                          Partner Only
+                        </span>
+                      )}
+                    </div>
+                    {isPartner && (
+                      <button
+                        onClick={() => addToCart(product)}
+                        className="flex items-center space-x-2 px-4 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors text-sm"
+                      >
+                        <ShoppingCart className="h-4 w-4" />
+                        <span>Add</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
         </div>
 
         {/* View All Button */}

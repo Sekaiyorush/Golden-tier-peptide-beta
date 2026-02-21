@@ -14,8 +14,8 @@ export function TrustFeatures() {
     },
     {
       icon: Award,
-      title: 'Review Loyalty Program',
-      description: 'Earn points for every purchase and review to use on future research supplies.',
+      title: 'Expert Research Support',
+      description: 'Dedicated team of specialists available to help with dosage guidance and product selection.',
     },
     {
       icon: FlaskConical,

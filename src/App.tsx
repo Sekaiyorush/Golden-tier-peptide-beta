@@ -3,6 +3,8 @@ import { LanguageProvider } from '@/context/LanguageContext';
 import { CartProvider } from '@/context/CartContext';
 import { AuthProvider, useAuth } from '@/context/AuthContext';
 import { DatabaseProvider } from '@/context/DatabaseContext';
+import { ToastProvider } from '@/components/ui/Toast';
+import { BackToTop } from '@/components/ui/BackToTop';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { CartSidebar } from '@/components/CartSidebar';
@@ -20,11 +22,15 @@ import { CheckoutPage } from '@/pages/Checkout';
 import { About } from '@/pages/About';
 import { Contact } from '@/pages/Contact';
 import { Research } from '@/pages/Research';
+import { FAQ } from '@/pages/FAQ';
 import { Terms } from '@/pages/Terms';
 import { Privacy } from '@/pages/Privacy';
 import { Shipping } from '@/pages/Shipping';
 import { UserDashboard } from '@/pages/dashboard/UserDashboard';
 import { PartnerDashboard } from '@/pages/partner/PartnerDashboard';
+import { LandingPage } from '@/pages/LandingPage';
+import { Search, Home } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 // Protected Route component
 function ProtectedRoute({ children, requireAdmin = false, requirePartner = false }: {
@@ -61,87 +67,116 @@ function HomePage() {
 
 function NotFoundPage() {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center py-12 bg-slate-50">
-      <h1 className="text-6xl font-bold text-slate-900 mb-4">404</h1>
-      <p className="text-slate-500 text-lg mb-8">Page not found</p>
-      <a href="/" className="px-6 py-3 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors">
-        Return Home
-      </a>
+    <div className="min-h-[60vh] flex flex-col items-center justify-center py-12">
+      <div className="w-20 h-20 bg-slate-100 rounded-2xl flex items-center justify-center mb-6">
+        <Search className="h-10 w-10 text-slate-400" />
+      </div>
+      <h1 className="text-5xl font-bold text-slate-900 mb-3">404</h1>
+      <p className="text-slate-500 text-lg mb-8">The page you're looking for doesn't exist.</p>
+      <div className="flex items-center space-x-3">
+        <Link
+          to="/"
+          className="flex items-center space-x-2 px-6 py-3 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors"
+        >
+          <Home className="h-4 w-4" />
+          <span>Return Home</span>
+        </Link>
+        <Link
+          to="/products"
+          className="px-6 py-3 border border-slate-200 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors"
+        >
+          Browse Products
+        </Link>
+      </div>
     </div>
   );
 }
 
 // Main App Content with Router
 function AppContent() {
+  const { isAuthenticated, isPartner } = useAuth();
 
   return (
     <Router>
       <Routes>
-        {/* Admin Routes */}
-        <Route
-          path="/admin/*"
-          element={
-            <ProtectedRoute requireAdmin={true}>
-              <AdminDashboard />
-            </ProtectedRoute>
-          }
-        />
+        {/* Auth pages — always accessible */}
+        <Route path="/login" element={isAuthenticated ? <Navigate to="/" replace /> : <Login />} />
+        <Route path="/register" element={isAuthenticated ? <Navigate to="/" replace /> : <Register />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
 
-        {/* Partner Routes */}
-        <Route
-          path="/partner/*"
-          element={
-            <ProtectedRoute requirePartner={true}>
-              <PartnerDashboard />
-            </ProtectedRoute>
-          }
-        />
-
-        {/* User Dashboard Routes */}
-        <Route
-          path="/dashboard/*"
-          element={
-            <ProtectedRoute>
-              <UserDashboard />
-            </ProtectedRoute>
-          }
-        />
-
-        {/* Public Routes */}
+        {/* Everything else — requires auth or shows landing page */}
         <Route
           path="/*"
           element={
-            <div className="min-h-screen bg-white">
-              <Header />
-              <CartSidebar />
-              <main>
-                <Routes>
-                  <Route path="/" element={<HomePage />} />
-                  <Route path="/products" element={<Products />} />
-                  <Route path="/product/:sku" element={<ProductDetails />} />
-                  <Route path="/login" element={<Login />} />
-                  <Route path="/register" element={<Register />} />
-                  <Route path="/forgot-password" element={<ForgotPassword />} />
-                  <Route path="/reset-password" element={<ResetPassword />} />
-                  <Route path="/about" element={<About />} />
-                  <Route path="/contact" element={<Contact />} />
-                  <Route path="/research" element={<Research />} />
-                  <Route path="/terms" element={<Terms />} />
-                  <Route path="/privacy" element={<Privacy />} />
-                  <Route path="/shipping" element={<Shipping />} />
-                  <Route
-                    path="/checkout"
-                    element={
-                      <ProtectedRoute>
-                        <CheckoutPage />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route path="*" element={<NotFoundPage />} />
-                </Routes>
-              </main>
-              <Footer />
-            </div>
+            !isAuthenticated ? (
+              // Visitors see ONLY the landing page
+              <Routes>
+                <Route path="*" element={<LandingPage />} />
+              </Routes>
+            ) : (
+              // Authenticated users see the full site
+              <div className="min-h-screen bg-white">
+                <Header />
+                {isPartner && <CartSidebar />}
+                <main>
+                  <Routes>
+                    {/* Admin Routes */}
+                    <Route
+                      path="/admin/*"
+                      element={
+                        <ProtectedRoute requireAdmin={true}>
+                          <AdminDashboard />
+                        </ProtectedRoute>
+                      }
+                    />
+
+                    {/* Partner Routes */}
+                    <Route
+                      path="/partner/*"
+                      element={
+                        <ProtectedRoute requirePartner={true}>
+                          <PartnerDashboard />
+                        </ProtectedRoute>
+                      }
+                    />
+
+                    {/* User Dashboard Routes */}
+                    <Route
+                      path="/dashboard/*"
+                      element={
+                        <ProtectedRoute>
+                          <UserDashboard />
+                        </ProtectedRoute>
+                      }
+                    />
+
+                    {/* Authenticated user routes */}
+                    <Route path="/" element={<HomePage />} />
+                    <Route path="/products" element={<Products />} />
+                    <Route path="/product/:sku" element={<ProductDetails />} />
+                    <Route path="/about" element={<About />} />
+                    <Route path="/contact" element={<Contact />} />
+                    <Route path="/faq" element={<FAQ />} />
+                    <Route path="/research" element={<Research />} />
+                    <Route path="/terms" element={<Terms />} />
+                    <Route path="/privacy" element={<Privacy />} />
+                    <Route path="/shipping" element={<Shipping />} />
+                    <Route
+                      path="/checkout"
+                      element={
+                        <ProtectedRoute requirePartner={true}>
+                          <CheckoutPage />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route path="*" element={<NotFoundPage />} />
+                  </Routes>
+                </main>
+                <Footer />
+                <BackToTop />
+              </div>
+            )
           }
         />
       </Routes>
@@ -155,7 +190,9 @@ function App() {
       <AuthProvider>
         <LanguageProvider>
           <CartProvider>
-            <AppContent />
+            <ToastProvider>
+              <AppContent />
+            </ToastProvider>
           </CartProvider>
         </LanguageProvider>
       </AuthProvider>

@@ -1,10 +1,17 @@
 import { FlaskConical, ShieldCheck, FileSearch, BookOpen } from 'lucide-react';
+import { SEO } from '@/components/SEO';
+import { Breadcrumbs } from '@/components/Breadcrumbs';
 
 export function Research() {
     return (
-        <div className="min-h-screen bg-slate-50 py-16">
+        <div className="min-h-screen bg-slate-50 py-12">
+            <SEO
+                title="Research & Quality"
+                description="Learn about our commitment to scientific integrity, third-party testing, and purity standards for all research peptides."
+            />
             <div className="container mx-auto px-4 md:px-6 max-w-4xl">
-                <div className="text-center mb-12">
+                <Breadcrumbs />
+                <div className="text-center mb-12 mt-6">
                     <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">Research & Quality</h1>
                     <p className="text-lg text-slate-500 max-w-2xl mx-auto">
                         Our commitment to scientific integrity starts with how we source, test, and deliver every product.
