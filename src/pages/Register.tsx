@@ -101,8 +101,8 @@ export function Register() {
       <div className="flex-1 flex items-center justify-center py-12 px-6 relative z-10 w-full">
         <div className="w-full max-w-md">
           <div className="text-center mb-10">
-            <div className="w-12 h-12 bg-gradient-to-br from-[#1a1a1a] to-black border border-gold-800 rounded-xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-gold-900/10">
-              <span className="text-gold-500 font-serif font-bold tracking-widest text-sm">GT</span>
+            <div className="flex justify-center mb-6">
+              <img src="/brand-logo-gold.png" alt="Golden Tier Logo" className="h-28 w-auto object-contain drop-shadow-sm" />
             </div>
             <h1 className="text-3xl font-serif text-slate-900 tracking-tight mb-2">Create Account</h1>
             <p className="text-[10px] font-semibold tracking-widest uppercase text-gold-600">Invitation-only Registration</p>

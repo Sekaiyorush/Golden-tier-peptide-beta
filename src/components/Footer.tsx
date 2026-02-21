@@ -28,11 +28,8 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-8">
           {/* Brand Column */}
           <div className="space-y-6">
-            <Link to="/" className="flex items-center space-x-3 group">
-              <div className="w-10 h-10 bg-gradient-to-br from-[#1a1a1a] to-black border border-gold-800 rounded-xl flex items-center justify-center group-hover:border-gold-500 transition-colors duration-300">
-                <span className="text-gold-500 font-serif font-bold text-sm tracking-widest">GT</span>
-              </div>
-              <span className="text-sm font-bold tracking-[0.2em] uppercase text-gold-500">Golden Tier</span>
+            <Link to="/" className="flex items-center group">
+              <img src="/brand-logo-gold.png" alt="Golden Tier Logo" className="h-16 w-auto object-contain drop-shadow-sm group-hover:drop-shadow-[0_0_8px_rgba(212,175,55,0.4)] transition-all duration-300" />
             </Link>
             <p className="text-zinc-400 text-xs leading-relaxed font-light tracking-wide max-w-xs">
               Premium research peptides for scientific exploration. Committed to purity, rigorous testing, and exceptional quality.

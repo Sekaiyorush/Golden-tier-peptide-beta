@@ -160,14 +160,9 @@ export function AdminDashboard() {
         <div className="h-full flex flex-col">
           {/* Logo */}
           <div className="p-6 border-b border-gold-100/50">
-            <Link to="/" className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-gold-400 to-gold-600 rounded-xl flex items-center justify-center shadow-lg shadow-gold-500/20">
-                <span className="text-white font-serif font-bold text-lg">GT</span>
-              </div>
-              <div>
-                <span className="text-xl font-serif text-slate-900 tracking-tight">Golden Tier</span>
-                <span className="block text-[10px] uppercase tracking-widest text-gold-600 font-semibold">Admin</span>
-              </div>
+            <Link to="/" className="flex items-center flex-col items-start gap-2 group">
+              <img src="/brand-logo-gold.png" alt="Golden Tier Logo" className="h-20 w-auto object-contain drop-shadow-sm group-hover:drop-shadow-[0_0_8px_rgba(212,175,55,0.4)] transition-all duration-300" />
+              <span className="block text-[10px] uppercase tracking-widest text-gold-600 font-semibold mt-2">Admin Portal</span>
             </Link>
           </div>
 

@@ -31,13 +31,12 @@ export function Header() {
     <header className="sticky top-0 z-50 w-full bg-white/80 backdrop-blur-md border-b border-gold-200/50 transition-all duration-300">
       <div className="container mx-auto flex h-20 items-center justify-between px-6 md:px-12">
         {/* Logo */}
-        <Link to="/" className="flex items-center space-x-3 group">
-          <div className="relative w-10 h-10 bg-gradient-to-br from-white to-slate-50 rounded-xl flex items-center justify-center shadow-sm border border-gold-200/50 group-hover:shadow-[0_4px_12px_rgba(212,175,55,0.15)] transition-all">
-            <span className="text-gold-500 font-serif font-bold text-sm tracking-widest">GT</span>
-          </div>
-          <span className="text-sm font-bold tracking-[0.2em] uppercase text-gold-600">
-            {db.siteSettings?.companyName || 'Golden Tier'}
-          </span>
+        <Link to="/" className="flex items-center group">
+          <img
+            src="/brand-logo-gold.png"
+            alt="Golden Tier Logo"
+            className="h-20 w-auto object-contain drop-shadow-sm group-hover:drop-shadow-[0_0_8px_rgba(212,175,55,0.5)] transition-all duration-500 transform group-hover:scale-105"
+          />
         </Link>
 
         {/* Desktop Navigation */}
