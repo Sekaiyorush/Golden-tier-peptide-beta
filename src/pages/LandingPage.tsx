@@ -91,8 +91,8 @@ export function LandingPage() {
     const ySpring = useSpring(scrollY, { stiffness: 40, damping: 20 });
     const yTitle = useTransform(ySpring, [0, 500], [0, 150]);
 
-    // Generate 25 floating gold particles
-    const particles = Array.from({ length: 25 }).map((_, i) => ({
+    // Generate 10 floating gold particles for subtle background
+    const particles = Array.from({ length: 10 }).map((_, i) => ({
         id: i,
         size: Math.random() * 4 + 1,
         x: Math.random() * 100,

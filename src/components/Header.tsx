@@ -152,35 +152,35 @@ export function Header() {
 
       {/* Mobile Menu */}
       {isMenuOpen && (
-        <div className="md:hidden border-t border-slate-200 bg-white p-4">
-          <div className="mb-3">
+        <div className="md:hidden border-t border-[#D4AF37]/20 bg-white absolute w-full shadow-2xl">
+          <div className="p-6 border-b border-[#D4AF37]/10">
             <SearchBar />
           </div>
-          <nav className="flex flex-col space-y-1">
+          <nav className="flex flex-col py-4">
             <Link
               to="/products"
-              className="px-3 py-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg"
+              className="px-6 py-4 text-[10px] font-bold tracking-[0.3em] uppercase text-slate-500 hover:text-[#D4AF37] hover:bg-slate-50 transition-colors border-b border-[#D4AF37]/5"
               onClick={() => setIsMenuOpen(false)}
             >
-              Products
+              Catalog
             </Link>
             <Link
               to="/about"
-              className="px-3 py-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg"
+              className="px-6 py-4 text-[10px] font-bold tracking-[0.3em] uppercase text-slate-500 hover:text-[#D4AF37] hover:bg-slate-50 transition-colors border-b border-[#D4AF37]/5"
               onClick={() => setIsMenuOpen(false)}
             >
               About
             </Link>
             <Link
               to="/research"
-              className="px-3 py-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg"
+              className="px-6 py-4 text-[10px] font-bold tracking-[0.3em] uppercase text-slate-500 hover:text-[#D4AF37] hover:bg-slate-50 transition-colors border-b border-[#D4AF37]/5"
               onClick={() => setIsMenuOpen(false)}
             >
               Research
             </Link>
             <Link
               to="/contact"
-              className="px-3 py-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg"
+              className="px-6 py-4 text-[10px] font-bold tracking-[0.3em] uppercase text-slate-500 hover:text-[#D4AF37] hover:bg-slate-50 transition-colors"
               onClick={() => setIsMenuOpen(false)}
             >
               Contact
@@ -188,10 +188,10 @@ export function Header() {
 
             {isAuthenticated ? (
               <>
-                <div className="border-t border-slate-200 my-2" />
+                <div className="mx-6 my-4 border-t border-[#D4AF37]/20" />
                 <Link
                   to={getDashboardLink()}
-                  className="px-3 py-2 text-slate-900 bg-slate-100 rounded-lg font-medium"
+                  className="px-6 py-4 text-[10px] font-bold tracking-[0.3em] uppercase text-[#AA771C] bg-[#D4AF37]/5"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   {getDashboardLabel()}
@@ -201,19 +201,21 @@ export function Header() {
                     logout();
                     setIsMenuOpen(false);
                   }}
-                  className="px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg text-left"
+                  className="px-6 py-4 text-left text-[10px] font-bold tracking-[0.3em] uppercase text-slate-900 border-t border-[#D4AF37]/5"
                 >
-                  Logout
+                  Sign Out
                 </button>
               </>
             ) : (
-              <Link
-                to="/login"
-                className="mt-2 px-3 py-2 bg-slate-900 text-white rounded-lg text-center"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Sign In
-              </Link>
+              <div className="p-6">
+                <Link
+                  to="/login"
+                  className="block w-full py-4 bg-[#111] text-white text-center text-[10px] font-bold tracking-[0.3em] uppercase"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Sign In
+                </Link>
+              </div>
             )}
           </nav>
         </div>

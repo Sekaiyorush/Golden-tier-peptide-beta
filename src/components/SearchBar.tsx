@@ -25,8 +25,8 @@ export function SearchBar() {
       </div>
       <input
         type="search"
-        className="block w-full py-2 pl-9 pr-3 text-sm text-slate-900 border border-slate-200 rounded-lg bg-slate-50 focus:ring-2 focus:ring-slate-200 focus:border-slate-300 transition-all placeholder:text-slate-400"
-        placeholder="Search products..."
+        className="block w-full py-2.5 pl-10 pr-4 text-[10px] font-bold tracking-[0.2em] uppercase text-slate-900 bg-transparent border-b border-[#D4AF37]/20 focus:border-[#D4AF37] focus:ring-0 focus:outline-none transition-all placeholder:text-slate-300"
+        placeholder="SEARCH COMPOUNDS..."
         value={text}
         onChange={(e) => setText(e.target.value)}
       />
