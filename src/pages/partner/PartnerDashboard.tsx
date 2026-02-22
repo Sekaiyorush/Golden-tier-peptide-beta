@@ -60,15 +60,6 @@ export function PartnerDashboard() {
     }
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'delivered': return 'bg-emerald-100 text-emerald-700';
-      case 'shipped': return 'bg-blue-100 text-blue-700';
-      case 'processing': return 'bg-amber-100 text-amber-700';
-      default: return 'bg-slate-100 text-slate-700';
-    }
-  };
-
   // Calculate discounted price
   const getDiscountedPrice = (price: number) => {
     if (user?.discountRate) {
