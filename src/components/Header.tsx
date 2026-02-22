@@ -38,7 +38,7 @@ export function Header() {
         </Link>
 
         {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center space-x-10">
+        <nav aria-label="Main Navigation" className="hidden md:flex items-center space-x-10">
           <Link to="/products" className="text-[10px] font-bold tracking-[0.2em] uppercase text-slate-400 hover:text-[#D4AF37] transition-colors duration-500">
             Products
           </Link>
@@ -71,6 +71,7 @@ export function Header() {
           {isPartner && (
             <button
               onClick={toggleCart}
+              aria-label={`Shopping cart with ${cartCount} items`}
               className="relative p-2 text-slate-400 hover:text-gold-500 transition-colors duration-300"
             >
               <ShoppingCart className="h-5 w-5" />
@@ -96,6 +97,8 @@ export function Header() {
               {/* User Menu */}
               <div className="relative">
                 <button
+                  aria-label="User account menu"
+                  aria-expanded={isUserMenuOpen}
                   onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
                   className="flex items-center space-x-2 p-1 border border-[#D4AF37]/20 hover:border-[#D4AF37] rounded-full transition-all duration-500 group"
                 >
@@ -143,6 +146,8 @@ export function Header() {
 
         {/* Mobile Menu Button */}
         <button
+          aria-label="Toggle mobile menu"
+          aria-expanded={isMenuOpen}
           className="md:hidden p-2 text-slate-600 hover:text-slate-900"
           onClick={() => setIsMenuOpen(!isMenuOpen)}
         >
@@ -156,7 +161,7 @@ export function Header() {
           <div className="p-6 border-b border-[#D4AF37]/10">
             <SearchBar />
           </div>
-          <nav className="flex flex-col py-4">
+          <nav aria-label="Mobile Navigation" className="flex flex-col py-4">
             <Link
               to="/products"
               className="px-6 py-4 text-[10px] font-bold tracking-[0.3em] uppercase text-slate-500 hover:text-[#D4AF37] hover:bg-slate-50 transition-colors border-b border-[#D4AF37]/5"

@@ -1,4 +1,5 @@
 import { Shield, Clock, Award, FlaskConical } from 'lucide-react';
+import { motion, type Variants } from 'framer-motion';
 
 export function TrustFeatures() {
   const features = [
@@ -24,11 +25,33 @@ export function TrustFeatures() {
     },
   ];
 
+  /* Stagger container variants */
+  const containerVariants: Variants = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.2
+      }
+    }
+  };
+
+  const itemVariants: Variants = {
+    hidden: { opacity: 0, y: 30 },
+    show: { opacity: 1, y: 0, transition: { duration: 0.8, ease: "easeOut" } }
+  };
+
   return (
     <section className="py-24 bg-white relative">
       <div className="container max-w-7xl mx-auto px-6 md:px-12">
         {/* Section Header */}
-        <div className="mb-20 flex flex-col md:flex-row md:items-end justify-between border-b border-[#D4AF37]/10 pb-8 gap-6">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 1 }}
+          className="mb-20 flex flex-col md:flex-row md:items-end justify-between border-b border-[#D4AF37]/10 pb-8 gap-6"
+        >
           <div>
             <span className="text-[10px] font-bold text-[#AA771C] uppercase tracking-[0.3em] mb-4 block">
               Why Choose Us
@@ -40,13 +63,20 @@ export function TrustFeatures() {
           <p className="max-w-md text-xs text-slate-500 uppercase tracking-widest leading-relaxed">
             Uncompromising quality control and precision manufacturing for the world's leading research institutions.
           </p>
-        </div>
+        </motion.div>
 
         {/* Features Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-12 gap-y-16">
+        <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, margin: "-50px" }}
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-12 gap-y-16"
+        >
           {features.map((feature, index) => (
-            <div
+            <motion.div
               key={index}
+              variants={itemVariants}
               className="group relative"
             >
               {/* Animated line on hover */}
@@ -65,9 +95,9 @@ export function TrustFeatures() {
               <p className="text-xs text-slate-500 leading-relaxed uppercase tracking-wider">
                 {feature.description}
               </p>
-            </div>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       </div>
     </section>
   );
