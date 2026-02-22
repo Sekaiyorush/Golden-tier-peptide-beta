@@ -50,83 +50,85 @@ export function AdminDashboard() {
   ];
 
   return (
-    <div className="min-h-screen bg-slate-50 flex">
-      {/* Sidebar — Clean */}
+    <div className="min-h-screen bg-white flex relative">
+      <div className="absolute inset-0 pointer-events-none z-0 bg-[radial-gradient(ellipse_at_top_left,_rgba(212,175,55,0.03)_0%,_rgba(255,255,255,1)_80%)]" />
+
+      {/* Sidebar — Luxury */}
       <aside
-        className={`fixed lg:static inset-y-0 left-0 z-50 w-64 bg-white border-r border-slate-200 transform transition-transform duration-300 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+        className={`fixed lg:static inset-y-0 left-0 z-50 w-64 bg-white border-r border-[#D4AF37]/20 transform transition-transform duration-300 shadow-[0_0_40px_rgba(0,0,0,0.02)] ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
           }`}
       >
-        <div className="h-full flex flex-col">
+        <div className="h-full flex flex-col relative z-20">
           {/* Logo */}
-          <div className="p-6 border-b border-slate-200">
-            <Link to="/" className="flex items-center gap-3">
-              <img src="/brand-logo-gold.png" alt="Logo" className="h-12 w-auto" />
-              <span className="text-xs uppercase tracking-widest text-slate-500 font-medium">Admin</span>
+          <div className="p-6 border-b border-[#D4AF37]/20">
+            <Link to="/" className="flex items-center gap-3 group">
+              <img src="/brand-logo-gold.png" alt="Logo" className="h-12 w-auto group-hover:scale-105 transition-transform duration-500" />
+              <span className="text-[10px] uppercase tracking-[0.3em] text-[#AA771C] font-bold">Admin</span>
             </Link>
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 p-4 space-y-1">
+          <nav className="flex-1 p-4 space-y-1 overflow-y-auto custom-scrollbar">
             {navItems.map((item) => (
               <Link
                 key={item.path}
                 to={item.path}
-                className={`flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${location.pathname === item.path
-                  ? 'bg-slate-900 text-white'
-                  : 'text-slate-600 hover:bg-slate-100'
+                className={`flex items-center space-x-3 px-4 py-3 text-[10px] font-bold tracking-[0.15em] uppercase transition-all duration-300 border ${location.pathname === item.path
+                  ? 'bg-[#111] text-[#D4AF37] border-[#D4AF37]/30 shadow-md'
+                  : 'text-slate-400 hover:text-[#AA771C] hover:bg-slate-50 hover:border-[#D4AF37]/10 border-transparent'
                   }`}
               >
-                <item.icon className="h-5 w-5" />
+                <item.icon className="h-4 w-4" />
                 <span>{item.label}</span>
               </Link>
             ))}
           </nav>
 
           {/* User */}
-          <div className="p-4 border-t border-slate-200">
-            <div className="flex items-center space-x-3 p-3 bg-slate-100 rounded-lg mb-3">
-              <div className="w-8 h-8 bg-slate-900 rounded-lg flex items-center justify-center">
-                <span className="text-white font-medium text-sm">
+          <div className="p-4 border-t border-[#D4AF37]/20 bg-white">
+            <div className="flex items-center space-x-3 p-3 border border-[#D4AF37]/10 mb-3 shadow-sm">
+              <div className="w-8 h-8 bg-white border border-[#D4AF37]/30 flex items-center justify-center">
+                <span className="text-[#D4AF37] font-serif text-sm">
                   {user?.name?.charAt(0).toUpperCase()}
                 </span>
               </div>
               <div className="flex-1 min-w-0">
-                <p className="font-medium text-slate-900 text-sm truncate">{user?.name}</p>
-                <p className="text-xs text-slate-500 truncate">{user?.email}</p>
+                <p className="font-serif text-slate-900 text-sm truncate">{user?.name}</p>
+                <p className="text-[9px] tracking-widest text-slate-400 truncate uppercase">{user?.email}</p>
               </div>
             </div>
             <button
               onClick={logout}
-              className="flex items-center space-x-3 w-full px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors text-sm"
+              className="flex items-center justify-center space-x-3 w-full px-4 py-3 text-[10px] font-bold tracking-[0.2em] uppercase text-slate-400 hover:text-[#AA771C] transition-colors border border-transparent hover:border-[#D4AF37]/30 hover:bg-slate-50"
             >
               <LogOut className="h-4 w-4" />
-              <span>Logout</span>
+              <span>LOGOUT</span>
             </button>
           </div>
         </div>
       </aside>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 relative z-10">
         {/* Header */}
-        <header className="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between sticky top-0 z-40">
+        <header className="bg-white/80 backdrop-blur-md border-b border-[#D4AF37]/20 px-8 py-4 flex items-center justify-between sticky top-0 z-40">
           <button
             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-            className="lg:hidden p-2 hover:bg-slate-100 rounded-lg transition-colors"
+            className="lg:hidden p-2 text-slate-400 hover:text-[#AA771C] transition-colors"
           >
             {isSidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
-          <h1 className="text-lg font-semibold text-slate-900 hidden sm:block">Dashboard</h1>
+          <h1 className="text-2xl font-serif text-slate-900 hidden sm:block tracking-tight">Dashboard</h1>
           <Link
             to="/"
-            className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors"
+            className="px-6 py-2.5 text-[10px] font-bold tracking-[0.2em] uppercase text-[#AA771C] border border-[#D4AF37]/30 hover:border-[#D4AF37] transition-all duration-300"
           >
-            View Site
+            VIEW SITE
           </Link>
         </header>
 
         {/* Content */}
-        <main className="flex-1 p-6 overflow-auto">
+        <main className="flex-1 p-8 md:p-12 overflow-auto">
           <Routes>
             <Route path="/" element={<DashboardAnalytics />} />
             <Route path="/products" element={<ProductsManagement />} />

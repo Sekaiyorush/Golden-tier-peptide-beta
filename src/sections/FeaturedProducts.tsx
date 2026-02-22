@@ -22,38 +22,38 @@ export function FeaturedProducts() {
   return (
     <section className="py-24 md:py-32 relative overflow-hidden bg-white">
       {/* Luxury Background Hint */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-amber-50/40 via-white to-white pointer-events-none -z-10" />
+      <div className="absolute inset-0 pointer-events-none z-0 bg-[radial-gradient(ellipse_at_center,_rgba(212,175,55,0.03)_0%,_rgba(255,255,255,1)_60%)]" />
 
       <div className="container mx-auto px-6 md:px-12 relative z-10">
         {/* Section Header */}
         <div className="flex flex-col items-center text-center mb-16">
-          <span className="text-[10px] font-bold text-gold-500 uppercase tracking-[0.2em] mb-4">Best Sellers</span>
-          <h2 className="text-4xl md:text-6xl font-serif text-slate-900 mb-6 tracking-tight">
+          <span className="text-[10px] font-bold text-[#AA771C] uppercase tracking-[0.3em] mb-4">Best Sellers</span>
+          <h2 className="text-4xl md:text-6xl font-serif tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-[#AA771C] via-[#F3E5AB] to-[#D4AF37] mb-6">
             Research Essentials
           </h2>
-          <p className="max-w-2xl text-slate-500 text-sm md:text-base leading-relaxed">
+          <p className="max-w-2xl text-slate-400 text-sm md:text-base leading-relaxed tracking-wide">
             Our most requested compounds for advanced laboratory study. Absolute purity guaranteed.
           </p>
           {isPartner && (
-            <div className="mt-6 px-4 py-1.5 border border-gold-200 bg-gold-50/50 text-gold-700 rounded-lg text-[10px] font-bold tracking-widest uppercase shadow-sm">
+            <div className="mt-6 px-6 py-2 border border-[#D4AF37]/30 bg-[#D4AF37]/5 text-[#AA771C] text-[10px] font-bold tracking-[0.2em] uppercase">
               Partner Discount Active ({user?.discountRate}%)
             </div>
           )}
         </div>
 
         {/* Products Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
           {isLoading ? (
             // Skeleton loading cards
             Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="bg-white rounded-xl border border-slate-200 overflow-hidden animate-pulse">
-                <div className="aspect-[4/3] bg-slate-200" />
-                <div className="p-5 space-y-3">
-                  <div className="h-5 bg-slate-200 rounded w-3/4" />
-                  <div className="h-4 bg-slate-200 rounded w-full" />
-                  <div className="flex justify-between pt-4 border-t border-slate-100">
-                    <div className="h-6 bg-slate-200 rounded w-20" />
-                    <div className="h-9 bg-slate-200 rounded w-16" />
+              <div key={i} className="bg-white border border-[#D4AF37]/10 overflow-hidden animate-pulse">
+                <div className="aspect-[4/3] bg-slate-100" />
+                <div className="p-8 space-y-4">
+                  <div className="h-4 bg-slate-100 w-3/4" />
+                  <div className="h-3 bg-slate-100 w-full" />
+                  <div className="flex justify-between pt-6 border-t border-[#D4AF37]/10">
+                    <div className="h-6 bg-slate-100 w-20" />
+                    <div className="h-10 bg-slate-100 w-16" />
                   </div>
                 </div>
               </div>
@@ -66,56 +66,56 @@ export function FeaturedProducts() {
             featuredProducts.map((product) => (
               <div
                 key={product.id}
-                className="group bg-white/80 backdrop-blur-xl rounded-2xl border border-gold-200/50 overflow-hidden hover:shadow-[0_8px_30px_rgba(212,175,55,0.12)] transition-all duration-500 hover:-translate-y-1"
+                className="group bg-white border border-[#D4AF37]/20 overflow-hidden hover:shadow-[0_20px_40px_rgba(212,175,55,0.08)] transition-all duration-500 hover:-translate-y-2 flex flex-col"
               >
                 {/* Product Image Area */}
-                <Link to={`/product/${product.sku}`} className="relative block aspect-[4/3] bg-gradient-to-br from-slate-50 to-white overflow-hidden p-8 flex items-center justify-center">
+                <Link to={`/product/${product.sku}`} className="relative block aspect-[4/3] bg-slate-50 overflow-hidden p-8 flex items-center justify-center border-b border-[#D4AF37]/10">
                   {/* Subtle particle effect layered behind image */}
-                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-gold-50/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
+                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-[#D4AF37]/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
 
                   {/* Purity badge */}
-                  <div className="absolute top-4 left-4 z-10 flex items-center space-x-1 px-3 py-1.5 bg-white/90 backdrop-blur-md rounded-lg shadow-sm border border-gold-100">
-                    <Check className="h-3.5 w-3.5 text-gold-500" />
-                    <span className="text-[10px] font-bold tracking-widest uppercase text-slate-700">{product.purity}</span>
+                  <div className="absolute top-4 left-4 z-10 flex items-center space-x-1 px-3 py-1 bg-white border border-[#D4AF37]/20 text-[#D4AF37] text-[9px] font-bold tracking-[0.3em] uppercase shadow-sm">
+                    <Check className="h-3 w-3" />
+                    <span>{product.purity}</span>
                   </div>
 
                   {/* Product image or fallback */}
                   <div className="relative z-0 w-full h-full flex items-center justify-center">
                     {product.imageUrl ? (
-                      <img src={product.imageUrl} alt={product.name} className="w-full h-full object-contain filter drop-shadow-sm group-hover:scale-105 transition-transform duration-700 ease-out" />
+                      <img src={product.imageUrl} alt={product.name} className="w-full h-full object-contain filter group-hover:scale-105 transition-transform duration-700 ease-out" />
                     ) : (
-                      <div className="w-24 h-24 bg-gradient-to-br from-white to-slate-50 rounded-2xl flex items-center justify-center shadow-inner border border-gold-100">
-                        <span className="text-gold-400 font-serif text-3xl">{product.name.split('-')[0]}</span>
+                      <div className="w-24 h-24 bg-white border border-[#D4AF37]/20 flex items-center justify-center">
+                        <span className="text-3xl font-serif text-transparent bg-clip-text bg-gradient-to-r from-[#AA771C] to-[#D4AF37]">{product.name.split('-')[0]}</span>
                       </div>
                     )}
                   </div>
                 </Link>
 
                 {/* Product Info */}
-                <div className="p-6">
+                <div className="p-8 flex flex-col flex-1">
                   <div className="flex items-start justify-between mb-3">
                     <div>
-                      <span className="text-[9px] font-bold tracking-[0.2em] text-gold-500 uppercase mb-2 block">{product.category}</span>
+                      <span className="text-[9px] font-bold tracking-[0.3em] text-[#AA771C] uppercase mb-3 block">{product.category}</span>
                       <Link to={`/product/${product.sku}`}>
-                        <h3 className="font-serif text-2xl text-slate-900 group-hover:text-gold-600 transition-colors">
+                        <h3 className="font-serif text-2xl text-slate-900 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-[#AA771C] group-hover:to-[#D4AF37] transition-all duration-300">
                           {product.name}
                         </h3>
                       </Link>
-                      <p className="text-xs text-slate-500 mt-2 line-clamp-2 leading-relaxed">{product.description}</p>
+                      <p className="text-xs text-slate-400 mt-3 line-clamp-2 leading-relaxed tracking-wide">{product.description}</p>
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between pt-5 mt-4 border-t border-gold-100/50">
+                  <div className="flex items-end justify-between pt-6 mt-auto border-t border-[#D4AF37]/10">
                     <div>
                       {isPartner ? (
                         <div>
-                          <span className="text-[10px] uppercase tracking-widest text-slate-400 line-through block mb-0.5">${product.price.toFixed(2)}</span>
-                          <p className="text-xl font-semibold text-slate-900">
+                          <span className="text-[10px] uppercase tracking-[0.2em] text-slate-400 line-through block mb-1">${product.price.toFixed(2)}</span>
+                          <p className="text-2xl font-serif text-[#D4AF37]">
                             ${getPrice(product.price).toFixed(2)}
                           </p>
                         </div>
                       ) : (
-                        <span className="inline-flex items-center px-3 py-1.5 border border-slate-200 bg-slate-50 text-slate-500 rounded-lg text-[10px] font-bold tracking-widest uppercase">
+                        <span className="inline-flex items-center px-4 py-2 border border-[#D4AF37]/20 bg-slate-50 text-slate-500 text-[9px] font-bold tracking-[0.3em] uppercase">
                           Partner Only
                         </span>
                       )}
@@ -123,9 +123,11 @@ export function FeaturedProducts() {
                     {isPartner && (
                       <button
                         onClick={() => addToCart(product)}
-                        className="flex items-center justify-center w-10 h-10 bg-slate-900 text-white rounded-xl hover:bg-black transition-colors disabled:opacity-50 border border-slate-800 hover:border-gold-500/30 group/btn shadow-md"
+                        className="relative flex items-center justify-center w-12 h-12 bg-[#111] text-white hover:bg-black transition-all disabled:opacity-50 border border-[#111] group-btn shadow-md overflow-hidden"
                       >
-                        <ShoppingCart className="h-4 w-4 group-hover/btn:text-gold-400 transition-colors" />
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[#D4AF37]/20 to-transparent -translate-x-[150%] animate-[shimmer_3s_infinite]" />
+                        <ShoppingCart className="relative z-10 h-4 w-4" />
+                        <span className="absolute bottom-0 left-0 w-0 h-[2px] bg-gradient-to-r from-[#D4AF37] to-[#F3E5AB] transition-all duration-500 ease-out group-hover:w-full" />
                       </button>
                     )}
                   </div>
@@ -136,13 +138,14 @@ export function FeaturedProducts() {
         </div>
 
         {/* View All Button */}
-        <div className="flex justify-center mt-16">
+        <div className="flex justify-center mt-20">
           <Link
             to="/products"
-            className="group flex items-center justify-center space-x-3 px-8 py-4 border border-gold-200 hover:border-gold-500 text-slate-900 rounded-full transition-all duration-500 hover:shadow-[0_4px_20px_rgba(212,175,55,0.15)] bg-white"
+            className="group flex items-center justify-center space-x-3 px-10 py-5 border border-[#D4AF37]/30 text-slate-900 transition-all duration-500 hover:border-[#D4AF37] hover:shadow-[0_10px_30px_rgba(212,175,55,0.1)] bg-white relative overflow-hidden"
           >
-            <span className="text-[10px] font-bold tracking-[0.2em] uppercase">View full catalog</span>
-            <ArrowRight className="h-4 w-4 text-gold-500 group-hover:translate-x-1 transition-transform" />
+            <span className="relative z-10 text-[10px] font-bold tracking-[0.3em] uppercase">VIEW FULL CATALOG</span>
+            <ArrowRight className="relative z-10 h-4 w-4 text-[#D4AF37] group-hover:translate-x-2 transition-transform duration-300" />
+            <span className="absolute bottom-0 left-0 w-0 h-[2px] bg-gradient-to-r from-[#D4AF37] to-[#F3E5AB] transition-all duration-500 ease-out group-hover:w-full" />
           </Link>
         </div>
       </div>

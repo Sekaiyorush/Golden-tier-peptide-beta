@@ -93,111 +93,120 @@ export function UserDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 py-8">
-      <div className="container px-6 max-w-5xl mx-auto">
+    <div className="min-h-screen bg-white py-12 md:py-24 relative overflow-hidden">
+      {/* Luxury Background Hint */}
+      <div className="absolute inset-0 pointer-events-none z-0 bg-[radial-gradient(ellipse_at_center,_rgba(212,175,55,0.03)_0%,_rgba(255,255,255,1)_60%)]" />
+
+      <div className="container px-6 max-w-5xl mx-auto relative z-10">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-2xl font-semibold text-slate-900 mb-1">My Account</h1>
-          <p className="text-slate-500">Welcome back, {user?.name}</p>
+        <div className="mb-12 border-b border-[#D4AF37]/20 pb-8">
+          <h1 className="text-4xl md:text-5xl font-serif text-slate-900 mb-2 tracking-tight">My Account</h1>
+          <p className="text-sm text-slate-400 tracking-wide">Welcome back, {user?.name}</p>
         </div>
 
         {/* Tabs */}
-        <div className="flex flex-wrap gap-2 mb-8">
+        <div className="flex flex-wrap gap-8 mb-12">
           {[
-            { id: 'overview', label: 'Overview', icon: Package },
-            { id: 'orders', label: 'Orders', icon: ShoppingBag },
-            { id: 'profile', label: 'Profile', icon: User },
+            { id: 'overview', label: 'OVERVIEW', icon: Package },
+            { id: 'orders', label: 'ORDERS', icon: ShoppingBag },
+            { id: 'profile', label: 'PROFILE', icon: User },
           ].map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === tab.id
-                ? 'bg-slate-900 text-white'
-                : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
+              className={`flex items-center space-x-2 pb-2 text-[10px] font-bold tracking-[0.2em] uppercase transition-all relative ${activeTab === tab.id
+                ? 'text-[#D4AF37]'
+                : 'text-slate-400 hover:text-[#AA771C]'
                 }`}
             >
               <tab.icon className="h-4 w-4" />
               <span>{tab.label}</span>
+              {activeTab === tab.id && (
+                <span className="absolute bottom-0 left-0 w-full h-[1px] bg-[#D4AF37]" />
+              )}
             </button>
           ))}
         </div>
 
         {/* Overview Tab */}
         {activeTab === 'overview' && (
-          <div className="space-y-8">
+          <div className="space-y-12">
             {/* Stats — Clean */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="bg-white p-6 rounded-xl border border-slate-200">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              <div className="bg-white p-8 border border-[#D4AF37]/20 shadow-[0_8px_30px_rgba(0,0,0,0.02)]">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-slate-500 mb-1">Total Orders</p>
-                    <p className="text-2xl font-semibold text-slate-900">{userProfile.totalOrders}</p>
+                    <p className="text-[10px] font-bold tracking-[0.2em] uppercase text-[#AA771C] mb-3">Total Orders</p>
+                    <p className="text-4xl font-serif text-slate-900">{userProfile.totalOrders}</p>
                   </div>
-                  <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center">
-                    <ShoppingBag className="h-5 w-5 text-slate-600" />
+                  <div className="w-12 h-12 bg-white border border-[#D4AF37]/10 flex items-center justify-center shadow-sm">
+                    <ShoppingBag className="h-5 w-5 text-[#D4AF37]" />
                   </div>
                 </div>
               </div>
 
-              <div className="bg-white p-6 rounded-xl border border-slate-200">
+              <div className="bg-white p-8 border border-[#D4AF37]/20 shadow-[0_8px_30px_rgba(0,0,0,0.02)]">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-slate-500 mb-1">Total Spent</p>
-                    <p className="text-2xl font-semibold text-slate-900">${userProfile.totalSpent.toFixed(2)}</p>
+                    <p className="text-[10px] font-bold tracking-[0.2em] uppercase text-[#AA771C] mb-3">Total Spent</p>
+                    <p className="text-4xl font-serif text-slate-900">${userProfile.totalSpent.toFixed(2)}</p>
                   </div>
-                  <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center">
-                    <CreditCard className="h-5 w-5 text-slate-600" />
+                  <div className="w-12 h-12 bg-white border border-[#D4AF37]/10 flex items-center justify-center shadow-sm">
+                    <CreditCard className="h-5 w-5 text-[#D4AF37]" />
                   </div>
                 </div>
               </div>
 
-              <div className="bg-white p-6 rounded-xl border border-slate-200">
+              <div className="bg-white p-8 border border-[#D4AF37]/20 shadow-[0_8px_30px_rgba(0,0,0,0.02)]">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-slate-500 mb-1">Member Since</p>
-                    <p className="text-lg font-semibold text-slate-900">{new Date(userProfile.joinedAt).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</p>
+                    <p className="text-[10px] font-bold tracking-[0.2em] uppercase text-[#AA771C] mb-3">Member Since</p>
+                    <p className="text-2xl font-serif text-slate-900 mt-2">{new Date(userProfile.joinedAt).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</p>
                   </div>
-                  <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center">
-                    <User className="h-5 w-5 text-slate-600" />
+                  <div className="w-12 h-12 bg-white border border-[#D4AF37]/10 flex items-center justify-center shadow-sm">
+                    <User className="h-5 w-5 text-[#D4AF37]" />
                   </div>
                 </div>
               </div>
             </div>
 
             {/* Recent Orders — Clean */}
-            <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-              <div className="p-6 border-b border-slate-200 flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-slate-900">Recent Orders</h3>
+            <div className="bg-white border border-[#D4AF37]/20 overflow-hidden shadow-[0_8px_30px_rgba(0,0,0,0.02)]">
+              <div className="p-8 border-b border-[#D4AF37]/10 flex items-center justify-between">
+                <h3 className="text-2xl font-serif text-slate-900 tracking-tight">Recent Orders</h3>
                 <button
                   onClick={() => setActiveTab('orders')}
-                  className="text-sm text-slate-600 hover:text-slate-900 flex items-center"
+                  className="text-[10px] font-bold tracking-[0.2em] uppercase text-slate-400 hover:text-[#AA771C] flex items-center transition-colors group"
                 >
-                  View all <ChevronRight className="h-4 w-4 ml-1" />
+                  VIEW ALL <ChevronRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
                 </button>
               </div>
-              <div className="divide-y divide-slate-200">
+              <div className="divide-y divide-[#D4AF37]/10">
                 {userOrders.slice(0, 3).map((order) => (
-                  <div key={order.id} className="p-6 flex flex-col md:flex-row md:items-center justify-between hover:bg-slate-50 transition-colors gap-4">
-                    <div className="flex items-center space-x-4">
-                      <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center">
-                        <Box className="h-5 w-5 text-slate-600" />
+                  <div key={order.id} className="p-8 flex flex-col md:flex-row md:items-center justify-between hover:bg-slate-50/50 transition-colors gap-6">
+                    <div className="flex items-center space-x-6">
+                      <div className="w-12 h-12 bg-white border border-[#D4AF37]/10 flex items-center justify-center shadow-sm">
+                        <Box className="h-5 w-5 text-[#AA771C]" />
                       </div>
                       <div>
-                        <p className="font-medium text-slate-900">{order.id}</p>
-                        <p className="text-sm text-slate-500">{new Date(order.createdAt).toLocaleDateString()}</p>
+                        <p className="font-serif text-lg text-slate-900">{order.id}</p>
+                        <p className="text-xs text-slate-400 mt-1">{new Date(order.createdAt).toLocaleDateString()}</p>
                       </div>
                     </div>
-                    <div className="text-right flex items-center space-x-4 justify-between md:justify-end">
+                    <div className="text-right flex items-center space-x-6 justify-between md:justify-end">
                       <div className="text-left md:text-right">
-                        <p className="font-semibold text-slate-900">${order.total.toFixed(2)}</p>
-                        <span className={`inline-flex items-center space-x-1 px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(order.status)}`}>
+                        <p className="font-serif text-xl text-slate-900">${order.total.toFixed(2)}</p>
+                        <span className={`inline-flex items-center space-x-1 px-3 py-1 text-[9px] font-bold tracking-[0.2em] uppercase border mt-2 ${order.status === 'delivered' ? 'bg-emerald-50 text-emerald-700 border-emerald-200/50' :
+                          order.status === 'shipped' ? 'bg-blue-50 text-blue-700 border-blue-200/50' :
+                            'bg-amber-50 text-[#AA771C] border-[#D4AF37]/30'
+                          }`}>
                           {getStatusIcon(order.status)}
-                          <span className="capitalize ml-1">{order.status}</span>
+                          <span className="ml-1">{order.status}</span>
                         </span>
                       </div>
                       <button
                         onClick={() => setSelectedOrderId(order.id)}
-                        className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+                        className="p-3 text-slate-400 hover:text-[#AA771C] hover:bg-[#D4AF37]/5 transition-colors border border-transparent hover:border-[#D4AF37]/30"
                       >
                         <Eye className="h-5 w-5" />
                       </button>
@@ -205,10 +214,10 @@ export function UserDashboard() {
                   </div>
                 ))}
                 {userOrders.length === 0 && (
-                  <div className="p-12 text-center">
-                    <ShoppingBag className="h-12 w-12 text-slate-300 mx-auto mb-4" />
-                    <p className="text-slate-500 mb-4">No orders yet.</p>
-                    <Link to="/products" className="text-slate-900 font-medium hover:underline">Start shopping</Link>
+                  <div className="p-16 text-center">
+                    <ShoppingBag className="h-12 w-12 text-[#D4AF37]/30 mx-auto mb-6" />
+                    <p className="text-sm text-slate-500 mb-6 tracking-wide">No orders yet.</p>
+                    <Link to="/products" className="text-[10px] font-bold tracking-[0.2em] uppercase text-[#AA771C] border-b border-[#D4AF37]/30 pb-1 hover:text-[#D4AF37] hover:border-[#D4AF37] transition-all">Start shopping</Link>
                   </div>
                 )}
               </div>
@@ -218,47 +227,50 @@ export function UserDashboard() {
 
         {/* Orders Tab — Clean */}
         {activeTab === 'orders' && (
-          <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-            <div className="p-6 border-b border-slate-200">
-              <h3 className="text-lg font-semibold text-slate-900">Order History</h3>
+          <div className="bg-white border border-[#D4AF37]/20 overflow-hidden shadow-[0_8px_30px_rgba(0,0,0,0.02)]">
+            <div className="p-8 border-b border-[#D4AF37]/10">
+              <h3 className="text-2xl font-serif text-slate-900 tracking-tight">Order History</h3>
             </div>
-            <div className="divide-y divide-slate-200">
+            <div className="divide-y divide-[#D4AF37]/10">
               {userOrders.map((order) => (
-                <div key={order.id} className="p-6">
-                  <div className="flex flex-wrap gap-4 items-center justify-between mb-4">
+                <div key={order.id} className="p-8">
+                  <div className="flex flex-wrap gap-4 items-center justify-between mb-6">
                     <div>
-                      <p className="font-medium text-slate-900">{order.id}</p>
-                      <p className="text-sm text-slate-500">{order.createdAt}</p>
+                      <p className="font-serif text-lg text-slate-900">{order.id}</p>
+                      <p className="text-xs text-slate-400 mt-1">{order.createdAt}</p>
                     </div>
-                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(order.status)}`}>
+                    <span className={`inline-flex items-center space-x-1 px-3 py-1 text-[9px] font-bold tracking-[0.2em] uppercase border ${order.status === 'delivered' ? 'bg-emerald-50 text-emerald-700 border-emerald-200/50' :
+                        order.status === 'shipped' ? 'bg-blue-50 text-blue-700 border-blue-200/50' :
+                          'bg-amber-50 text-[#AA771C] border-[#D4AF37]/30'
+                      }`}>
                       {getStatusIcon(order.status)}
-                      <span className="ml-1 capitalize">{order.status}</span>
+                      <span className="ml-1">{order.status}</span>
                     </span>
                   </div>
-                  <div className="space-y-2 bg-slate-50 rounded-lg p-4">
+                  <div className="space-y-3 bg-slate-50 border border-[#D4AF37]/10 p-6">
                     {order.items.map((item, idx) => (
                       <div key={idx} className="flex items-center justify-between text-sm">
-                        <span className="text-slate-600">{item.quantity}x <span className="font-medium text-slate-900">{item.name}</span></span>
+                        <span className="text-slate-500 tracking-wide">{item.quantity}x <span className="font-semibold text-slate-900">{item.name}</span></span>
                         <span className="text-slate-900 font-medium">${(item.price * item.quantity).toFixed(2)}</span>
                       </div>
                     ))}
                   </div>
-                  <div className="mt-4 flex items-center justify-between">
+                  <div className="mt-6 flex items-center justify-between">
                     <button
                       onClick={() => setSelectedOrderId(order.id)}
-                      className="text-sm text-slate-600 hover:text-slate-900 flex items-center"
+                      className="text-[10px] font-bold tracking-[0.2em] uppercase text-[#AA771C] hover:text-[#D4AF37] flex items-center transition-colors group"
                     >
-                      <Eye className="h-4 w-4 mr-2" /> View Details
+                      <Eye className="h-4 w-4 mr-2" /> VIEW DETAILS
                     </button>
-                    <span className="font-semibold text-slate-900">Total: ${order.total.toFixed(2)}</span>
+                    <span className="font-serif text-xl text-slate-900">Total: ${order.total.toFixed(2)}</span>
                   </div>
                 </div>
               ))}
               {userOrders.length === 0 && (
-                <div className="p-16 text-center">
-                  <ShoppingBag className="h-16 w-16 text-slate-200 mx-auto mb-6" />
-                  <p className="text-slate-500 mb-4">No orders yet.</p>
-                  <Link to="/products" className="text-slate-900 font-medium hover:underline">Browse products</Link>
+                <div className="p-20 text-center">
+                  <ShoppingBag className="h-16 w-16 text-[#D4AF37]/30 mx-auto mb-6" />
+                  <p className="text-sm text-slate-500 tracking-wide mb-6">No orders yet.</p>
+                  <Link to="/products" className="text-[10px] font-bold tracking-[0.2em] uppercase text-[#AA771C] border-b border-[#D4AF37]/30 pb-1 hover:text-[#D4AF37] hover:border-[#D4AF37] transition-all">Browse products</Link>
                 </div>
               )}
             </div>
@@ -267,18 +279,18 @@ export function UserDashboard() {
 
         {/* Profile Tab — Clean */}
         {activeTab === 'profile' && (
-          <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-            <div className="p-6 border-b border-slate-200 flex flex-wrap gap-4 items-center justify-between">
-              <h3 className="text-lg font-semibold text-slate-900">Profile Information</h3>
+          <div className="bg-white border border-[#D4AF37]/20 shadow-[0_8px_30px_rgba(0,0,0,0.02)]">
+            <div className="p-8 border-b border-[#D4AF37]/10 flex flex-wrap gap-4 items-center justify-between">
+              <h3 className="text-2xl font-serif text-slate-900 tracking-tight">Profile Information</h3>
               {!isEditingProfile ? (
                 <button
                   onClick={() => setIsEditingProfile(true)}
-                  className="px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors"
+                  className="px-6 py-3 border border-[#D4AF37]/30 text-[#AA771C] text-[10px] font-bold tracking-[0.2em] uppercase hover:border-[#D4AF37] transition-colors"
                 >
-                  Edit Profile
+                  EDIT PROFILE
                 </button>
               ) : (
-                <div className="flex space-x-3">
+                <div className="flex space-x-4">
                   <button
                     onClick={() => {
                       setIsEditingProfile(false);
@@ -292,119 +304,121 @@ export function UserDashboard() {
                         country: userProfile.address?.country || '',
                       });
                     }}
-                    className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-900"
+                    className="px-6 py-3 border border-transparent text-slate-400 text-[10px] font-bold tracking-[0.2em] uppercase hover:text-slate-600 transition-colors"
                     disabled={isSaving}
                   >
-                    Cancel
+                    CANCEL
                   </button>
                   <button
                     onClick={handleSaveProfile}
-                    className="px-4 py-2 text-sm font-medium text-white bg-slate-900 hover:bg-slate-800 rounded-lg transition-colors disabled:opacity-50"
+                    className="px-8 py-3 bg-[#111] text-white text-[10px] font-bold tracking-[0.2em] uppercase hover:bg-black transition-colors disabled:opacity-50 relative overflow-hidden group border border-[#111] shadow-md"
                     disabled={isSaving}
                   >
-                    {isSaving ? 'Saving...' : 'Save Changes'}
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[#D4AF37]/20 to-transparent -translate-x-[150%] animate-[shimmer_3s_infinite]" />
+                    <span className="relative z-10">{isSaving ? 'SAVING...' : 'SAVE CHANGES'}</span>
+                    <span className="absolute bottom-0 left-0 w-0 h-[2px] bg-gradient-to-r from-[#D4AF37] to-[#F3E5AB] transition-all duration-500 ease-out group-hover:w-full" />
                   </button>
                 </div>
               )}
             </div>
-            <div className="p-6 space-y-8">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="p-8 space-y-10">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div>
-                  <label className="block text-sm font-medium text-slate-500 mb-2">Full Name</label>
+                  <label className="block text-[10px] font-bold tracking-[0.2em] uppercase text-[#AA771C] mb-3">FULL NAME</label>
                   <input
                     type="text"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     readOnly={!isEditingProfile}
-                    className={`w-full px-4 py-2.5 rounded-lg transition-all ${isEditingProfile ? 'bg-white border border-slate-300 focus:ring-2 focus:ring-slate-900 focus:border-slate-900' : 'bg-slate-100 text-slate-600'}`}
+                    className={`w-full px-4 h-12 transition-all text-sm tracking-wide ${isEditingProfile ? 'bg-transparent border border-[#D4AF37]/30 focus:border-[#D4AF37] focus:ring-0 text-slate-900' : 'bg-slate-50 border border-transparent text-slate-500 cursor-not-allowed'}`}
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-500 mb-2">Email</label>
+                  <label className="block text-[10px] font-bold tracking-[0.2em] uppercase text-[#AA771C] mb-3">EMAIL</label>
                   <input
                     type="email"
                     value={userProfile.email}
                     readOnly
-                    className="w-full px-4 py-2.5 rounded-lg bg-slate-100 text-slate-500"
+                    className="w-full px-4 h-12 bg-slate-50 border border-transparent text-sm tracking-wide text-slate-500 cursor-not-allowed"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-500 mb-2">Phone</label>
+                  <label className="block text-[10px] font-bold tracking-[0.2em] uppercase text-[#AA771C] mb-3">PHONE</label>
                   <input
                     type="text"
                     value={formData.phone}
                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                     readOnly={!isEditingProfile}
-                    className={`w-full px-4 py-2.5 rounded-lg transition-all ${isEditingProfile ? 'bg-white border border-slate-300 focus:ring-2 focus:ring-slate-900 focus:border-slate-900' : 'bg-slate-100 text-slate-600'}`}
+                    className={`w-full px-4 h-12 transition-all text-sm tracking-wide ${isEditingProfile ? 'bg-transparent border border-[#D4AF37]/30 focus:border-[#D4AF37] focus:ring-0 text-slate-900' : 'bg-slate-50 border border-transparent text-slate-500 cursor-not-allowed'}`}
                     placeholder="e.g., +1 (555) 123-4567"
                   />
                 </div>
               </div>
 
-              <div className="border-t border-slate-200 pt-8">
-                <h4 className="text-base font-semibold text-slate-900 mb-6 flex items-center">
-                  <MapPin className="h-5 w-5 mr-2 text-slate-500" />
+              <div className="border-t border-[#D4AF37]/10 pt-10">
+                <h4 className="text-lg font-serif text-slate-900 mb-8 flex items-center tracking-tight">
+                  <MapPin className="h-5 w-5 mr-3 text-[#D4AF37]" />
                   Shipping Address
                 </h4>
 
                 {isEditingProfile ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div className="md:col-span-2">
-                      <label className="block text-sm font-medium text-slate-500 mb-2">Street Address</label>
+                      <label className="block text-[10px] font-bold tracking-[0.2em] uppercase text-[#AA771C] mb-3">STREET ADDRESS</label>
                       <input
                         type="text"
                         value={formData.street}
                         onChange={(e) => setFormData({ ...formData, street: e.target.value })}
-                        className="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-900 focus:border-slate-900"
+                        className="w-full px-4 h-12 bg-transparent border border-[#D4AF37]/30 focus:border-[#D4AF37] focus:ring-0 text-sm tracking-wide text-slate-900 transition-all"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-slate-500 mb-2">City</label>
+                      <label className="block text-[10px] font-bold tracking-[0.2em] uppercase text-[#AA771C] mb-3">CITY</label>
                       <input
                         type="text"
                         value={formData.city}
                         onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                        className="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-900 focus:border-slate-900"
+                        className="w-full px-4 h-12 bg-transparent border border-[#D4AF37]/30 focus:border-[#D4AF37] focus:ring-0 text-sm tracking-wide text-slate-900 transition-all"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-slate-500 mb-2">State / Province</label>
+                      <label className="block text-[10px] font-bold tracking-[0.2em] uppercase text-[#AA771C] mb-3">STATE / PROVINCE</label>
                       <input
                         type="text"
                         value={formData.state}
                         onChange={(e) => setFormData({ ...formData, state: e.target.value })}
-                        className="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-900 focus:border-slate-900"
+                        className="w-full px-4 h-12 bg-transparent border border-[#D4AF37]/30 focus:border-[#D4AF37] focus:ring-0 text-sm tracking-wide text-slate-900 transition-all"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-slate-500 mb-2">ZIP / Postal Code</label>
+                      <label className="block text-[10px] font-bold tracking-[0.2em] uppercase text-[#AA771C] mb-3">ZIP / POSTAL CODE</label>
                       <input
                         type="text"
                         value={formData.zip}
                         onChange={(e) => setFormData({ ...formData, zip: e.target.value })}
-                        className="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-900 focus:border-slate-900"
+                        className="w-full px-4 h-12 bg-transparent border border-[#D4AF37]/30 focus:border-[#D4AF37] focus:ring-0 text-sm tracking-wide text-slate-900 transition-all"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-slate-500 mb-2">Country</label>
+                      <label className="block text-[10px] font-bold tracking-[0.2em] uppercase text-[#AA771C] mb-3">COUNTRY</label>
                       <input
                         type="text"
                         value={formData.country}
                         onChange={(e) => setFormData({ ...formData, country: e.target.value })}
-                        className="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-900 focus:border-slate-900"
+                        className="w-full px-4 h-12 bg-transparent border border-[#D4AF37]/30 focus:border-[#D4AF37] focus:ring-0 text-sm tracking-wide text-slate-900 transition-all"
                       />
                     </div>
                   </div>
                 ) : (
-                  <div className="p-4 bg-slate-50 rounded-lg">
+                  <div className="p-6 bg-slate-50 border border-[#D4AF37]/10 shadow-inner">
                     {userProfile.address?.street ? (
-                      <address className="not-italic text-slate-600 leading-relaxed">
+                      <address className="not-italic text-slate-600 leading-relaxed text-sm tracking-wide">
                         {userProfile.address.street}<br />
                         {userProfile.address.city}, {userProfile.address.state} {userProfile.address.zip}<br />
                         {userProfile.address.country}
                       </address>
                     ) : (
-                      <p className="text-slate-500 text-sm">No address saved yet. Click 'Edit Profile' to add one.</p>
+                      <p className="text-slate-500 text-sm">No address saved yet. Click 'EDIT PROFILE' to add one.</p>
                     )}
                   </div>
                 )}

@@ -26,7 +26,7 @@ export function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-white/80 backdrop-blur-md border-b border-gold-200/50 transition-all duration-300">
+    <header className="sticky top-0 z-50 w-full bg-white border-b border-[#D4AF37]/20 transition-all duration-300">
       <div className="container mx-auto flex h-20 items-center justify-between px-6 md:px-12">
         {/* Logo */}
         <Link to="/" className="flex items-center group">
@@ -38,17 +38,17 @@ export function Header() {
         </Link>
 
         {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center space-x-8 text-xs font-semibold tracking-widest uppercase">
-          <Link to="/products" className="text-slate-500 hover:text-gold-500 transition-colors duration-300">
+        <nav className="hidden md:flex items-center space-x-10">
+          <Link to="/products" className="text-[10px] font-bold tracking-[0.2em] uppercase text-slate-400 hover:text-[#D4AF37] transition-colors duration-500">
             Products
           </Link>
-          <Link to="/about" className="text-slate-500 hover:text-gold-500 transition-colors duration-300">
+          <Link to="/about" className="text-[10px] font-bold tracking-[0.2em] uppercase text-slate-400 hover:text-[#D4AF37] transition-colors duration-500">
             About
           </Link>
-          <Link to="/research" className="text-slate-500 hover:text-gold-500 transition-colors duration-300">
+          <Link to="/research" className="text-[10px] font-bold tracking-[0.2em] uppercase text-slate-400 hover:text-[#D4AF37] transition-colors duration-500">
             Research
           </Link>
-          <Link to="/contact" className="text-slate-500 hover:text-gold-500 transition-colors duration-300">
+          <Link to="/contact" className="text-[10px] font-bold tracking-[0.2em] uppercase text-slate-400 hover:text-[#D4AF37] transition-colors duration-500">
             Contact
           </Link>
         </nav>
@@ -75,7 +75,7 @@ export function Header() {
             >
               <ShoppingCart className="h-5 w-5" />
               {cartCount > 0 && (
-                <span className="absolute 0 right-0 flex h-4 w-4 items-center justify-center rounded-full bg-gold-500 text-[9px] font-bold text-white shadow-sm shadow-gold-500/40">
+                <span className="absolute 0 right-0 flex h-4 w-4 items-center justify-center bg-[#D4AF37] text-[9px] font-bold text-white shadow-sm shadow-[#D4AF37]/40">
                   {cartCount}
                 </span>
               )}
@@ -83,11 +83,11 @@ export function Header() {
           )}
 
           {isAuthenticated ? (
-            <div className="hidden md:flex items-center space-x-4">
+            <div className="hidden md:flex items-center space-x-6">
               {/* Dashboard Link */}
               <Link
                 to={getDashboardLink()}
-                className="flex items-center space-x-2 text-xs font-semibold tracking-widest uppercase text-slate-500 hover:text-gold-500 transition-colors duration-300"
+                className="flex items-center space-x-2 text-[10px] font-bold tracking-[0.2em] uppercase text-[#AA771C] hover:text-[#D4AF37] transition-colors duration-500"
               >
                 <LayoutDashboard className="h-4 w-4" />
                 <span>{getDashboardLabel()}</span>
@@ -97,18 +97,18 @@ export function Header() {
               <div className="relative">
                 <button
                   onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                  className="flex items-center space-x-2 p-1.5 border border-slate-100 hover:border-gold-300 rounded-full transition-colors duration-300 group"
+                  className="flex items-center space-x-2 p-1 border border-[#D4AF37]/20 hover:border-[#D4AF37] rounded-full transition-all duration-500 group"
                 >
-                  <div className="w-8 h-8 bg-slate-50 group-hover:bg-gold-50 rounded-full flex items-center justify-center transition-colors">
-                    <User className="h-4 w-4 text-slate-400 group-hover:text-gold-500" />
+                  <div className="w-8 h-8 rounded-full flex items-center justify-center transition-colors">
+                    <User className="h-4 w-4 text-[#AA771C] group-hover:text-[#D4AF37]" />
                   </div>
                 </button>
 
                 {isUserMenuOpen && (
-                  <div className="absolute right-0 mt-3 w-56 bg-white/90 backdrop-blur-xl rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.08)] border border-white p-2">
+                  <div className="absolute right-0 mt-3 w-56 bg-white border border-[#D4AF37]/20 p-2 shadow-xl shadow-black/5">
                     <Link
                       to={getDashboardLink()}
-                      className="flex items-center space-x-3 px-4 py-3 text-xs font-semibold tracking-wider text-slate-600 hover:text-gold-600 hover:bg-gold-50 rounded-xl transition-colors uppercase"
+                      className="flex items-center space-x-3 px-4 py-3 text-[10px] font-bold tracking-widest text-slate-600 hover:text-[#D4AF37] hover:bg-slate-50 transition-colors uppercase"
                       onClick={() => setIsUserMenuOpen(false)}
                     >
                       <LayoutDashboard className="h-4 w-4" />
@@ -119,10 +119,11 @@ export function Header() {
                         logout();
                         setIsUserMenuOpen(false);
                       }}
-                      className="flex items-center space-x-3 w-full px-4 py-3 text-xs font-semibold tracking-wider text-red-500 hover:text-red-700 hover:bg-red-50 rounded-xl transition-colors uppercase"
+                      className="flex items-center space-x-3 w-full px-4 py-3 text-[10px] font-bold tracking-widest text-[#111] hover:text-white hover:bg-[#111] transition-colors uppercase group relative overflow-hidden"
                     >
-                      <LogOut className="h-4 w-4" />
-                      <span>Logout</span>
+                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-[150%] group-hover:animate-[shimmer_3s_infinite]" />
+                      <LogOut className="h-4 w-4 relative z-10" />
+                      <span className="relative z-10">Logout</span>
                     </button>
                   </div>
                 )}
@@ -131,9 +132,11 @@ export function Header() {
           ) : (
             <Link
               to="/login"
-              className="hidden md:inline-flex items-center justify-center px-6 py-2.5 text-xs font-semibold tracking-widest uppercase text-white bg-slate-900 hover:bg-gold-500 rounded-xl transition-all duration-500 shadow-md shadow-slate-900/10 hover:shadow-gold-500/30"
+              className="hidden md:inline-flex items-center justify-center px-8 py-3 text-[10px] font-bold tracking-[0.2em] uppercase text-white bg-[#111] border border-[#111] overflow-hidden group relative shadow-md"
             >
-              Sign In
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[#D4AF37]/20 to-transparent -translate-x-[150%] animate-[shimmer_3s_infinite]" />
+              <span className="relative z-10 transition-colors group-hover:text-[#D4AF37]">SIGN IN</span>
+              <span className="absolute bottom-0 left-0 w-0 h-[2px] bg-gradient-to-r from-[#D4AF37] to-[#F3E5AB] transition-all duration-500 ease-out group-hover:w-full" />
             </Link>
           )}
         </div>

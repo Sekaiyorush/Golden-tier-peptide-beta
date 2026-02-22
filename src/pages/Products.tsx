@@ -53,72 +53,73 @@ export function Products() {
   }, [searchTerm, selectedCategory, sortBy, products]);
 
   return (
-    <div className="min-h-screen bg-transparent py-12">
+    <div className="min-h-screen bg-white py-12 relative overflow-hidden">
+      <div className="absolute inset-0 pointer-events-none z-0 bg-[radial-gradient(ellipse_at_center,_rgba(212,175,55,0.03)_0%,_rgba(255,255,255,1)_60%)]" />
       <SEO
         title="Research Catalog | Golden Tier"
         description="Browse our complete catalog of premium research peptides and laboratory compounds. Supreme purity guaranteed."
       />
-      <div className="container mx-auto px-6 md:px-12">
+      <div className="container mx-auto px-6 md:px-12 relative z-10">
         <Breadcrumbs />
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-12 gap-4 mt-8">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-16 gap-4 mt-8">
           <div>
-            <h1 className="text-4xl md:text-5xl font-serif text-slate-900 tracking-tight">Research Catalog</h1>
-            <p className="text-[10px] font-semibold tracking-widest uppercase text-gold-600 mt-3">Curated selection of premium peptides</p>
+            <h1 className="text-4xl md:text-5xl font-serif tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-[#AA771C] via-[#F3E5AB] to-[#D4AF37]">Research Catalog</h1>
+            <p className="text-[10px] font-bold tracking-[0.3em] uppercase text-[#AA771C] mt-3">Curated selection of premium peptides</p>
           </div>
           {isPartner && (
-            <div className="mt-3 inline-flex items-center space-x-2 px-4 py-2 border border-gold-200 bg-gold-50/50 text-gold-700 rounded-xl text-xs font-bold tracking-widest uppercase shadow-sm">
+            <div className="mt-3 inline-flex items-center space-x-2 px-6 py-3 border border-[#D4AF37]/30 bg-[#D4AF37]/5 text-[#AA771C] text-[10px] font-bold tracking-[0.2em] uppercase">
               <span>Partner Privileges:</span>
-              <span className="text-gold-900">{user?.discountRate}% Discount Active</span>
+              <span className="text-[#D4AF37]">{user?.discountRate}% Discount Active</span>
             </div>
           )}
         </div>
 
         {/* Filters */}
-        <div className="bg-white/60 backdrop-blur-xl rounded-2xl border border-gold-200/50 p-6 mb-10 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
-          <div className="flex flex-col md:flex-row gap-4">
+        <div className="bg-white/80 backdrop-blur-md border border-[#D4AF37]/20 p-8 mb-12 shadow-[0_8px_40px_rgba(0,0,0,0.04)] relative">
+          <div className="flex flex-col md:flex-row gap-6">
             <div className="relative flex-1">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gold-400" />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[#D4AF37]/50" />
               <input
                 type="text"
-                placeholder="Search compounds..."
+                placeholder="SEARCH COMPOUNDS..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-11 pr-4 h-12 bg-white border border-gold-200/60 rounded-xl focus:ring-2 focus:ring-gold-500/20 focus:border-gold-500 text-sm transition-all"
+                className="w-full pl-12 pr-4 h-12 bg-transparent border border-[#D4AF37]/20 focus:border-[#D4AF37] focus:ring-0 text-[10px] font-bold tracking-[0.2em] uppercase transition-all text-slate-800 placeholder-slate-400"
               />
             </div>
-            <div className="flex gap-3">
+            <div className="flex gap-4">
               <div className="relative">
-                <Filter className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gold-400" />
+                <Filter className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[#D4AF37]/50" />
                 <select
                   value={selectedCategory}
                   onChange={(e) => setSelectedCategory(e.target.value)}
-                  className="pl-11 pr-10 h-12 bg-white border border-gold-200/60 rounded-xl focus:ring-2 focus:ring-gold-500/20 focus:border-gold-500 text-xs font-semibold tracking-wider uppercase text-slate-700 appearance-none transition-all cursor-pointer"
+                  className="pl-12 pr-10 h-12 bg-transparent border border-[#D4AF37]/20 focus:border-[#D4AF37] focus:ring-0 text-[10px] font-bold tracking-[0.2em] uppercase text-slate-600 appearance-none transition-all cursor-pointer min-w-[160px]"
                 >
-                  <option value="all">All Categories</option>
+                  <option value="all">ALL CATEGORIES</option>
                   {categories.map((cat) => (
-                    <option key={cat} value={cat}>{cat}</option>
+                    <option key={cat} value={cat}>{cat.toUpperCase()}</option>
                   ))}
                 </select>
-                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
+                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[#D4AF37]" pointerEvents="none" />
               </div>
               <div className="relative">
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value)}
-                  className="pl-4 pr-10 h-12 bg-white border border-gold-200/60 rounded-xl focus:ring-2 focus:ring-gold-500/20 focus:border-gold-500 text-xs font-semibold tracking-wider uppercase text-slate-700 appearance-none transition-all cursor-pointer"
+                  className="pl-6 pr-10 h-12 bg-transparent border border-[#D4AF37]/20 focus:border-[#D4AF37] focus:ring-0 text-[10px] font-bold tracking-[0.2em] uppercase text-slate-600 appearance-none transition-all cursor-pointer min-w-[160px]"
                 >
-                  <option value="name">Sort A-Z</option>
-                  <option value="price-low">Price: Low to High</option>
-                  <option value="price-high">Price: High to Low</option>
+                  <option value="name">SORT A-Z</option>
+                  <option value="price-low">PRICE: LOW TO HIGH</option>
+                  <option value="price-high">PRICE: HIGH TO LOW</option>
                 </select>
-                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
+                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[#D4AF37]" pointerEvents="none" />
               </div>
             </div>
           </div>
-          
-          <div className="mt-6 pt-4 border-t border-gold-100 flex items-center justify-between">
-            <span className="text-xs font-bold tracking-widest uppercase text-slate-400">
-              Showing <span className="text-gold-600">{filteredProducts.length}</span> Products
+
+          <div className="mt-8 pt-6 border-t border-[#D4AF37]/10 flex items-center justify-between">
+            <span className="text-[10px] font-bold tracking-[0.2em] uppercase text-slate-400">
+              SHOWING <span className="text-[#D4AF37]">{filteredProducts.length}</span> PRODUCTS
             </span>
             {(searchTerm || selectedCategory !== 'all') && (
               <button
@@ -126,9 +127,9 @@ export function Products() {
                   setSearchTerm('');
                   setSelectedCategory('all');
                 }}
-                className="text-[10px] font-bold tracking-widest uppercase text-slate-500 hover:text-gold-600 transition-colors"
+                className="text-[10px] font-bold tracking-[0.2em] uppercase text-[#AA771C] hover:text-[#D4AF37] transition-colors"
               >
-                Clear Filters ×
+                CLEAR FILTERS ×
               </button>
             )}
           </div>
@@ -136,35 +137,35 @@ export function Products() {
 
         {/* Products Grid */}
         {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
             {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="bg-white/60 backdrop-blur-sm rounded-[2rem] border border-gold-200/30 overflow-hidden animate-pulse">
-                <div className="aspect-square bg-slate-200" />
-                <div className="p-6 space-y-3">
-                  <div className="h-4 bg-slate-200 rounded w-1/4" />
-                  <div className="h-6 bg-slate-200 rounded w-3/4" />
-                  <div className="h-4 bg-slate-200 rounded w-full" />
-                  <div className="flex justify-between pt-4">
-                    <div className="h-8 bg-slate-200 rounded w-24" />
-                    <div className="h-12 bg-slate-200 rounded-full w-12" />
+              <div key={i} className="bg-white border border-[#D4AF37]/10 overflow-hidden animate-pulse">
+                <div className="aspect-square bg-slate-100" />
+                <div className="p-8 space-y-4">
+                  <div className="h-3 bg-slate-100 w-1/4" />
+                  <div className="h-6 bg-slate-100 w-3/4" />
+                  <div className="h-3 bg-slate-100 w-full" />
+                  <div className="flex justify-between pt-6">
+                    <div className="h-6 bg-slate-100 w-20" />
+                    <div className="h-10 bg-slate-100 w-24" />
                   </div>
                 </div>
               </div>
             ))}
           </div>
         ) : filteredProducts.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
             {filteredProducts.map((product, index) => (
               <ProductCard key={product.id} product={product} index={index} />
             ))}
           </div>
         ) : (
-          <div className="text-center py-24 bg-white/40 backdrop-blur-md rounded-3xl border border-gold-200/50">
-            <div className="w-20 h-20 bg-gradient-to-br from-gold-50 to-white border border-gold-100 shadow-sm rounded-full flex items-center justify-center mx-auto mb-6">
-              <Search className="h-8 w-8 text-gold-400" />
+          <div className="text-center py-32 bg-white border border-[#D4AF37]/20 relative">
+            <div className="w-16 h-16 bg-[#D4AF37]/5 border border-[#D4AF37]/20 flex items-center justify-center mx-auto mb-6">
+              <Search className="h-6 w-6 text-[#AA771C]" />
             </div>
-            <h3 className="text-2xl font-serif text-slate-900 mb-2">No products found</h3>
-            <p className="text-sm text-slate-500 mb-8 max-w-md mx-auto leading-relaxed">
+            <h3 className="text-3xl font-serif text-slate-900 mb-3 tracking-tight">No products found</h3>
+            <p className="text-sm text-slate-400 mb-10 max-w-md mx-auto leading-relaxed uppercase tracking-widest">
               We couldn't find any products matching your search. Try adjusting your filters.
             </p>
             <button
@@ -172,9 +173,11 @@ export function Products() {
                 setSearchTerm('');
                 setSelectedCategory('all');
               }}
-              className="px-6 py-3 bg-gradient-to-r from-gold-500 to-gold-600 text-white font-semibold text-xs tracking-widest uppercase rounded-xl hover:shadow-lg transition-all"
+              className="inline-flex items-center justify-center px-8 py-3 bg-[#111] text-white text-[10px] font-bold tracking-[0.2em] uppercase transition-all hover:bg-black group overflow-hidden relative"
             >
-              Clear Filters
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[#D4AF37]/20 to-transparent -translate-x-[150%] animate-[shimmer_3s_infinite]" />
+              <span className="relative z-10">Clear Filters</span>
+              <span className="absolute bottom-0 left-0 w-0 h-[2px] bg-gradient-to-r from-[#D4AF37] to-[#F3E5AB] transition-all duration-500 ease-out group-hover:w-full" />
             </button>
           </div>
         )}

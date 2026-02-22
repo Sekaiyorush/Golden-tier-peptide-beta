@@ -27,13 +27,15 @@ export function ProductDetails() {
 
     if (!product) {
         return (
-            <div className="min-h-screen bg-transparent py-24 flex items-center justify-center">
-                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-amber-50/50 via-white to-white pointer-events-none -z-10" />
-                <div className="text-center bg-white/60 backdrop-blur-xl p-12 rounded-3xl border border-gold-200/50 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
-                    <h2 className="text-3xl font-serif text-slate-900 mb-2 tracking-tight">Compound Not Found</h2>
-                    <p className="text-slate-500 mb-8 max-w-md mx-auto text-sm leading-relaxed">The specific compound you are looking for does not exist or has been removed from our catalog.</p>
-                    <Link to="/products" className="inline-flex items-center justify-center px-6 py-3 bg-slate-900 text-white font-semibold text-xs tracking-widest uppercase rounded-xl hover:bg-black hover:border-gold-500/50 border border-transparent transition-all shadow-md">
-                        Return to Catalog
+            <div className="min-h-screen bg-white flex items-center justify-center relative">
+                <div className="absolute inset-0 pointer-events-none z-0 bg-[radial-gradient(ellipse_at_center,_rgba(212,175,55,0.03)_0%,_rgba(255,255,255,1)_60%)]" />
+                <div className="text-center bg-white border border-[#D4AF37]/20 p-16 shadow-[0_8px_40px_rgba(0,0,0,0.04)] relative z-10 max-w-lg">
+                    <h2 className="text-4xl font-serif text-slate-900 mb-4 tracking-tight">Compound Not Found</h2>
+                    <p className="text-slate-400 mb-10 text-sm leading-relaxed tracking-wide">The specific compound you are looking for does not exist or has been removed from our catalog.</p>
+                    <Link to="/products" className="inline-flex items-center justify-center px-8 py-4 bg-[#111] text-white font-semibold text-[10px] tracking-[0.2em] uppercase transition-all hover:bg-black group overflow-hidden relative">
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[#D4AF37]/20 to-transparent -translate-x-[150%] animate-[shimmer_3s_infinite]" />
+                        <span className="relative z-10">Return to Catalog</span>
+                        <span className="absolute bottom-0 left-0 w-0 h-[2px] bg-gradient-to-r from-[#D4AF37] to-[#F3E5AB] transition-all duration-500 ease-out group-hover:w-full" />
                     </Link>
                 </div>
             </div>
@@ -59,9 +61,9 @@ export function ProductDetails() {
     };
 
     return (
-        <div className="min-h-screen bg-transparent py-12 relative overflow-hidden">
+        <div className="min-h-screen bg-white py-12 relative overflow-hidden">
             {/* Luxury Background Hint */}
-            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-amber-50/30 via-white to-white pointer-events-none -z-10" />
+            <div className="absolute inset-0 pointer-events-none z-0 bg-[radial-gradient(ellipse_at_center,_rgba(212,175,55,0.03)_0%,_rgba(255,255,255,1)_60%)]" />
 
             <SEO
                 title={`${product.name} | Golden Tier`}
@@ -73,56 +75,56 @@ export function ProductDetails() {
 
                 <button
                     onClick={() => navigate('/products')}
-                    className="inline-flex items-center text-[10px] font-bold tracking-widest uppercase text-slate-400 hover:text-gold-600 mb-10 mt-6 transition-colors"
+                    className="inline-flex items-center text-[10px] font-bold tracking-[0.2em] uppercase text-[#AA771C] hover:text-[#D4AF37] mb-12 mt-8 transition-colors group"
                 >
-                    <ArrowLeft className="h-4 w-4 mr-2" />
-                    Back to catalog
+                    <ArrowLeft className="h-4 w-4 mr-3 group-hover:-translate-x-1 transition-transform" />
+                    BACK TO CATALOG
                 </button>
 
-                <div className="bg-white/80 backdrop-blur-xl rounded-[2rem] border border-gold-200/50 overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+                <div className="bg-white border border-[#D4AF37]/20 shadow-[0_8px_40px_rgba(0,0,0,0.04)] relative z-10">
                     <div className="grid grid-cols-1 md:grid-cols-2">
 
                         {/* Left: Product Image */}
-                        <div className="relative bg-gradient-to-br from-slate-50 to-white flex items-center justify-center p-12 md:p-32 border-r border-gold-100/50 overflow-hidden">
+                        <div className="relative bg-slate-50 flex items-center justify-center p-12 md:p-32 border-b md:border-b-0 md:border-r border-[#D4AF37]/20 overflow-hidden">
                             {/* Subtle particle effect layered behind image */}
-                            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-gold-50/50 via-transparent to-transparent opacity-100 pointer-events-none" />
+                            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-[#D4AF37]/5 via-transparent to-transparent opacity-100 pointer-events-none" />
 
-                            <div className="absolute top-8 left-8 z-10 flex items-center space-x-2 px-4 py-2 bg-white/90 backdrop-blur-md rounded-xl shadow-sm border border-gold-100">
-                                <Check className="h-4 w-4 text-gold-500" />
-                                <span className="text-xs font-bold tracking-widest uppercase text-slate-700">{product.purity}</span>
+                            <div className="absolute top-8 left-8 z-10 flex items-center space-x-2 px-4 py-2 bg-white border border-[#D4AF37]/20 shadow-sm">
+                                <Check className="h-4 w-4 text-[#D4AF37]" />
+                                <span className="text-[10px] font-bold tracking-[0.2em] uppercase text-[#AA771C]">{product.purity}</span>
                             </div>
 
-                            <span className={`absolute top-8 right-8 px-4 py-2 rounded-xl text-xs font-bold tracking-widest uppercase z-10 shadow-sm ${product.inStock ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' : 'bg-red-50 text-red-600 border border-red-200'
+                            <span className={`absolute top-8 right-8 px-4 py-2 text-[10px] font-bold tracking-[0.2em] uppercase z-10 shadow-sm ${product.inStock ? 'bg-white text-emerald-600 border border-emerald-100' : 'bg-white text-red-600 border border-red-100'
                                 }`}>
-                                {product.inStock ? 'In Stock' : 'Out of Stock'}
+                                {product.inStock ? 'IN STOCK' : 'OUT OF STOCK'}
                             </span>
 
                             <div className="relative z-0 w-64 h-64 md:w-96 md:h-96 flex items-center justify-center">
                                 {product.imageUrl ? (
-                                    <img src={product.imageUrl} alt={product.name} className="w-full h-full object-contain filter drop-shadow-md" />
+                                    <img src={product.imageUrl} alt={product.name} className="w-full h-full object-contain filter" />
                                 ) : (
-                                    <div className="w-full h-full bg-gradient-to-br from-white to-slate-50 rounded-[2rem] flex items-center justify-center shadow-inner border border-gold-100">
-                                        <span className="text-gold-400 font-serif text-6xl">{product.name.split('-')[0]}</span>
+                                    <div className="w-full h-full bg-white flex items-center justify-center shadow-inner border border-[#D4AF37]/10">
+                                        <span className="text-[#D4AF37] font-serif text-6xl">{product.name.split('-')[0]}</span>
                                     </div>
                                 )}
                             </div>
                         </div>
 
                         {/* Right: Product Details */}
-                        <div className="p-8 md:p-14 lg:p-20 flex flex-col justify-center bg-white/50">
-                            <div className="mb-2">
-                                <span className="text-[10px] font-bold tracking-[0.2em] text-gold-500 uppercase mb-4 block">{product.category}</span>
+                        <div className="p-8 md:p-14 lg:p-20 flex flex-col justify-center bg-white">
+                            <div className="mb-4">
+                                <span className="text-[10px] font-bold tracking-[0.3em] text-[#AA771C] uppercase mb-4 block">{product.category}</span>
                                 <h1 className="text-4xl md:text-5xl lg:text-6xl font-serif text-slate-900 tracking-tight leading-tight">{product.name}</h1>
-                                <p className="text-[10px] font-semibold tracking-widest text-slate-400 mt-4 uppercase font-mono">SKU: {product.sku}</p>
+                                <p className="text-[10px] font-bold tracking-[0.2em] text-slate-400 mt-6 uppercase">SKU: {product.sku}</p>
                             </div>
 
                             <div className="my-8">
-                                <p className="text-slate-500 leading-relaxed text-sm md:text-base font-light">{product.description}</p>
+                                <p className="text-slate-500 leading-relaxed text-sm md:text-base tracking-wide">{product.description}</p>
                             </div>
 
                             {isPartner ? (
                                 <>
-                                    <div className="mb-10">
+                                    <div className="mb-12">
                                         <div className="flex items-end gap-4 mb-2">
                                             <span className="text-5xl font-serif text-slate-900 tracking-tight">${currentPrice.toFixed(2)}</span>
                                             {user?.discountRate && (
@@ -130,77 +132,80 @@ export function ProductDetails() {
                                             )}
                                         </div>
                                         {user?.discountRate && (
-                                            <p className="text-xs font-semibold tracking-widest uppercase text-gold-600 mt-3 flex items-center">
-                                                <Check className="h-3 w-3 mr-1.5" />
-                                                Partner Privilege: {user.discountRate}% Discount
+                                            <p className="text-[10px] font-bold tracking-[0.2em] uppercase text-[#D4AF37] mt-4 flex items-center">
+                                                <Check className="h-3 w-3 mr-2" />
+                                                PARTNER PRIVILEGE: {user.discountRate}% DISCOUNT
                                             </p>
                                         )}
                                     </div>
 
-                                    <div className="flex items-center gap-6 mb-10">
-                                        <div className="flex flex-col gap-3">
-                                            <span className="text-[10px] font-bold tracking-widest uppercase text-slate-500">Quantity</span>
-                                            <div className="flex items-center bg-white rounded-xl p-1 border border-gold-200/60 shadow-sm">
+                                    <div className="flex items-center gap-6 mb-12">
+                                        <div className="flex flex-col gap-4">
+                                            <span className="text-[10px] font-bold tracking-[0.2em] uppercase text-slate-400">QUANTITY</span>
+                                            <div className="flex items-center bg-white p-1 border border-[#D4AF37]/30 shadow-sm min-w-[120px] justify-between">
                                                 <button
                                                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                                                    className="p-3 hover:bg-gold-50 text-slate-400 hover:text-gold-600 rounded-lg transition-colors"
+                                                    className="p-3 text-slate-400 hover:text-[#D4AF37] hover:bg-[#D4AF37]/5 transition-colors"
                                                 >
                                                     <Minus className="h-4 w-4" />
                                                 </button>
                                                 <span className="w-12 text-center font-bold text-slate-900 text-lg">{quantity}</span>
                                                 <button
                                                     onClick={() => setQuantity(quantity + 1)}
-                                                    className="p-3 hover:bg-gold-50 text-slate-400 hover:text-gold-600 rounded-lg transition-colors"
+                                                    className="p-3 text-slate-400 hover:text-[#D4AF37] hover:bg-[#D4AF37]/5 transition-colors"
                                                 >
                                                     <Plus className="h-4 w-4" />
                                                 </button>
                                             </div>
                                         </div>
 
-                                        <div className="flex-1 flex flex-col justify-end pt-[26px]">
+                                        <div className="flex-1 flex flex-col justify-end pt-8">
                                             <button
                                                 onClick={handleAddToCart}
                                                 disabled={!product.inStock}
-                                                className="w-full h-[52px] flex items-center justify-center space-x-3 bg-slate-900 text-white rounded-xl font-semibold text-xs tracking-widest uppercase hover:bg-black hover:border-gold-500/50 border border-slate-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed group shadow-md"
+                                                className="w-full h-14 flex items-center justify-center space-x-3 bg-[#111] text-white font-semibold text-[10px] tracking-[0.2em] uppercase transition-all disabled:opacity-50 disabled:cursor-not-allowed hover:bg-black border border-[#111] shadow-md group relative overflow-hidden"
                                             >
-                                                <ShoppingCart className="h-4 w-4 group-hover:text-gold-400 transition-colors" />
-                                                <span>{product.inStock ? 'Acquire Compound' : 'Currently Unavailable'}</span>
+                                                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[#D4AF37]/20 to-transparent -translate-x-[150%] animate-[shimmer_3s_infinite]" />
+                                                <ShoppingCart className="relative z-10 h-4 w-4 transition-colors group-hover:text-[#D4AF37]" />
+                                                <span className="relative z-10">{product.inStock ? 'ACQUIRE COMPOUND' : 'CURRENTLY UNAVAILABLE'}</span>
+                                                <span className="absolute bottom-0 left-0 w-0 h-[2px] bg-gradient-to-r from-[#D4AF37] to-[#F3E5AB] transition-all duration-500 ease-out group-hover:w-full" />
                                             </button>
                                         </div>
                                     </div>
                                 </>
                             ) : (
-                                <div className="mb-10 p-6 bg-gradient-to-br from-white to-slate-50 border border-gold-100/50 rounded-2xl shadow-[0_4px_20px_rgb(0,0,0,0.02)]">
-                                    <p className="text-xs font-bold tracking-widest uppercase text-slate-900 mb-2">Partner Access Required</p>
-                                    <p className="text-sm text-slate-500 leading-relaxed font-light">Pricing and procurement are strictly reserved for verified partners. <a href="/contact" className="text-gold-600 hover:text-gold-700 font-semibold underline underline-offset-4 decoration-gold-200 transition-all">Request access</a> to join our network.</p>
+                                <div className="mb-12 p-8 bg-slate-50 border border-[#D4AF37]/20 shadow-sm relative overflow-hidden">
+                                    <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-[#AA771C] to-[#D4AF37]" />
+                                    <p className="text-[10px] font-bold tracking-[0.2em] uppercase text-slate-900 mb-3">Partner Access Required</p>
+                                    <p className="text-sm text-slate-500 leading-relaxed">Pricing and procurement are strictly reserved for verified partners. <a href="/contact" className="text-[#D4AF37] hover:text-[#AA771C] font-semibold underline underline-offset-4 decoration-[#D4AF37]/40 transition-all">Request access</a> to join our network.</p>
                                 </div>
                             )}
 
                             {/* Extras Grid */}
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-10 border-t border-gold-100/50">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 pt-10 border-t border-[#D4AF37]/10">
                                 {product.dosage && (
                                     <div className="flex items-start gap-4">
-                                        <div className="p-3 bg-gold-50/50 border border-gold-100 text-gold-600 rounded-xl shadow-sm">
+                                        <div className="p-4 bg-white border border-[#D4AF37]/20 text-[#D4AF37] shadow-sm flex-shrink-0">
                                             <ShieldCheck className="h-5 w-5" />
                                         </div>
                                         <div>
-                                            <h4 className="text-[10px] font-bold tracking-widest uppercase text-slate-900 mb-1.5">Dosage Protocol</h4>
-                                            <p className="text-sm text-slate-500 font-light leading-relaxed">{product.dosage}</p>
+                                            <h4 className="text-[10px] font-bold tracking-[0.2em] uppercase text-slate-900 mb-2">DOSAGE PROTOCOL</h4>
+                                            <p className="text-xs text-slate-500 tracking-wide leading-relaxed">{product.dosage}</p>
                                         </div>
                                     </div>
                                 )}
 
                                 {product.benefits && product.benefits.length > 0 && (
                                     <div className="flex items-start gap-4">
-                                        <div className="p-3 bg-gold-50/50 border border-gold-100 text-gold-600 rounded-xl shadow-sm">
+                                        <div className="p-4 bg-white border border-[#D4AF37]/20 text-[#D4AF37] shadow-sm flex-shrink-0">
                                             <FileText className="h-5 w-5" />
                                         </div>
                                         <div>
-                                            <h4 className="text-[10px] font-bold tracking-widest uppercase text-slate-900 mb-1.5">Primary Focus</h4>
-                                            <ul className="text-sm text-slate-500 font-light leading-relaxed space-y-1">
+                                            <h4 className="text-[10px] font-bold tracking-[0.2em] uppercase text-slate-900 mb-2">PRIMARY FOCUS</h4>
+                                            <ul className="text-xs text-slate-500 tracking-wide leading-relaxed space-y-2">
                                                 {product.benefits.slice(0, 2).map((b, i) => (
                                                     <li key={i} className="flex items-start">
-                                                        <span className="text-gold-400 mr-2 mt-1">•</span>
+                                                        <span className="text-[#D4AF37] mr-2 mt-0.5">•</span>
                                                         <span>{b}</span>
                                                     </li>
                                                 ))}
@@ -215,27 +220,27 @@ export function ProductDetails() {
                 </div>
 
                 {/* Extended Description Tabs */}
-                <div className="mt-12 bg-white/60 backdrop-blur-xl rounded-[2rem] border border-gold-200/50 p-8 md:p-12 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
-                    <h3 className="text-2xl font-serif text-slate-900 mb-8 tracking-tight">Compound Specifications</h3>
-                    <div className="text-slate-500 space-y-8 font-light leading-relaxed text-sm md:text-base">
+                <div className="mt-16 bg-white border border-[#D4AF37]/20 p-10 md:p-16 shadow-[0_8px_40px_rgba(0,0,0,0.02)]">
+                    <h3 className="text-3xl font-serif text-slate-900 mb-10 tracking-tight">Compound Specifications</h3>
+                    <div className="text-slate-500 space-y-10 tracking-wide leading-relaxed text-sm md:text-base">
                         <p className="whitespace-pre-wrap">{product.fullDescription || product.description}</p>
                         {product.benefits && product.benefits.length > 0 && (
                             <div>
-                                <h4 className="text-[10px] font-bold tracking-widest uppercase text-slate-900 mb-4">Investigative Pathways</h4>
-                                <ul className="space-y-3">
+                                <h4 className="text-[10px] font-bold tracking-[0.3em] uppercase text-slate-900 mb-6 block">Investigative Pathways</h4>
+                                <ul className="space-y-4">
                                     {product.benefits.map((b, i) => (
                                         <li key={i} className="flex items-start">
-                                            <div className="w-1.5 h-1.5 rounded-full bg-gold-400 mt-2 mr-4 shrink-0" />
+                                            <div className="w-1.5 h-1.5 rounded-none bg-[#D4AF37] mt-2 mr-4 shrink-0 rotate-45" />
                                             <span>{b}</span>
                                         </li>
                                     ))}
                                 </ul>
                             </div>
                         )}
-                        <div className="bg-slate-900 p-6 md:p-8 rounded-2xl mt-10 border border-slate-800 shadow-xl relative overflow-hidden">
-                            <div className="absolute top-0 right-0 w-32 h-32 bg-gold-900/20 blur-3xl -translate-y-1/2 translate-x-1/2 rounded-full" />
-                            <h4 className="text-[10px] font-bold tracking-widest uppercase text-gold-500 mb-3 block">Mandatory Disclaimer</h4>
-                            <p className="text-sm text-slate-300 mb-0 font-light leading-relaxed relative z-10">All formulations distributed by Golden Tier are strictly synthesized for laboratory research and analytical methodology only. They are expressly restricted from use as human therapeutics, diagnostics, or consumable supplements.</p>
+                        <div className="bg-[#111] p-10 mt-16 border border-[#222] relative overflow-hidden shadow-2xl">
+                            <div className="absolute top-0 right-0 w-64 h-64 bg-[#D4AF37]/10 blur-3xl -translate-y-1/2 translate-x-1/2 rounded-full pointer-events-none" />
+                            <h4 className="text-[10px] font-bold tracking-[0.3em] uppercase text-[#D4AF37] mb-4 block">MANDATORY DISCLAIMER</h4>
+                            <p className="text-sm text-slate-300 mb-0 leading-relaxed tracking-wide relative z-10 max-w-4xl">All formulations distributed by Golden Tier are strictly synthesized for laboratory research and analytical methodology only. They are expressly restricted from use as human therapeutics, diagnostics, or consumable supplements.</p>
                         </div>
                     </div>
                 </div>
