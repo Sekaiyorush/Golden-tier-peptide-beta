@@ -1,4 +1,5 @@
 import { Shield, Clock, Award, FlaskConical } from 'lucide-react';
+import { motion, type Variants } from 'framer-motion';
 
 export function TrustFeatures() {
   const features = [
@@ -24,39 +25,79 @@ export function TrustFeatures() {
     },
   ];
 
+  /* Stagger container variants */
+  const containerVariants: Variants = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.2
+      }
+    }
+  };
+
+  const itemVariants: Variants = {
+    hidden: { opacity: 0, y: 30 },
+    show: { opacity: 1, y: 0, transition: { duration: 0.8, ease: "easeOut" } }
+  };
+
   return (
-    <section className="py-16 md:py-24 bg-white">
-      <div className="container px-4 md:px-6">
+    <section className="py-24 bg-white relative">
+      <div className="container max-w-7xl mx-auto px-6 md:px-12">
         {/* Section Header */}
-        <div className="text-center mb-12">
-          <span className="text-sm font-medium text-slate-500 uppercase tracking-wider mb-3 block">Why Choose Us</span>
-          <h2 className="text-3xl md:text-4xl font-semibold text-slate-900">
-            The Golden Standard
-          </h2>
-        </div>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 1 }}
+          className="mb-20 flex flex-col md:flex-row md:items-end justify-between border-b border-[#D4AF37]/10 pb-8 gap-6"
+        >
+          <div>
+            <span className="text-[10px] font-bold text-[#AA771C] uppercase tracking-[0.3em] mb-4 block">
+              Why Choose Us
+            </span>
+            <h2 className="text-4xl md:text-5xl font-serif text-slate-900 tracking-tight">
+              The Golden Standard
+            </h2>
+          </div>
+          <p className="max-w-md text-xs text-slate-500 uppercase tracking-widest leading-relaxed">
+            Uncompromising quality control and precision manufacturing for the world's leading research institutions.
+          </p>
+        </motion.div>
 
         {/* Features Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, margin: "-50px" }}
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-12 gap-y-16"
+        >
           {features.map((feature, index) => (
-            <div
+            <motion.div
               key={index}
-              className="group p-6 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors"
+              variants={itemVariants}
+              className="group relative"
             >
+              {/* Animated line on hover */}
+              <div className="absolute -left-6 top-0 w-[1px] h-0 bg-gradient-to-b from-[#D4AF37] to-transparent transition-all duration-700 group-hover:h-full opacity-0 group-hover:opacity-100 hidden md:block" />
+
               {/* Icon */}
-              <div className="w-12 h-12 bg-slate-900 rounded-lg flex items-center justify-center mb-4">
-                <feature.icon className="h-6 w-6 text-white" />
+              <div className="w-12 h-12 border border-[#D4AF37]/30 flex items-center justify-center mb-6 group-hover:border-[#D4AF37] transition-colors duration-500 bg-white relative overflow-hidden">
+                <div className="absolute inset-0 bg-[#D4AF37]/5 translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
+                <feature.icon className="h-5 w-5 text-[#AA771C] relative z-10" strokeWidth={1.5} />
               </div>
 
               {/* Content */}
-              <h3 className="font-semibold text-lg text-slate-900 mb-2">
+              <h3 className="font-serif text-xl text-slate-900 mb-4 group-hover:text-[#AA771C] transition-colors duration-300">
                 {feature.title}
               </h3>
-              <p className="text-sm text-slate-500 leading-relaxed">
+              <p className="text-xs text-slate-500 leading-relaxed uppercase tracking-wider">
                 {feature.description}
               </p>
-            </div>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       </div>
     </section>
   );

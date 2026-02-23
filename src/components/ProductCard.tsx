@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ShoppingCart, Eye, Heart, Sparkles } from 'lucide-react';
@@ -11,7 +11,7 @@ interface ProductCardProps {
   index?: number;
 }
 
-export function ProductCard({ product, index = 0 }: ProductCardProps) {
+export const ProductCard = memo(function ProductCard({ product, index = 0 }: ProductCardProps) {
   const { addToCart } = useCart();
   const { isPartner, user } = useAuth();
   const [isHovered, setIsHovered] = useState(false);
@@ -104,7 +104,7 @@ export function ProductCard({ product, index = 0 }: ProductCardProps) {
           <p className="text-[9px] font-bold tracking-[0.3em] uppercase text-[#AA771C] mb-3">{product.category}</p>
 
           {/* Name */}
-          <Link to={`/products/${product.id}`}>
+          <Link to={`/product/${product.sku}`}>
             <h3 className="font-serif text-2xl tracking-tight text-slate-900 mb-3 group-hover/card:text-transparent group-hover/card:bg-clip-text group-hover/card:bg-gradient-to-r group-hover/card:from-[#AA771C] group-hover/card:to-[#D4AF37] transition-all duration-300 line-clamp-1">{product.name}</h3>
           </Link>
 
@@ -168,4 +168,4 @@ export function ProductCard({ product, index = 0 }: ProductCardProps) {
       </div>
     </motion.div>
   );
-}
+});
