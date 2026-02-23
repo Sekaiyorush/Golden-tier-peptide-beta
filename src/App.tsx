@@ -98,8 +98,10 @@ function AppContent() {
   const { isAuthenticated, isPartner } = useAuth();
   
   // Check if we're in a password recovery flow (from Supabase magic link)
+  // Supabase redirects to root (/) with recovery token in hash, or /reset-password
   const isRecoveryFlow = typeof window !== 'undefined' && 
     (window.location.hash.includes('type=recovery') || 
+     window.location.hash.includes('access_token=') ||
      window.location.pathname === '/reset-password');
 
   return (
