@@ -96,13 +96,18 @@ function NotFoundPage() {
 // Main App Content with Router
 function AppContent() {
   const { isAuthenticated, isPartner } = useAuth();
+  
+  // Check if we're in a password recovery flow (from Supabase magic link)
+  const isRecoveryFlow = typeof window !== 'undefined' && 
+    (window.location.hash.includes('type=recovery') || 
+     window.location.pathname === '/reset-password');
 
   return (
     <Router>
       <Routes>
         {/* Auth pages — always accessible */}
-        <Route path="/login" element={isAuthenticated ? <Navigate to="/" replace /> : <Login />} />
-        <Route path="/register" element={isAuthenticated ? <Navigate to="/" replace /> : <Register />} />
+        <Route path="/login" element={isAuthenticated && !isRecoveryFlow ? <Navigate to="/" replace /> : <Login />} />
+        <Route path="/register" element={isAuthenticated && !isRecoveryFlow ? <Navigate to="/" replace /> : <Register />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
 
@@ -110,7 +115,10 @@ function AppContent() {
         <Route
           path="/*"
           element={
-            !isAuthenticated ? (
+            isRecoveryFlow ? (
+              // Show reset password page during recovery flow, even if authenticated
+              <ResetPassword />
+            ) : !isAuthenticated ? (
               // Visitors see ONLY the landing page
               <Routes>
                 <Route path="*" element={<LandingPage />} />
