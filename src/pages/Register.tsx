@@ -27,7 +27,7 @@ export function Register() {
     // Simulate API delay
     await new Promise(resolve => setTimeout(resolve, 300));
 
-    const result = validateCode(code);
+    const result = await validateCode(code);
 
     if (result.valid && result.code) {
       let typeLabel = 'User';
@@ -76,8 +76,8 @@ export function Register() {
       return;
     }
 
-    if (password.length < 6) {
-      setError('Password must be at least 6 characters');
+    if (password.length < 8) {
+      setError('Password must be at least 8 characters');
       return;
     }
 

@@ -84,6 +84,16 @@ const QueenPiece = () => (
     </motion.svg>
 );
 
+// Pre-generate floating gold particles at module level (avoids Math.random during render)
+const PARTICLES = Array.from({ length: 10 }).map((_, i) => ({
+    id: i,
+    size: (i * 3.7 + 1.2) % 4 + 1,          // deterministic pseudo-random: 1..5
+    x: (i * 17.3 + 5) % 100,                 // spread across 0..100
+    y: (i * 23.7 + 10) % 100,
+    duration: (i * 2.3 + 15) % 15 + 15,      // 15..30
+    delay: (i * 1.1) % 5,                     // 0..5
+}));
+
 export function LandingPage() {
     const { db } = useDatabase();
     const { companyName, companyDescription } = db.siteSettings;
@@ -91,15 +101,7 @@ export function LandingPage() {
     const ySpring = useSpring(scrollY, { stiffness: 40, damping: 20 });
     const yTitle = useTransform(ySpring, [0, 500], [0, 150]);
 
-    // Generate 10 floating gold particles for subtle background
-    const particles = Array.from({ length: 10 }).map((_, i) => ({
-        id: i,
-        size: Math.random() * 4 + 1,
-        x: Math.random() * 100,
-        y: Math.random() * 100,
-        duration: Math.random() * 15 + 15,
-        delay: Math.random() * 5,
-    }));
+    const particles = PARTICLES;
 
     return (
         <div className="min-h-screen bg-white flex flex-col relative overflow-hidden font-sans">
@@ -118,7 +120,7 @@ export function LandingPage() {
                         }}
                         animate={{
                             y: ["0vh", "-100vh"],
-                            x: ["0vw", `${(Math.random() - 0.5) * 20}vw`],
+                            x: ["0vw", `${((p.id * 7.3 + 3) % 20) - 10}vw`],
                             opacity: [0, 0.4, 0],
                         }}
                         transition={{

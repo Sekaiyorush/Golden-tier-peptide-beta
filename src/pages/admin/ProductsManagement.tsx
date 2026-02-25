@@ -132,7 +132,7 @@ export function ProductsManagement() {
       id: product.id,
       sku: product.sku,
       name: product.name,
-      batch: `BATCH-${Date.now().toString(36).toUpperCase()}`,
+      batch: `BATCH-${Date.now().toString(36).toUpperCase()}`, // eslint-disable-line react-hooks/purity -- event handler, not render
       manufactured: new Date().toISOString().split('T')[0],
       purity: product.purity,
     });

@@ -134,7 +134,7 @@ export function PartnerAnalytics() {
         <div className="flex items-center space-x-3">
           <select
             value={timeRange}
-            onChange={(e) => setTimeRange(e.target.value as any)}
+            onChange={(e) => setTimeRange(e.target.value as '7d' | '30d' | '90d' | 'all')}
             className="px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-slate-200"
           >
             <option value="7d">Last 7 days</option>
@@ -231,7 +231,7 @@ export function PartnerAnalytics() {
             </div>
             <select
               value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as any)}
+              onChange={(e) => setSortBy(e.target.value as 'revenue' | 'network' | 'growth')}
               className="text-sm px-3 py-1.5 border border-slate-200 rounded-lg"
             >
               <option value="revenue">By Revenue</option>

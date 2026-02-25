@@ -170,7 +170,7 @@ export function PartnerNetwork() {
         ].map((tab) => (
           <button
             key={tab.id}
-            onClick={() => setActiveTab(tab.id as any)}
+            onClick={() => setActiveTab(tab.id as 'overview' | 'downline' | 'codes')}
             className={`flex items-center space-x-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${activeTab === tab.id
                 ? 'bg-slate-900 text-white'
                 : 'text-slate-600 hover:bg-slate-100'

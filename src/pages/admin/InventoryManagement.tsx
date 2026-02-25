@@ -217,7 +217,7 @@ export function InventoryManagement() {
                                 <label className="block text-xs font-medium text-slate-500 mb-1">Reason</label>
                                 <select
                                     value={adjustData.reason}
-                                    onChange={e => setAdjustData({ ...adjustData, reason: e.target.value as any })}
+                                    onChange={e => setAdjustData({ ...adjustData, reason: e.target.value as 'received' | 'sold' | 'damaged' | 'returned' | 'adjustment' })}
                                     className="w-full p-2 border border-slate-200 rounded-lg text-sm"
                                 >
                                     <option value="received">Received (+)</option>
