@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
-import { type InvitationCode } from '@/data/invitations';
+import type { InvitationCode } from '@/data/invitations';
 import { useDatabase } from './DatabaseContext';
 import { supabase } from '@/lib/supabase';
 
@@ -31,7 +31,7 @@ interface AuthContextType {
   resetPasswordForEmail: (email: string) => Promise<{ success: boolean; error?: string }>;
   updatePassword: (password: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
-  validateCode: (code: string) => { valid: boolean; code?: InvitationCode; error?: string };
+  validateCode: (code: string) => Promise<{ valid: boolean; code?: InvitationCode; error?: string }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -39,7 +39,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
-  const { db, refreshData } = useDatabase();
+  const { refreshData } = useDatabase();
 
   const fetchProfile = async (id: string, email: string) => {
     const { data, error } = await supabase.from('profiles').select('*').eq('id', id).single();
@@ -82,6 +82,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = async (email: string, password: string): Promise<boolean> => {
+    // Check rate limit before attempting login
+    const { data: allowed } = await supabase.rpc('check_rate_limit', {
+      p_identifier: email,
+      p_action: 'login',
+      p_max_attempts: 5,
+      p_window_minutes: 15,
+    });
+
+    if (allowed === false) {
+      alert('Too many login attempts. Please wait 15 minutes before trying again.');
+      return false;
+    }
+
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
       alert(error.message);
@@ -90,18 +103,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return true;
   };
 
-  const validateCode = (code: string): { valid: boolean; code?: InvitationCode; error?: string } => {
-    const invitation = db.invitationCodes.find((inv) => inv.code === code && inv.isActive);
+  // Server-side invitation code validation via RPC
+  const validateCode = async (code: string): Promise<{ valid: boolean; code?: InvitationCode; error?: string }> => {
+    const { data, error } = await supabase.rpc('validate_invitation_code', {
+      code_input: code,
+    });
 
-    if (!invitation) return { valid: false, error: 'Invalid or expired invitation code' };
-    if (invitation.expiresAt && new Date(invitation.expiresAt) < new Date()) {
-      return { valid: false, error: 'This invitation code has expired' };
-    }
-    if (invitation.usedCount >= invitation.maxUses) {
-      return { valid: false, error: 'This invitation code has reached its maximum uses' };
+    if (error) {
+      return { valid: false, error: error.message };
     }
 
-    return { valid: true, code: invitation };
+    if (!data || !data.valid) {
+      return { valid: false, error: data?.message || 'Invalid or expired invitation code' };
+    }
+
+    // Map the RPC response to an InvitationCode-like object for the register flow
+    const invCode: InvitationCode = {
+      id: code,
+      code: code,
+      type: data.type || (data.role === 'partner' ? 'admin_partner' : 'admin_user'),
+      createdBy: '',
+      createdByName: '',
+      createdAt: '',
+      maxUses: 1,
+      usedCount: 0,
+      usedBy: [],
+      isActive: true,
+      notes: '',
+      partnerId: data.partner_id || undefined,
+      defaultDiscountRate: data.default_discount_rate || 0,
+    };
+
+    return { valid: true, code: invCode };
   };
 
   const register = async (
@@ -110,14 +143,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     password: string,
     invitationCode: string
   ): Promise<{ success: boolean; error?: string }> => {
-    // Validate the invitation code from Supabase data
-    const validation = validateCode(invitationCode);
+    // Check rate limit for registration
+    const { data: allowed } = await supabase.rpc('check_rate_limit', {
+      p_identifier: email,
+      p_action: 'register',
+      p_max_attempts: 3,
+      p_window_minutes: 30,
+    });
+
+    if (allowed === false) {
+      return { success: false, error: 'Too many registration attempts. Please wait before trying again.' };
+    }
+
+    // Validate the invitation code server-side via RPC
+    const validation = await validateCode(invitationCode);
     if (!validation.valid) {
       return { success: false, error: validation.error };
     }
 
     const invCode = validation.code!;
-    // Determine role from the invitation code's type/role, NOT from string matching
+    // Determine role from the server-validated invitation code type
     const role: UserRole = invCode.type === 'admin_partner' || invCode.type === 'partner_user'
       ? 'partner'
       : 'customer';
@@ -138,16 +183,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         full_name: name,
         role: role,
         discount_rate: invCode.defaultDiscountRate || (role === 'partner' ? 20 : 0),
-        invited_by: invCode.partnerId || invCode.createdBy || null,
-        status: role === 'partner' ? 'active' : 'active',
+        invited_by: invCode.partnerId || null,
+        status: 'active',
       });
 
       if (profileError) return { success: false, error: profileError.message };
 
-      // Increment the invitation code's usage count
-      await supabase.from('invitation_codes').update({
-        current_uses: (invCode.usedCount || 0) + 1
-      }).eq('code', invCode.code);
+      // Consume the invitation code server-side (atomic increment)
+      await supabase.rpc('use_invitation_code', { code_input: invitationCode });
 
       // Refresh data
       await refreshData();
@@ -158,6 +201,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const resetPasswordForEmail = async (email: string) => {
+    // Rate limit password reset requests
+    const { data: allowed } = await supabase.rpc('check_rate_limit', {
+      p_identifier: email,
+      p_action: 'password_reset',
+      p_max_attempts: 3,
+      p_window_minutes: 60,
+    });
+
+    if (allowed === false) {
+      return { success: false, error: 'Too many password reset attempts. Please wait before trying again.' };
+    }
+
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/reset-password`,
     });

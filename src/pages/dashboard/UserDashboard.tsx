@@ -104,7 +104,7 @@ export function UserDashboard() {
           ].map((tab) => (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id as any)}
+              onClick={() => setActiveTab(tab.id as 'overview' | 'orders' | 'profile')}
               className={`flex items-center space-x-2 pb-2 text-[10px] font-bold tracking-[0.2em] uppercase transition-all relative ${activeTab === tab.id
                 ? 'text-[#D4AF37]'
                 : 'text-slate-400 hover:text-[#AA771C]'

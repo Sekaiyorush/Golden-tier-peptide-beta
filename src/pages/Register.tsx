@@ -27,7 +27,7 @@ export function Register() {
     // Simulate API delay
     await new Promise(resolve => setTimeout(resolve, 300));
 
-    const result = validateCode(code);
+    const result = await validateCode(code);
 
     if (result.valid && result.code) {
       let typeLabel = 'User';

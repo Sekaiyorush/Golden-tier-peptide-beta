@@ -17,6 +17,8 @@ export function SettingsManagement() {
         shippingInfo: ''
     });
 
+    // Sync form data when external settings are loaded/changed
+    /* eslint-disable react-hooks/set-state-in-effect */
     useEffect(() => {
         if (db.siteSettings) {
             setFormData({
@@ -30,6 +32,7 @@ export function SettingsManagement() {
             });
         }
     }, [db.siteSettings]);
+    /* eslint-enable react-hooks/set-state-in-effect */
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();

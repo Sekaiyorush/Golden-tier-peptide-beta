@@ -73,7 +73,7 @@ export function InvitationCodeManagement() {
       newCodeType === 'partner_user' ? 'GT' : newCodePrefix;
 
     const newCode: InvitationCode = {
-      id: `inv${Date.now()}`,
+      id: `inv${Date.now()}`, // eslint-disable-line react-hooks/purity -- event handler, not render
       code: generateInvitationCode(prefix),
       type: newCodeType,
       createdBy: user?.id || '',
@@ -225,7 +225,7 @@ export function InvitationCodeManagement() {
           <div className="flex items-center space-x-3">
             <select
               value={filterType}
-              onChange={(e) => setFilterType(e.target.value as any)}
+              onChange={(e) => setFilterType(e.target.value as InvitationCodeType | 'all')}
               className="px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-slate-200"
             >
               <option value="all">All Types</option>
@@ -235,7 +235,7 @@ export function InvitationCodeManagement() {
             </select>
             <select
               value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value as any)}
+              onChange={(e) => setFilterStatus(e.target.value as 'all' | 'active' | 'inactive')}
               className="px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-slate-200"
             >
               <option value="all">All Status</option>

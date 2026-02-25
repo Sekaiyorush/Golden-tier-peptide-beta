@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 import type { Product, Partner, Customer, Order } from '@/data/products';
-import type { InvitationCode } from '@/data/invitations';
+import type { InvitationCode, InvitationCodeType } from '@/data/invitations';
 import type { User } from './AuthContext';
 import { supabase } from '@/lib/supabase';
 import { createClient } from '@supabase/supabase-js';
@@ -38,6 +38,17 @@ export interface InventoryLog {
   performedByName?: string;
   createdAt: string;
 }
+
+// Internal types for Supabase row mappings
+interface OrderItemRow {
+  order_id: string;
+  product_id: string;
+  quantity: number;
+  price_at_purchase: number;
+  products?: { name: string } | null;
+}
+
+type DbRecord = Record<string, string | number | boolean | null | string[] | undefined>;
 
 interface DatabaseContextType {
   db: AppDatabase;
@@ -112,6 +123,23 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
   const [db, setDbState] = useState<AppDatabase>(INITIAL_DB_STATE);
   const [isLoading, setIsLoading] = useState(true);
 
+  // ─── Audit Logging Helper ────────────────────────────────────────
+  const logAudit = async (action: string, entityType: string, entityId: string, details?: Record<string, unknown>) => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) return;
+      await supabase.rpc('log_audit_event', {
+        p_user_id: session.user.id,
+        p_action: action,
+        p_entity_type: entityType,
+        p_entity_id: entityId,
+        p_details: details || null,
+      });
+    } catch (err) {
+      console.error('Audit log failed:', err);
+    }
+  };
+
   const loadData = async () => {
     try {
       const [
@@ -180,8 +208,8 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
         }));
 
         // Group order items by order_id
-        const itemsByOrderId = new Map<string, any[]>();
-        (orderItemsRaw || []).forEach(item => {
+        const itemsByOrderId = new Map<string, OrderItemRow[]>();
+        (orderItemsRaw || []).forEach((item: OrderItemRow) => {
           const existing = itemsByOrderId.get(item.order_id) || [];
           existing.push(item);
           itemsByOrderId.set(item.order_id, existing);
@@ -190,7 +218,7 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
         // Map orders with items and customer names
         const mappedOrders: Order[] = (ordersRaw || []).map(o => {
           const customerProfile = profileMap.get(o.customer_id);
-          const items = (itemsByOrderId.get(o.id) || []).map((item: any) => ({
+          const items = (itemsByOrderId.get(o.id) || []).map((item: OrderItemRow) => ({
             productId: item.product_id,
             name: item.products?.name || 'Unknown Product',
             quantity: item.quantity,
@@ -256,7 +284,7 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
           return {
             id: c.code, // PK is the code itself
             code: c.code,
-            type: (c.type || (c.role === 'partner' ? 'admin_partner' : 'admin_user')) as any,
+            type: (c.type || (c.role === 'partner' ? 'admin_partner' : 'admin_user')) as InvitationCodeType,
             createdBy: c.created_by || '',
             createdByName: creator?.full_name || creator?.email?.split('@')[0] || 'System',
             createdAt: c.created_at?.split('T')[0] || '',
@@ -346,7 +374,11 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
       dosage: product.dosage,
       image_url: product.imageUrl
     });
-    if (error) console.error(error);
+    if (error) {
+      console.error(error);
+    } else {
+      logAudit('create', 'product', product.id, { name: product.name, sku: product.sku, price: product.price });
+    }
   };
 
   const updateProduct = async (id: string, updates: Partial<Product>) => {
@@ -354,7 +386,7 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
       ...prev,
       products: prev.products.map(p => p.id === id ? { ...p, ...updates } : p)
     }));
-    const dbUpdates: any = {};
+    const dbUpdates: DbRecord = {};
     if (updates.name !== undefined) dbUpdates.name = updates.name;
     if (updates.description !== undefined) dbUpdates.description = updates.description;
     if (updates.fullDescription !== undefined) dbUpdates.full_description = updates.fullDescription;
@@ -369,11 +401,14 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
     if (updates.imageUrl !== undefined) dbUpdates.image_url = updates.imageUrl;
 
     await supabase.from('products').update(dbUpdates).eq('id', id);
+    logAudit('update', 'product', id, { fields: Object.keys(dbUpdates) });
   };
 
   const deleteProduct = async (id: string) => {
+    const product = db.products.find(p => p.id === id);
     setDb(prev => ({ ...prev, products: prev.products.filter(p => p.id !== id) }));
     await supabase.from('products').delete().eq('id', id);
+    logAudit('delete', 'product', id, { name: product?.name });
   };
 
   // ─── Orders CRUD ──────────────────────────────────────────────
@@ -424,6 +459,8 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
       }
     }
 
+    logAudit('create', 'order', order.id, { total: order.total, itemCount: order.items.length });
+
     // Send mock order confirmation email
     const customer = db.customers.find(c => c.id === order.customerId);
     if (customer) {
@@ -467,6 +504,7 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
     if (data && data.success) {
       // Refresh data to get the new order from DB
       await loadData();
+      logAudit('create', 'order', data.order_id, { total: data.total, method: 'secure_rpc' });
       return { success: true, order_id: data.order_id, total: data.total };
     }
 
@@ -483,10 +521,16 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
       orders: prev.orders.map(o => o.id === id ? { ...o, ...updates } : o)
     }));
 
-    const dbUpdates: any = {};
+    const dbUpdates: DbRecord = {};
     if (updates.status !== undefined) dbUpdates.status = updates.status;
     if (updates.paymentStatus !== undefined) dbUpdates.payment_status = updates.paymentStatus;
     await supabase.from('orders').update(dbUpdates).eq('friendly_id', id);
+
+    logAudit('update', 'order', id, {
+      fields: Object.keys(dbUpdates),
+      previousStatus: currentOrder?.status,
+      newStatus: updates.status,
+    });
 
     // Auto-deduct inventory when order is marked as delivered
     if (isBeingDelivered && currentOrder?.items && currentOrder.items.length > 0) {
@@ -560,11 +604,14 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
 
       if (profileError) return { success: false, error: profileError.message };
 
+      logAudit('create', 'partner', authData.user.id, { name: data.name, email: data.email, company: data.company });
+
       // Refresh data to pick up the new partner
       await loadData();
       return { success: true };
-    } catch (err: any) {
-      return { success: false, error: err.message };
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Unknown error';
+      return { success: false, error: message };
     }
   };
 
@@ -573,7 +620,7 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
       ...prev,
       partners: prev.partners.map(p => p.id === id ? { ...p, ...updates } : p)
     }));
-    const dbUpdates: any = {};
+    const dbUpdates: DbRecord = {};
     if (updates.status !== undefined) dbUpdates.status = updates.status;
     if (updates.discountRate !== undefined) dbUpdates.discount_rate = updates.discountRate;
     if (updates.name !== undefined) dbUpdates.full_name = updates.name;
@@ -582,10 +629,12 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
     if (updates.phone !== undefined) dbUpdates.phone_number = updates.phone;
     if (updates.referredBy !== undefined) dbUpdates.invited_by = updates.referredBy;
     await supabase.from('profiles').update(dbUpdates).eq('id', id);
+    logAudit('update', 'partner', id, { fields: Object.keys(dbUpdates) });
   };
 
   const deletePartner = async (id: string): Promise<{ success: boolean; error?: string }> => {
     try {
+      const partner = db.partners.find(p => p.id === id);
       const { error } = await supabase.rpc('delete_user', { user_id: id });
 
       if (error) {
@@ -598,10 +647,12 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
         partners: prev.partners.filter(p => p.id !== id)
       }));
 
+      logAudit('delete', 'partner', id, { name: partner?.name, email: partner?.email });
       return { success: true };
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Unknown error';
       console.error("Error deleting partner:", err);
-      return { success: false, error: err.message };
+      return { success: false, error: message };
     }
   };
 
@@ -631,7 +682,11 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
       default_discount_rate: code.defaultDiscountRate || null,
     });
 
-    if (error) console.error("Error creating invitation code:", error);
+    if (error) {
+      console.error("Error creating invitation code:", error);
+    } else {
+      logAudit('create', 'invitation_code', code.code, { type: code.type, maxUses: code.maxUses });
+    }
   };
 
   const updateInvitationCode = async (codeStr: string, updates: Partial<InvitationCode>) => {
@@ -642,7 +697,7 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
       )
     }));
 
-    const dbUpdates: any = {};
+    const dbUpdates: DbRecord = {};
     if (updates.isActive !== undefined) dbUpdates.is_active = updates.isActive;
     if (updates.maxUses !== undefined) dbUpdates.max_uses = updates.maxUses;
     if (updates.notes !== undefined) dbUpdates.notes = updates.notes;
@@ -651,6 +706,7 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
     // Find the actual code string
     const actualCode = db.invitationCodes.find(c => c.code === codeStr || c.id === codeStr)?.code || codeStr;
     await supabase.from('invitation_codes').update(dbUpdates).eq('code', actualCode);
+    logAudit('update', 'invitation_code', actualCode, { fields: Object.keys(dbUpdates) });
   };
 
   const deleteInvitationCode = async (codeStr: string) => {
@@ -659,6 +715,7 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
       invitationCodes: prev.invitationCodes.filter(c => c.code !== codeStr)
     }));
     await supabase.from('invitation_codes').update({ is_active: false }).eq('code', codeStr);
+    logAudit('deactivate', 'invitation_code', codeStr);
   };
 
   // ─── Inventory Logs ──────────────────────────────────────────────
@@ -697,7 +754,7 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
       siteSettings: { ...prev.siteSettings, ...updates }
     }));
 
-    const dbUpdates: any = {};
+    const dbUpdates: DbRecord = {};
     if (updates.contactEmail !== undefined) dbUpdates.contact_email = updates.contactEmail;
     if (updates.contactPhone !== undefined) dbUpdates.contact_phone = updates.contactPhone;
     if (updates.contactLocation !== undefined) dbUpdates.contact_location = updates.contactLocation;
@@ -711,6 +768,7 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
       console.error("Error updating site settings:", error);
       return false;
     }
+    logAudit('update', 'site_settings', 'default', { fields: Object.keys(dbUpdates) });
     return true;
   };
 
