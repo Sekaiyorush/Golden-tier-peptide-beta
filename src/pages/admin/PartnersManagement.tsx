@@ -141,8 +141,8 @@ export function PartnersManagement() {
       handleCloseModal();
     } else {
       // Create new partner account in Supabase
-      if (!formData.password || formData.password.length < 6) {
-        alert('Password must be at least 6 characters');
+      if (!formData.password || formData.password.length < 8) {
+        alert('Password must be at least 8 characters');
         setIsSubmitting(false);
         return;
       }

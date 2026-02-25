@@ -32,11 +32,12 @@ interface ShippingForm {
 export function CheckoutPage() {
     const { items, cartSubtotal, discountAmount, cartTotal, clearCart } = useCart();
     const { user, isPartner } = useAuth();
-    const { addOrder } = useDatabase();
+    const { createSecureOrder } = useDatabase();
 
     const [step, setStep] = useState<1 | 2 | 3>(1);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [orderId, setOrderId] = useState('');
+    const [orderError, setOrderError] = useState('');
     const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('bank_transfer');
     const [shipping, setShipping] = useState<ShippingForm>({
         fullName: user?.name || '',
@@ -65,43 +66,38 @@ export function CheckoutPage() {
     const handlePlaceOrder = async () => {
         if (items.length === 0 || !user) return;
         setIsSubmitting(true);
-
-        const newOrderId = `ORD-${Math.floor(1000 + Math.random() * 9000)}-${Date.now().toString().slice(-4)}`;
+        setOrderError('');
 
         try {
-            await addOrder({
-                id: newOrderId,
-                customerId: user.id,
-                customerName: user.name,
+            // Use server-side RPC for secure order creation
+            // Prices, discounts, and stock are validated on the server
+            const result = await createSecureOrder({
                 items: items.map(item => ({
-                    productId: item.product.id,
-                    name: item.product.name,
+                    product_id: item.product.id,
                     quantity: item.quantity,
-                    price: item.product.price,
                 })),
-                total: cartTotal,
-                status: 'pending',
-                paymentStatus: 'pending',
-                createdAt: new Date().toISOString().split('T')[0],
-                userType: user.role === 'partner' ? 'partner' : 'customer',
-                partnerId: user.partnerId || (user.role === 'partner' ? user.id : undefined),
-                shippingName: shipping.fullName,
-                shippingEmail: shipping.email,
-                shippingPhone: shipping.phone,
-                shippingAddress: shipping.address,
-                shippingCity: shipping.city,
-                shippingState: shipping.state,
-                shippingZip: shipping.zip,
-                shippingCountry: shipping.country,
-                shippingNotes: shipping.notes,
-                paymentMethod: paymentMethod,
+                shipping_name: shipping.fullName,
+                shipping_email: shipping.email,
+                shipping_phone: shipping.phone,
+                shipping_address: shipping.address,
+                shipping_city: shipping.city,
+                shipping_state: shipping.state,
+                shipping_zip: shipping.zip,
+                shipping_country: shipping.country,
+                shipping_notes: shipping.notes,
+                payment_method: paymentMethod,
             });
 
-            setOrderId(newOrderId);
-            clearCart();
-            setStep(3);
+            if (result.success && result.order_id) {
+                setOrderId(result.order_id);
+                clearCart();
+                setStep(3);
+            } else {
+                setOrderError(result.error || 'Failed to place order. Please try again.');
+            }
         } catch (err) {
             console.error('Order placement failed:', err);
+            setOrderError('An unexpected error occurred. Please try again.');
         } finally {
             setIsSubmitting(false);
         }
@@ -311,6 +307,12 @@ export function CheckoutPage() {
                                         <li>We verify and ship your order</li>
                                     </ol>
                                 </div>
+
+                                {orderError && (
+                                    <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6">
+                                        <p className="text-sm font-medium text-red-800">{orderError}</p>
+                                    </div>
+                                )}
 
                                 <div className="flex gap-3">
                                     <button

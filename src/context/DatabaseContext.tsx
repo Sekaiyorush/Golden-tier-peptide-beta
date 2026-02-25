@@ -53,6 +53,19 @@ interface DatabaseContextType {
   // Orders
   addOrder: (order: Order) => void;
   updateOrder: (id: string, updates: Partial<Order>) => void;
+  createSecureOrder: (params: {
+    items: { product_id: string; quantity: number }[];
+    shipping_name: string;
+    shipping_email: string;
+    shipping_phone: string;
+    shipping_address: string;
+    shipping_city: string;
+    shipping_state?: string;
+    shipping_zip?: string;
+    shipping_country: string;
+    shipping_notes?: string;
+    payment_method?: string;
+  }) => Promise<{ success: boolean; order_id?: string; total?: number; error?: string }>;
 
   // Partners
   addPartner: (data: { name: string; email: string; password: string; company: string; phone: string; discountRate: number; status: string; referredBy?: string; notes?: string }) => Promise<{ success: boolean; error?: string }>;
@@ -418,6 +431,48 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  // Secure order creation via server-side RPC (validates prices, stock, discounts)
+  const createSecureOrder = async (params: {
+    items: { product_id: string; quantity: number }[];
+    shipping_name: string;
+    shipping_email: string;
+    shipping_phone: string;
+    shipping_address: string;
+    shipping_city: string;
+    shipping_state?: string;
+    shipping_zip?: string;
+    shipping_country: string;
+    shipping_notes?: string;
+    payment_method?: string;
+  }): Promise<{ success: boolean; order_id?: string; total?: number; error?: string }> => {
+    const { data, error } = await supabase.rpc('create_secure_order', {
+      p_items: JSON.stringify(params.items),
+      p_shipping_name: params.shipping_name,
+      p_shipping_email: params.shipping_email,
+      p_shipping_phone: params.shipping_phone,
+      p_shipping_address: params.shipping_address,
+      p_shipping_city: params.shipping_city,
+      p_shipping_state: params.shipping_state || null,
+      p_shipping_zip: params.shipping_zip || null,
+      p_shipping_country: params.shipping_country,
+      p_shipping_notes: params.shipping_notes || null,
+      p_payment_method: params.payment_method || 'bank_transfer',
+    });
+
+    if (error) {
+      console.error('Secure order creation failed:', error);
+      return { success: false, error: error.message };
+    }
+
+    if (data && data.success) {
+      // Refresh data to get the new order from DB
+      await loadData();
+      return { success: true, order_id: data.order_id, total: data.total };
+    }
+
+    return { success: false, error: data?.error || 'Unknown error' };
+  };
+
   const updateOrder = async (id: string, updates: Partial<Order>) => {
     // Check if we're marking as delivered — need to deduct inventory
     const currentOrder = db.orders.find(o => o.id === id);
@@ -663,7 +718,7 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
     <DatabaseContext.Provider value={{
       db, setDb, isLoading, refreshData: loadData,
       addProduct, updateProduct, deleteProduct,
-      addOrder, updateOrder,
+      addOrder, updateOrder, createSecureOrder,
       addPartner, updatePartner, deletePartner,
       updateCustomer,
       addInvitationCode, updateInvitationCode, deleteInvitationCode,
