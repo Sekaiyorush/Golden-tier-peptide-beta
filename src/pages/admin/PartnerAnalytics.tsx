@@ -252,11 +252,11 @@ export function PartnerAnalytics() {
                   {index + 1}
                 </div>
                 <div className="w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center">
-                  <span className="text-indigo-600 font-medium">{partner.name.charAt(0)}</span>
+                  <span className="text-indigo-600 font-medium">{(partner.name || partner.email || '?').charAt(0).toUpperCase()}</span>
                 </div>
                 <div>
-                  <p className="font-medium text-slate-900">{partner.name}</p>
-                  <p className="text-sm text-slate-500">{partner.company}</p>
+                  <p className="font-medium text-slate-900">{partner.name || partner.email}</p>
+                  <p className="text-sm text-slate-500">{partner.company || ''}</p>
                 </div>
               </div>
               <div className="flex items-center space-x-8">
@@ -311,11 +311,11 @@ export function PartnerAnalytics() {
                   <td className="px-4 py-4">
                     <div className="flex items-center space-x-3">
                       <div className="w-9 h-9 bg-slate-100 rounded-full flex items-center justify-center">
-                        <span className="font-medium text-sm">{partner.name.charAt(0)}</span>
+                        <span className="font-medium text-sm">{(partner.name || partner.email || '?').charAt(0).toUpperCase()}</span>
                       </div>
                       <div>
-                        <p className="font-medium text-slate-900">{partner.name}</p>
-                        <p className="text-xs text-slate-500">{partner.company}</p>
+                        <p className="font-medium text-slate-900">{partner.name || partner.email}</p>
+                        <p className="text-xs text-slate-500">{partner.company || ''}</p>
                       </div>
                     </div>
                   </td>

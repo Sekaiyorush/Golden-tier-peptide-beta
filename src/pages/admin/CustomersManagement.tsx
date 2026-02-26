@@ -21,7 +21,7 @@ export function CustomersManagement() {
 
   const filteredCustomers = customerList.filter((customer) => {
     const matchesSearch =
-      customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (customer.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
       customer.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
       customer.phone.includes(searchTerm);
     const matchesStatus = statusFilter === 'all' || customer.status === statusFilter;
@@ -122,7 +122,7 @@ export function CustomersManagement() {
                           <User className="h-5 w-5 text-slate-500" />
                         </div>
                         <div>
-                          <p className="font-medium text-slate-900">{customer.name}</p>
+                          <p className="font-medium text-slate-900">{customer.name || customer.email}</p>
                           <p className="text-xs text-slate-500">Since {customer.joinedAt}</p>
                         </div>
                       </div>

@@ -250,11 +250,11 @@ export function PartnerNetwork() {
                     <div className={`w-10 h-10 rounded-full flex items-center justify-center ${member.type === 'partner' ? 'bg-indigo-100' : 'bg-slate-100'
                       }`}>
                       <span className={`font-medium ${member.type === 'partner' ? 'text-indigo-600' : 'text-slate-600'}`}>
-                        {member.name.charAt(0)}
+                        {(member.name || member.email || '?').charAt(0).toUpperCase()}
                       </span>
                     </div>
                     <div>
-                      <p className="font-medium text-slate-900">{member.name}</p>
+                      <p className="font-medium text-slate-900">{member.name || member.email}</p>
                       <p className="text-sm text-slate-500">{member.email}</p>
                     </div>
                   </div>
@@ -294,12 +294,12 @@ export function PartnerNetwork() {
                     <div className={`w-12 h-12 rounded-full flex items-center justify-center ${member.type === 'partner' ? 'bg-indigo-100' : 'bg-slate-100'
                       }`}>
                       <span className={`font-medium text-lg ${member.type === 'partner' ? 'text-indigo-600' : 'text-slate-600'}`}>
-                        {member.name.charAt(0)}
+                        {(member.name || member.email || '?').charAt(0).toUpperCase()}
                       </span>
                     </div>
                     <div>
                       <div className="flex items-center space-x-2">
-                        <p className="font-semibold text-slate-900">{member.name}</p>
+                        <p className="font-semibold text-slate-900">{member.name || member.email}</p>
                         <span className={`px-2 py-0.5 rounded-full text-xs ${member.type === 'partner' ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-700'
                           }`}>
                           {member.type === 'partner' ? 'Partner' : 'Customer'}
@@ -501,11 +501,11 @@ export function PartnerNetwork() {
                 <div className={`w-12 h-12 rounded-full flex items-center justify-center ${editingMember.type === 'partner' ? 'bg-indigo-100' : 'bg-slate-100'
                   }`}>
                   <span className={`font-medium ${editingMember.type === 'partner' ? 'text-indigo-600' : 'text-slate-600'}`}>
-                    {editingMember.name.charAt(0)}
+                    {(editingMember.name || editingMember.email || '?').charAt(0).toUpperCase()}
                   </span>
                 </div>
                 <div>
-                  <p className="font-medium text-slate-900">{editingMember.name}</p>
+                  <p className="font-medium text-slate-900">{editingMember.name || editingMember.email}</p>
                   <p className="text-sm text-slate-500">{editingMember.email}</p>
                   <span className={`inline-block px-2 py-0.5 rounded-full text-xs mt-1 ${editingMember.type === 'partner' ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-700'
                     }`}>

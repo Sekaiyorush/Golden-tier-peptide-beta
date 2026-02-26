@@ -76,10 +76,10 @@ export function PartnerNetwork() {
           </div>
           <div className="flex-1 min-w-0">
             <p className={`font-medium truncate ${selectedPartner?.id === node.partner.id ? 'text-white' : 'text-slate-900'}`}>
-              {node.partner.name}
+              {node.partner.name || node.partner.email}
             </p>
             <p className={`text-sm truncate ${selectedPartner?.id === node.partner.id ? 'text-white/70' : 'text-slate-500'}`}>
-              {node.partner.company}
+              {node.partner.company || ''}
             </p>
           </div>
           <div className="text-right">
@@ -188,8 +188,8 @@ export function PartnerNetwork() {
                     <User className="h-6 w-6 text-slate-500" />
                   </div>
                   <div>
-                    <p className="font-medium text-slate-900">{selectedPartner.name}</p>
-                    <p className="text-sm text-slate-500">{selectedPartner.company}</p>
+                    <p className="font-medium text-slate-900">{selectedPartner.name || selectedPartner.email}</p>
+                    <p className="text-sm text-slate-500">{selectedPartner.company || ''}</p>
                   </div>
                 </div>
 
@@ -257,7 +257,7 @@ export function PartnerNetwork() {
                     {idx + 1}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-slate-900 truncate">{partner.name}</p>
+                    <p className="font-medium text-slate-900 truncate">{partner.name || partner.email}</p>
                     <p className="text-xs text-slate-500">{partner.company}</p>
                   </div>
                   <div className="text-right">
