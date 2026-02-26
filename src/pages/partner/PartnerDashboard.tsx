@@ -236,10 +236,10 @@ export function PartnerDashboard() {
                       <p className="text-[10px] font-bold tracking-[0.2em] uppercase text-[#AA771C] mb-4">My Referrer</p>
                       <div className="flex items-center space-x-4">
                         <div className="w-12 h-12 bg-white border border-[#D4AF37]/30 flex items-center justify-center">
-                          <span className="text-[#D4AF37] font-serif text-lg">{referrer.name.charAt(0)}</span>
+                          <span className="text-[#D4AF37] font-serif text-lg">{(referrer.name || referrer.email || '?').charAt(0).toUpperCase()}</span>
                         </div>
                         <div>
-                          <p className="font-serif text-xl tracking-tight text-slate-900">{referrer.name}</p>
+                          <p className="font-serif text-xl tracking-tight text-slate-900">{referrer.name || referrer.email}</p>
                           <p className="text-sm text-slate-500 mt-1">{referrer.company}</p>
                         </div>
                       </div>
@@ -253,10 +253,10 @@ export function PartnerDashboard() {
                         {referredPartners.slice(0, 3).map((p) => (
                           <div key={p.id} className="flex items-center space-x-4">
                             <div className="w-10 h-10 bg-white border border-[#D4AF37]/10 flex items-center justify-center shadow-sm">
-                              <span className="text-slate-400 font-serif">{p.name.charAt(0)}</span>
+                              <span className="text-slate-400 font-serif">{(p.name || p.email || '?').charAt(0).toUpperCase()}</span>
                             </div>
                             <div className="flex-1">
-                              <p className="font-serif text-lg text-slate-900 leading-tight">{p.name}</p>
+                              <p className="font-serif text-lg text-slate-900 leading-tight">{p.name || p.email}</p>
                               <p className="text-xs text-slate-500 mt-1 uppercase tracking-widest">{p.company}</p>
                             </div>
                             <span className={`px-3 py-1 text-[9px] font-bold tracking-[0.2em] uppercase border ${p.status === 'active' ? 'bg-emerald-50 text-emerald-700 border-emerald-200/50' :

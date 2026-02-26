@@ -60,9 +60,9 @@ export function PartnersManagement() {
 
   const filteredPartners = partnerList.filter(
     (partner) =>
-      partner.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (partner.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
       partner.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      partner.company.toLowerCase().includes(searchTerm.toLowerCase())
+      (partner.company || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleAddPartner = () => {
@@ -259,7 +259,7 @@ export function PartnersManagement() {
                     <User className="h-6 w-6 text-slate-500" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-slate-900">{partner.name}</h3>
+                    <h3 className="font-semibold text-slate-900">{partner.name || partner.email}</h3>
                     <p className="text-sm text-slate-500">{partner.company}</p>
                   </div>
                 </div>
@@ -522,7 +522,7 @@ export function PartnersManagement() {
                     <option value="">None (Top Level)</option>
                     {partnerList.filter(p => p.id !== editingPartner?.id).map((p) => (
                       <option key={p.id} value={p.id}>
-                        {p.name} - {p.company}
+                        {p.name || p.email} - {p.company || 'N/A'}
                       </option>
                     ))}
                   </select>
