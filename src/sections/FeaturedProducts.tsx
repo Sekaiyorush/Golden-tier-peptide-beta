@@ -3,6 +3,7 @@ import { useCart } from '@/context/CartContext';
 import { useAuth } from '@/context/AuthContext';
 import { useDatabase } from '@/context/DatabaseContext';
 import { ShoppingCart, ArrowRight, Check } from 'lucide-react';
+import { ProductRating } from '@/components/reviews/ProductRating';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { useRef } from 'react';
 
@@ -96,8 +97,8 @@ export function FeaturedProducts() {
                   <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-[#D4AF37]/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
 
                   {/* Purity badge */}
-                  <div className="absolute top-4 left-4 z-10 flex items-center space-x-1 px-3 py-1 bg-white border border-[#D4AF37]/20 text-[#D4AF37] text-[9px] font-bold tracking-[0.3em] uppercase shadow-sm">
-                    <Check className="h-3 w-3" aria-hidden="true" />
+                  <div className="absolute top-4 left-4 z-10 flex items-center space-x-1 px-3 py-1 bg-white border border-[#D4AF37]/20 text-[#D4AF37] text-[9px] font-bold tracking-[0.3em] uppercase shadow-sm whitespace-nowrap">
+                    <Check className="h-3 w-3 flex-shrink-0" aria-hidden="true" />
                     <span>{product.purity}</span>
                   </div>
 
@@ -124,6 +125,9 @@ export function FeaturedProducts() {
                         </h3>
                       </Link>
                       <p className="text-xs text-slate-400 mt-3 line-clamp-2 leading-relaxed tracking-wide">{product.description}</p>
+                      <div className="mt-3">
+                        <ProductRating productId={product.id} size="sm" showCount />
+                      </div>
                     </div>
                   </div>
 

@@ -16,11 +16,13 @@ import {
   Eye
 } from 'lucide-react';
 import { OrderDetailsModal } from '@/components/OrderDetailsModal';
+import { ShippingAddresses } from '@/components/ShippingAddresses';
+import { formatDate } from '@/lib/formatDate';
 
 export function UserDashboard() {
   const { user } = useAuth();
   const { db, updateCustomer } = useDatabase();
-  const [activeTab, setActiveTab] = useState<'overview' | 'orders' | 'profile'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'orders' | 'addresses' | 'profile'>('overview');
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -100,11 +102,12 @@ export function UserDashboard() {
           {[
             { id: 'overview', label: 'OVERVIEW', icon: Package },
             { id: 'orders', label: 'ORDERS', icon: ShoppingBag },
+            { id: 'addresses', label: 'ADDRESSES', icon: MapPin },
             { id: 'profile', label: 'PROFILE', icon: User },
           ].map((tab) => (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id as 'overview' | 'orders' | 'profile')}
+              onClick={() => setActiveTab(tab.id as 'overview' | 'orders' | 'addresses' | 'profile')}
               className={`flex items-center space-x-2 pb-2 text-[10px] font-bold tracking-[0.2em] uppercase transition-all relative ${activeTab === tab.id
                 ? 'text-[#D4AF37]'
                 : 'text-slate-400 hover:text-[#AA771C]'
@@ -181,7 +184,7 @@ export function UserDashboard() {
                       </div>
                       <div>
                         <p className="font-serif text-lg text-slate-900">{order.id}</p>
-                        <p className="text-xs text-slate-400 mt-1">{new Date(order.createdAt).toLocaleDateString()}</p>
+                        <p className="text-xs text-slate-400 mt-1">{formatDate(order.createdAt)}</p>
                       </div>
                     </div>
                     <div className="text-right flex items-center space-x-6 justify-between md:justify-end">
@@ -228,7 +231,7 @@ export function UserDashboard() {
                   <div className="flex flex-wrap gap-4 items-center justify-between mb-6">
                     <div>
                       <p className="font-serif text-lg text-slate-900">{order.id}</p>
-                      <p className="text-xs text-slate-400 mt-1">{order.createdAt}</p>
+                      <p className="text-xs text-slate-400 mt-1">{formatDate(order.createdAt)}</p>
                     </div>
                     <span className={`inline-flex items-center space-x-1 px-3 py-1 text-[9px] font-bold tracking-[0.2em] uppercase border ${order.status === 'delivered' ? 'bg-emerald-50 text-emerald-700 border-emerald-200/50' :
                         order.status === 'shipped' ? 'bg-blue-50 text-blue-700 border-blue-200/50' :
@@ -265,6 +268,13 @@ export function UserDashboard() {
                 </div>
               )}
             </div>
+          </div>
+        )}
+
+        {/* Addresses Tab */}
+        {activeTab === 'addresses' && (
+          <div className="bg-white border border-[#D4AF37]/20 p-8 shadow-[0_8px_30px_rgba(0,0,0,0.02)]">
+            <ShippingAddresses />
           </div>
         )}
 

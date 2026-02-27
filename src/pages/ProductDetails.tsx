@@ -7,6 +7,7 @@ import { useToast } from '@/components/ui/useToast';
 import { SEO } from '@/components/SEO';
 import { Breadcrumbs } from '@/components/Breadcrumbs';
 import { ShoppingCart, Check, ShieldCheck, ArrowLeft, Plus, Minus, FileText } from 'lucide-react';
+import { ReviewList } from '@/components/reviews/ReviewList';
 
 export function ProductDetails() {
     const { sku } = useParams<{ sku: string }>();
@@ -243,6 +244,12 @@ export function ProductDetails() {
                             <p className="text-sm text-slate-300 mb-0 leading-relaxed tracking-wide relative z-10 max-w-4xl">All formulations distributed by Golden Tier are strictly synthesized for laboratory research and analytical methodology only. They are expressly restricted from use as human therapeutics, diagnostics, or consumable supplements.</p>
                         </div>
                     </div>
+                </div>
+
+                {/* Reviews Section */}
+                <div className="mt-16 bg-white border border-[#D4AF37]/20 p-10 md:p-16 shadow-[0_8px_40px_rgba(0,0,0,0.02)]">
+                    <h3 className="text-3xl font-serif text-slate-900 mb-10 tracking-tight">Customer Reviews</h3>
+                    <ReviewList productId={product.id} />
                 </div>
 
             </div>

@@ -5,6 +5,7 @@ import { ShoppingCart, Eye, Heart, Sparkles } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { useAuth } from '@/context/AuthContext';
 import type { Product } from '@/data/products';
+import { ProductRating } from '@/components/reviews/ProductRating';
 
 interface ProductCardProps {
   product: Product;
@@ -109,7 +110,12 @@ export const ProductCard = memo(function ProductCard({ product, index = 0 }: Pro
           </Link>
 
           {/* Description */}
-          <p className="text-xs text-slate-400 mb-6 line-clamp-2 leading-relaxed tracking-wide">{product.description}</p>
+          <p className="text-xs text-slate-400 mb-3 line-clamp-2 leading-relaxed tracking-wide">{product.description}</p>
+
+          {/* Rating */}
+          <div className="mb-6">
+            <ProductRating productId={product.id} size="sm" showCount />
+          </div>
 
           {/* Price & Action */}
           <div className="flex items-end justify-between border-t border-[#D4AF37]/10 pt-6">

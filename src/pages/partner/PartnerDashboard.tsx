@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { useDatabase } from '@/context/DatabaseContext';
+import { formatDate } from '@/lib/formatDate';
 import { PartnerNetwork } from './PartnerNetwork';
 import {
   Package,
@@ -186,7 +187,7 @@ export function PartnerDashboard() {
                         </div>
                         <div>
                           <p className="font-serif text-lg text-slate-900">{order.id}</p>
-                          <p className="text-xs text-slate-400 mt-1">{order.createdAt}</p>
+                          <p className="text-xs text-slate-400 mt-1">{formatDate(order.createdAt)}</p>
                         </div>
                       </div>
                       <div className="text-right flex items-center space-x-6">
@@ -344,7 +345,7 @@ export function PartnerDashboard() {
                   <div className="flex flex-wrap gap-4 items-center justify-between mb-8">
                     <div>
                       <p className="text-[10px] font-bold tracking-[0.2em] text-[#AA771C] uppercase mb-2">{order.id}</p>
-                      <p className="text-sm font-light text-slate-500 tracking-wide">{order.createdAt}</p>
+                      <p className="text-sm font-light text-slate-500 tracking-wide">{formatDate(order.createdAt)}</p>
                     </div>
                     <span className={`inline-flex items-center space-x-2 px-4 py-2 text-[10px] font-bold tracking-[0.2em] uppercase border ${order.status === 'delivered' ? 'bg-emerald-50 text-emerald-700 border-emerald-200/50' :
                         order.status === 'shipped' ? 'bg-blue-50 text-blue-700 border-blue-200/50' :

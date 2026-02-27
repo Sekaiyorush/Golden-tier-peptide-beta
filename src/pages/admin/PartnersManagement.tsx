@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { type Partner } from '@/data/products';
 import { useDatabase } from '@/context/DatabaseContext';
+import { formatDate } from '@/lib/formatDate';
 import {
   Plus,
   Search,
@@ -279,7 +280,7 @@ export function PartnersManagement() {
                 </div>
                 <div className="flex items-center space-x-2 text-sm">
                   <Building2 className="h-4 w-4 text-slate-400 flex-shrink-0" />
-                  <span className="text-slate-600">Joined {new Date(partner.joinedAt).toLocaleDateString()}</span>
+                  <span className="text-slate-600">Joined {formatDate(partner.joinedAt)}</span>
                 </div>
               </div>
 

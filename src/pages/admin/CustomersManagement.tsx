@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { useDatabase } from '@/context/DatabaseContext';
+import { formatDate } from '@/lib/formatDate';
+import { TableRowSkeleton } from '@/components/skeletons/TableRowSkeleton';
 import {
   Search,
   Mail,
@@ -13,7 +15,7 @@ import {
 } from 'lucide-react';
 
 export function CustomersManagement() {
-  const { db } = useDatabase();
+  const { db, isLoading } = useDatabase();
   const customerList = db.customers;
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -113,7 +115,9 @@ export function CustomersManagement() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {filteredCustomers.map((customer) => (
+              {isLoading ? (
+                <TableRowSkeleton columns={6} rows={5} />
+              ) : filteredCustomers.map((customer) => (
                 <>
                   <tr key={customer.id} className="hover:bg-slate-50">
                     <td className="px-4 py-3">
@@ -123,7 +127,7 @@ export function CustomersManagement() {
                         </div>
                         <div>
                           <p className="font-medium text-slate-900">{customer.name || customer.email}</p>
-                          <p className="text-xs text-slate-500">Since {customer.joinedAt}</p>
+                          <p className="text-xs text-slate-500">Since {formatDate(customer.joinedAt)}</p>
                         </div>
                       </div>
                     </td>
@@ -177,7 +181,7 @@ export function CustomersManagement() {
                             <h4 className="text-sm font-medium text-slate-700 mb-2">Customer Details</h4>
                             <div className="space-y-2 text-sm">
                               <p className="text-slate-600">
-                                <span className="text-slate-400">Last Order:</span> {customer.lastOrderAt || 'Never'}
+                                <span className="text-slate-400">Last Order:</span> {customer.lastOrderAt ? formatDate(customer.lastOrderAt) : 'Never'}
                               </p>
                               {customer.notes && (
                                 <p className="text-slate-600">
@@ -201,12 +205,13 @@ export function CustomersManagement() {
                     </tr>
                   )}
                 </>
-              ))}
+              ))
+              }
             </tbody>
           </table>
         </div>
 
-        {filteredCustomers.length === 0 && (
+        {!isLoading && filteredCustomers.length === 0 && (
           <div className="p-8 text-center">
             <User className="h-12 w-12 text-slate-300 mx-auto mb-4" />
             <p className="text-slate-500">No customers found</p>

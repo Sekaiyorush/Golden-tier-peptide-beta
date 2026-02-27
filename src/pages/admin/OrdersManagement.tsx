@@ -1,6 +1,10 @@
 import { useState } from 'react';
 import { useDatabase } from '@/context/DatabaseContext';
 import { type Order } from '@/data/products';
+import { formatDate } from '@/lib/formatDate';
+import { TableRowSkeleton } from '@/components/skeletons/TableRowSkeleton';
+import { OrderNotes } from '@/components/admin/OrderNotes';
+import { BulkActionToolbar } from '@/components/admin/BulkActionToolbar';
 import {
   Search,
   Filter,
@@ -10,15 +14,17 @@ import {
   Truck,
   CheckCircle2,
   Clock,
-  XCircle
+  XCircle,
+  Download
 } from 'lucide-react';
 
 export function OrdersManagement() {
-  const { db, updateOrder: contextUpdateOrder } = useDatabase();
+  const { db, updateOrder: contextUpdateOrder, isLoading } = useDatabase();
   const orders = db.orders;
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
+  const [selectedOrders, setSelectedOrders] = useState<Set<string>>(new Set());
 
   const filteredOrders = orders.filter((order) => {
     const matchesSearch =
@@ -27,6 +33,51 @@ export function OrdersManagement() {
     const matchesStatus = statusFilter === 'all' || order.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
+
+  const toggleOrderSelection = (orderId: string) => {
+    setSelectedOrders(prev => {
+      const next = new Set(prev);
+      if (next.has(orderId)) {
+        next.delete(orderId);
+      } else {
+        next.add(orderId);
+      }
+      return next;
+    });
+  };
+
+  const toggleAllOrders = () => {
+    if (selectedOrders.size === filteredOrders.length) {
+      setSelectedOrders(new Set());
+    } else {
+      setSelectedOrders(new Set(filteredOrders.map(o => o.id)));
+    }
+  };
+
+  const bulkUpdateStatus = (status: Order['status']) => {
+    selectedOrders.forEach(id => {
+      contextUpdateOrder(id, { status });
+    });
+    setSelectedOrders(new Set());
+  };
+
+  const bulkExportCSV = () => {
+    const selected = orders.filter(o => selectedOrders.has(o.id));
+    const csv = [
+      ['Order ID', 'Customer', 'Date', 'Total', 'Status', 'Payment'].join(','),
+      ...selected.map(o =>
+        [o.id, o.customerName, o.createdAt, o.total.toFixed(2), o.status, o.paymentStatus].join(',')
+      ),
+    ].join('\n');
+
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `orders-export-${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -74,6 +125,36 @@ export function OrdersManagement() {
           <p className="text-muted-foreground">View and manage customer orders</p>
         </div>
       </div>
+
+      {/* Bulk Actions */}
+      <BulkActionToolbar
+        selectedCount={selectedOrders.size}
+        totalCount={filteredOrders.length}
+        onClearSelection={() => setSelectedOrders(new Set())}
+        onSelectAll={() => setSelectedOrders(new Set(filteredOrders.map(o => o.id)))}
+        actions={[
+          {
+            label: 'Mark Processing',
+            icon: <Clock className="h-3 w-3" />,
+            onClick: () => bulkUpdateStatus('processing'),
+          },
+          {
+            label: 'Mark Shipped',
+            icon: <Truck className="h-3 w-3" />,
+            onClick: () => bulkUpdateStatus('shipped'),
+          },
+          {
+            label: 'Mark Delivered',
+            icon: <CheckCircle2 className="h-3 w-3" />,
+            onClick: () => bulkUpdateStatus('delivered'),
+          },
+          {
+            label: 'Export CSV',
+            icon: <Download className="h-3 w-3" />,
+            onClick: bulkExportCSV,
+          },
+        ]}
+      />
 
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
@@ -126,6 +207,14 @@ export function OrdersManagement() {
           <table className="w-full">
             <thead className="bg-surface-alt">
               <tr>
+                <th className="px-3 py-3 text-left">
+                  <input
+                    type="checkbox"
+                    checked={filteredOrders.length > 0 && selectedOrders.size === filteredOrders.length}
+                    onChange={toggleAllOrders}
+                    className="rounded border-slate-300 text-slate-900 focus:ring-slate-200"
+                  />
+                </th>
                 <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Order ID</th>
                 <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Customer</th>
                 <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Date</th>
@@ -136,9 +225,19 @@ export function OrdersManagement() {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {filteredOrders.map((order) => (
+              {isLoading ? (
+                <TableRowSkeleton columns={8} rows={5} />
+              ) : filteredOrders.map((order) => (
                 <>
-                  <tr key={order.id} className="hover:bg-surface-alt/50">
+                  <tr key={order.id} className={`hover:bg-surface-alt/50 ${selectedOrders.has(order.id) ? 'bg-blue-50/50' : ''}`}>
+                    <td className="px-3 py-3">
+                      <input
+                        type="checkbox"
+                        checked={selectedOrders.has(order.id)}
+                        onChange={() => toggleOrderSelection(order.id)}
+                        className="rounded border-slate-300 text-slate-900 focus:ring-slate-200"
+                      />
+                    </td>
                     <td className="px-4 py-3">
                       <span className="font-medium">{order.id}</span>
                     </td>
@@ -147,7 +246,7 @@ export function OrdersManagement() {
                         <p className="font-medium">{order.customerName}</p>
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-sm">{order.createdAt}</td>
+                    <td className="px-4 py-3 text-sm">{formatDate(order.createdAt)}</td>
                     <td className="px-4 py-3 text-sm font-medium">
                       ${order.total.toFixed(2)}
                     </td>
@@ -196,7 +295,7 @@ export function OrdersManagement() {
                   </tr>
                   {expandedOrder === order.id && (
                     <tr>
-                      <td colSpan={7} className="px-4 py-4 bg-surface-alt/30">
+                      <td colSpan={8} className="px-4 py-4 bg-surface-alt/30">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                           <div>
                             <h4 className="font-medium mb-3">Order Items</h4>
@@ -247,17 +346,22 @@ export function OrdersManagement() {
                               </div>
                             </div>
                           </div>
+                          {/* Order Notes */}
+                          <div className="col-span-1 md:col-span-2 mt-4 pt-4 border-t border-border">
+                            <OrderNotes orderId={order.id} />
+                          </div>
                         </div>
                       </td>
                     </tr>
                   )}
                 </>
-              ))}
+              ))
+              }
             </tbody>
           </table>
         </div>
 
-        {filteredOrders.length === 0 && (
+        {!isLoading && filteredOrders.length === 0 && (
           <div className="p-8 text-center">
             <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
             <p className="text-muted-foreground">No orders found</p>

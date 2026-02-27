@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useDatabase } from '@/context/DatabaseContext';
 import { supabase } from '@/lib/supabase';
+import { DashboardSkeleton } from '@/components/skeletons/DashboardSkeleton';
 import { 
   Bell, 
   TrendingUp, 
@@ -33,7 +34,7 @@ interface DashboardStats {
 }
 
 export function DashboardAnalytics() {
-  const { db } = useDatabase();
+  const { db, isLoading } = useDatabase();
 
   // Calculate stats using useMemo instead of useEffect to avoid cascading renders
   const stats = useMemo<DashboardStats>(() => {
@@ -176,6 +177,10 @@ export function DashboardAnalytics() {
     return `${Math.floor(seconds / 86400)}d ago`;
   };
 
+  if (isLoading) {
+    return <DashboardSkeleton />;
+  }
+
   return (
     <div className="space-y-6">
       {/* Header with notifications */}
@@ -207,11 +212,18 @@ export function DashboardAnalytics() {
               <DollarSign className="h-5 w-5 text-emerald-600" />
             </div>
           </div>
-          <div className={`flex items-center text-sm ${stats.revenueChange >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
-            {stats.revenueChange >= 0 ? <TrendingUp className="h-4 w-4 mr-1" /> : <TrendingDown className="h-4 w-4 mr-1" />}
-            <span className="font-medium">{Math.abs(stats.revenueChange).toFixed(1)}%</span>
-            <span className="text-slate-400 ml-1">vs last month</span>
-          </div>
+          {stats.revenueChange === 0 && stats.totalRevenue > 0 ? (
+            <div className="flex items-center text-sm text-blue-600">
+              <span className="px-2 py-0.5 bg-blue-100 rounded-full text-xs font-medium">New</span>
+              <span className="text-slate-400 ml-2">first month</span>
+            </div>
+          ) : (
+            <div className={`flex items-center text-sm ${stats.revenueChange >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+              {stats.revenueChange >= 0 ? <TrendingUp className="h-4 w-4 mr-1" /> : <TrendingDown className="h-4 w-4 mr-1" />}
+              <span className="font-medium">{Math.abs(stats.revenueChange).toFixed(1)}%</span>
+              <span className="text-slate-400 ml-1">vs last month</span>
+            </div>
+          )}
         </div>
 
         {/* Orders */}
@@ -225,11 +237,18 @@ export function DashboardAnalytics() {
               <Package className="h-5 w-5 text-blue-600" />
             </div>
           </div>
-          <div className={`flex items-center text-sm ${stats.ordersChange >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
-            {stats.ordersChange >= 0 ? <TrendingUp className="h-4 w-4 mr-1" /> : <TrendingDown className="h-4 w-4 mr-1" />}
-            <span className="font-medium">{Math.abs(stats.ordersChange).toFixed(1)}%</span>
-            <span className="text-slate-400 ml-1">vs last month</span>
-          </div>
+          {stats.ordersChange === 0 && stats.totalOrders > 0 ? (
+            <div className="flex items-center text-sm text-blue-600">
+              <span className="px-2 py-0.5 bg-blue-100 rounded-full text-xs font-medium">New</span>
+              <span className="text-slate-400 ml-2">first month</span>
+            </div>
+          ) : (
+            <div className={`flex items-center text-sm ${stats.ordersChange >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+              {stats.ordersChange >= 0 ? <TrendingUp className="h-4 w-4 mr-1" /> : <TrendingDown className="h-4 w-4 mr-1" />}
+              <span className="font-medium">{Math.abs(stats.ordersChange).toFixed(1)}%</span>
+              <span className="text-slate-400 ml-1">vs last month</span>
+            </div>
+          )}
         </div>
 
         {/* New Customers */}
@@ -243,11 +262,18 @@ export function DashboardAnalytics() {
               <Users className="h-5 w-5 text-purple-600" />
             </div>
           </div>
-          <div className={`flex items-center text-sm ${stats.customersChange >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
-            {stats.customersChange >= 0 ? <TrendingUp className="h-4 w-4 mr-1" /> : <TrendingDown className="h-4 w-4 mr-1" />}
-            <span className="font-medium">{Math.abs(stats.customersChange).toFixed(1)}%</span>
-            <span className="text-slate-400 ml-1">vs last month</span>
-          </div>
+          {stats.customersChange === 0 && stats.newCustomers > 0 ? (
+            <div className="flex items-center text-sm text-blue-600">
+              <span className="px-2 py-0.5 bg-blue-100 rounded-full text-xs font-medium">New</span>
+              <span className="text-slate-400 ml-2">first month</span>
+            </div>
+          ) : (
+            <div className={`flex items-center text-sm ${stats.customersChange >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+              {stats.customersChange >= 0 ? <TrendingUp className="h-4 w-4 mr-1" /> : <TrendingDown className="h-4 w-4 mr-1" />}
+              <span className="font-medium">{Math.abs(stats.customersChange).toFixed(1)}%</span>
+              <span className="text-slate-400 ml-1">vs last month</span>
+            </div>
+          )}
         </div>
 
         {/* Low Stock Alert */}
