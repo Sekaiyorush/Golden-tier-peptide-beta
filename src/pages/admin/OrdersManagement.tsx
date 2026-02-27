@@ -348,7 +348,7 @@ export function OrdersManagement() {
                           </div>
                           {/* Order Notes */}
                           <div className="col-span-1 md:col-span-2 mt-4 pt-4 border-t border-border">
-                            <OrderNotes orderId={order.dbId} />
+                            <OrderNotes orderId={order.dbId || ''} />
                           </div>
                         </div>
                       </td>

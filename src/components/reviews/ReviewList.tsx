@@ -149,14 +149,15 @@ export function ReviewList({ productId }: ReviewListProps) {
   }, [page]);
 
   const handleHelpful = async (reviewId: string) => {
-    await supabase.rpc('increment_helpful_count', { review_id: reviewId }).catch(() => {
+    try {
+      await supabase.rpc('increment_helpful_count', { review_id: reviewId });
+    } catch {
       // Fallback: direct update if RPC doesn't exist
-      supabase
+      await supabase
         .from('reviews')
         .update({ helpful_count: reviews.find(r => r.id === reviewId)!.helpful_count + 1 })
-        .eq('id', reviewId)
-        .then();
-    });
+        .eq('id', reviewId);
+    }
     // Optimistic update
     setReviews(prev =>
       prev.map(r => (r.id === reviewId ? { ...r, helpful_count: r.helpful_count + 1 } : r))
