@@ -77,6 +77,8 @@ export interface Customer {
 // Orders
 export interface Order {
   id: string;
+  /** Real Supabase UUID (orders.id) — use for FK references like order_notes */
+  dbId?: string;
   customerId: string;
   customerName: string;
   items: {

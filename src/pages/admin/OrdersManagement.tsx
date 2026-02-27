@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useDatabase } from '@/context/DatabaseContext';
 import { type Order } from '@/data/products';
 import { formatDate } from '@/lib/formatDate';
@@ -228,8 +228,8 @@ export function OrdersManagement() {
               {isLoading ? (
                 <TableRowSkeleton columns={8} rows={5} />
               ) : filteredOrders.map((order) => (
-                <>
-                  <tr key={order.id} className={`hover:bg-surface-alt/50 ${selectedOrders.has(order.id) ? 'bg-blue-50/50' : ''}`}>
+                <React.Fragment key={order.id}>
+                  <tr className={`hover:bg-surface-alt/50 ${selectedOrders.has(order.id) ? 'bg-blue-50/50' : ''}`}>
                     <td className="px-3 py-3">
                       <input
                         type="checkbox"
@@ -348,13 +348,13 @@ export function OrdersManagement() {
                           </div>
                           {/* Order Notes */}
                           <div className="col-span-1 md:col-span-2 mt-4 pt-4 border-t border-border">
-                            <OrderNotes orderId={order.id} />
+                            <OrderNotes orderId={order.dbId} />
                           </div>
                         </div>
                       </td>
                     </tr>
                   )}
-                </>
+                </React.Fragment>
               ))
               }
             </tbody>

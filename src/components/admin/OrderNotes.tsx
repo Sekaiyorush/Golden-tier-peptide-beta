@@ -28,6 +28,11 @@ export function OrderNotes({ orderId }: OrderNotesProps) {
   const [isSending, setIsSending] = useState(false);
 
   const fetchNotes = async () => {
+    if (!orderId) {
+      setIsLoading(false);
+      return;
+    }
+
     const { data, error } = await supabase
       .from('order_notes')
       .select('*')
@@ -36,6 +41,7 @@ export function OrderNotes({ orderId }: OrderNotesProps) {
 
     if (error) {
       console.error('Error fetching order notes:', error);
+      setIsLoading(false);
       return;
     }
 
@@ -72,7 +78,7 @@ export function OrderNotes({ orderId }: OrderNotesProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newNote.trim() || !user) return;
+    if (!newNote.trim() || !user || !orderId) return;
 
     setIsSending(true);
 
