@@ -206,7 +206,7 @@ export function PartnerNetwork() {
                 <DollarSign className="h-4 w-4 text-emerald-500" />
                 <span className="text-sm text-slate-500">Downline Revenue</span>
               </div>
-              <p className="text-2xl font-semibold text-emerald-600">${totalDownlineRevenue.toLocaleString()}</p>
+              <p className="text-2xl font-semibold text-emerald-600">฿{totalDownlineRevenue.toLocaleString()}</p>
             </div>
             <div className="bg-white p-4 rounded-xl border border-slate-200">
               <div className="flex items-center space-x-2 mb-2">
@@ -314,7 +314,7 @@ export function PartnerNetwork() {
                         {member.totalSpent !== undefined && (
                           <span className="flex items-center space-x-1">
                             <DollarSign className="h-3.5 w-3.5" />
-                            <span>${member.totalSpent.toLocaleString()} spent</span>
+                            <span>฿{member.totalSpent.toLocaleString()} spent</span>
                           </span>
                         )}
                       </div>

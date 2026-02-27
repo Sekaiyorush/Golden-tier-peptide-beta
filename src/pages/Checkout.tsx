@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useCart } from '@/context/CartContext';
+import { useCart, getItemPrice } from '@/context/CartContext';
 import { useAuth } from '@/context/AuthContext';
 import { useDatabase } from '@/context/DatabaseContext';
 import {
@@ -326,7 +326,7 @@ export function CheckoutPage() {
                                         disabled={isSubmitting}
                                         className="flex-1 h-12 bg-slate-900 text-white rounded-lg font-medium hover:bg-slate-800 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
                                     >
-                                        {isSubmitting ? 'Placing Order...' : `Place Order — $${cartTotal.toFixed(2)}`}
+                                        {isSubmitting ? 'Placing Order...' : `Place Order — ฿${cartTotal.toFixed(2)}`}
                                     </button>
                                 </div>
                             </div>
@@ -362,7 +362,7 @@ export function CheckoutPage() {
                                             </div>
                                             <div className="flex justify-between py-2 border-b border-slate-200">
                                                 <span className="text-slate-500">Amount</span>
-                                                <span className="font-bold text-slate-900">${cartTotal.toFixed(2)} USD</span>
+                                                <span className="font-bold text-slate-900">฿{cartTotal.toFixed(2)} THB</span>
                                             </div>
                                             <p className="text-slate-500 mt-2">
                                                 Please include your Order ID as the payment reference. We will confirm your payment and ship within 1-2 business days.
@@ -372,7 +372,7 @@ export function CheckoutPage() {
                                         <div className="space-y-3 text-sm">
                                             <div className="flex justify-between py-2 border-b border-slate-200">
                                                 <span className="text-slate-500">Amount</span>
-                                                <span className="font-bold text-slate-900">${cartTotal.toFixed(2)} USD equivalent</span>
+                                                <span className="font-bold text-slate-900">฿{cartTotal.toFixed(2)} THB equivalent</span>
                                             </div>
                                             <div className="flex justify-between py-2 border-b border-slate-200">
                                                 <span className="text-slate-500">Reference</span>
@@ -433,7 +433,7 @@ export function CheckoutPage() {
                                                 <p className="text-slate-400">Qty: {item.quantity}</p>
                                             </div>
                                             <span className="font-medium text-slate-700 ml-4">
-                                                ${(item.product.price * item.quantity).toFixed(2)}
+                                                ฿{(getItemPrice(item) * item.quantity).toFixed(2)}
                                             </span>
                                         </li>
                                     ))}
@@ -442,12 +442,12 @@ export function CheckoutPage() {
                                 <div className="border-t border-slate-100 pt-4 space-y-2">
                                     <div className="flex justify-between text-sm">
                                         <span className="text-slate-500">Subtotal</span>
-                                        <span className="text-slate-900">${cartSubtotal.toFixed(2)}</span>
+                                        <span className="text-slate-900">฿{cartSubtotal.toFixed(2)}</span>
                                     </div>
                                     {isPartner && discountAmount > 0 && (
                                         <div className="flex justify-between text-sm">
                                             <span className="text-emerald-600">Partner Discount</span>
-                                            <span className="text-emerald-600">-${discountAmount.toFixed(2)}</span>
+                                            <span className="text-emerald-600">-฿{discountAmount.toFixed(2)}</span>
                                         </div>
                                     )}
                                     <div className="flex justify-between text-sm">
@@ -456,7 +456,7 @@ export function CheckoutPage() {
                                     </div>
                                     <div className="flex justify-between font-bold text-lg pt-2 border-t border-slate-100">
                                         <span>Total</span>
-                                        <span>${cartTotal.toFixed(2)}</span>
+                                        <span>฿{cartTotal.toFixed(2)}</span>
                                     </div>
                                 </div>
 

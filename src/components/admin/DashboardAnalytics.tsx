@@ -98,7 +98,7 @@ export function DashboardAnalytics() {
       newActivities.push({
         id: `order-${order.id}`,
         type: 'order',
-        message: `New order #${order.id} for $${order.total.toFixed(2)}`,
+        message: `New order #${order.id} for ฿${order.total.toFixed(2)}`,
         timestamp: order.createdAt,
         read: false
       });
@@ -141,7 +141,7 @@ export function DashboardAnalytics() {
           const newActivity: Activity = {
             id: `order-${newOrder.id}`,
             type: 'order',
-            message: `New order #${newOrder.id} for $${Number(newOrder.total).toFixed(2)}`,
+            message: `New order #${newOrder.id} for ฿${Number(newOrder.total).toFixed(2)}`,
             timestamp: newOrder.created_at,
             read: false
           };
@@ -206,7 +206,7 @@ export function DashboardAnalytics() {
           <div className="flex items-center justify-between mb-4">
             <div>
               <p className="text-sm font-medium text-slate-500 mb-1">30-Day Revenue</p>
-              <p className="text-2xl font-semibold text-slate-900">${stats.totalRevenue.toFixed(2)}</p>
+              <p className="text-2xl font-semibold text-slate-900">฿{stats.totalRevenue.toFixed(2)}</p>
             </div>
             <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
               <DollarSign className="h-5 w-5 text-emerald-600" />

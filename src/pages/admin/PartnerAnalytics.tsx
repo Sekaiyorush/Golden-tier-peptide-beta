@@ -158,7 +158,7 @@ export function PartnerAnalytics() {
             <DollarSign className="h-4 w-4 text-emerald-500" />
             <span className="text-sm text-slate-500">Partner Revenue</span>
           </div>
-          <p className="text-2xl font-semibold text-slate-900">${totalPartnerRevenue.toLocaleString()}</p>
+          <p className="text-2xl font-semibold text-slate-900">฿{totalPartnerRevenue.toLocaleString()}</p>
         </div>
         <div className="bg-white p-4 rounded-xl border border-slate-200">
           <div className="flex items-center space-x-2 mb-2">
@@ -264,7 +264,7 @@ export function PartnerAnalytics() {
               <div className="flex items-center space-x-8">
                 <div className="text-right">
                   <p className="text-sm text-slate-500">Revenue</p>
-                  <p className="font-semibold text-slate-900">${partner.totalPurchases.toLocaleString()}</p>
+                  <p className="font-semibold text-slate-900">฿{partner.totalPurchases.toLocaleString()}</p>
                 </div>
                 <div className="text-right">
                   <p className="text-sm text-slate-500">Network</p>
@@ -327,11 +327,11 @@ export function PartnerAnalytics() {
                     </span>
                   </td>
                   <td className="px-4 py-4 text-right font-medium">
-                    ${partner.totalPurchases.toLocaleString()}
+                    ฿{partner.totalPurchases.toLocaleString()}
                   </td>
                   <td className="px-4 py-4 text-right">
                     <span className={partner.estimatedProfit >= 0 ? 'text-emerald-600' : 'text-red-600'}>
-                      ${partner.estimatedProfit.toLocaleString()}
+                      ฿{partner.estimatedProfit.toLocaleString()}
                     </span>
                   </td>
                   <td className="px-4 py-4 text-right">

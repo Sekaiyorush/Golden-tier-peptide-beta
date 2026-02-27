@@ -145,13 +145,13 @@ export function OrderDetailsModal({ order, onClose }: OrderDetailsModalProps) {
                                             <div className="font-medium text-slate-900">{item.quantity}x</div>
                                             <div className="text-slate-600">{item.name}</div>
                                         </div>
-                                        <div className="font-medium text-slate-900">${(item.price * item.quantity).toFixed(2)}</div>
+                                        <div className="font-medium text-slate-900">฿{(item.price * item.quantity).toFixed(2)}</div>
                                     </div>
                                 ))}
                             </div>
                             <div className="bg-slate-50 p-4 border-t border-slate-200 flex items-center justify-between">
                                 <span className="font-medium text-slate-700">Total</span>
-                                <span className="font-bold text-slate-900 text-lg">${order.total.toFixed(2)}</span>
+                                <span className="font-bold text-slate-900 text-lg">฿{order.total.toFixed(2)}</span>
                             </div>
                         </div>
                     </div>

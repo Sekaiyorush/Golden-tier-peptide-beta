@@ -135,9 +135,9 @@ export function FeaturedProducts() {
                     <div>
                       {isPartner ? (
                         <div>
-                          <span className="text-[10px] uppercase tracking-[0.2em] text-slate-400 line-through block mb-1">${product.price.toFixed(2)}</span>
+                          <span className="text-[10px] uppercase tracking-[0.2em] text-slate-400 line-through block mb-1">฿{product.price.toFixed(2)}</span>
                           <p className="text-2xl font-serif text-[#D4AF37]">
-                            ${getPrice(product.price).toFixed(2)}
+                            ฿{getPrice(product.price).toFixed(2)}
                           </p>
                         </div>
                       ) : (

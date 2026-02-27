@@ -1,3 +1,9 @@
+export interface ProductVariant {
+  sku: string;
+  label: string;
+  price: number;
+}
+
 export interface Product {
   id: string;
   name: string;
@@ -16,19 +22,21 @@ export interface Product {
   isNew?: boolean;
   createdAt: string;
   updatedAt: string;
+  variants?: ProductVariant[];
 }
-
-// Mocks exported to Supabase
-
 
 // Categories
 export const categories = [
-  "Healing",
+  "Weight Management",
+  "Growth Hormone",
   "Recovery",
-  "Growth",
-  "Research",
-  "Performance",
   "Anti-Aging",
+  "Cosmetic",
+  "Nootropic",
+  "Performance",
+  "Research",
+  "Wellness",
+  "Supplies",
 ];
 
 // Partner with discount-based system (partners buy at discount to resell)

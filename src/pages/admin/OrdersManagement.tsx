@@ -248,7 +248,7 @@ export function OrdersManagement() {
                     </td>
                     <td className="px-4 py-3 text-sm">{formatDate(order.createdAt)}</td>
                     <td className="px-4 py-3 text-sm font-medium">
-                      ${order.total.toFixed(2)}
+                      ฿{order.total.toFixed(2)}
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center space-x-2">
@@ -310,7 +310,7 @@ export function OrdersManagement() {
                                     <span>{item.name}</span>
                                   </div>
                                   <div className="text-sm text-muted-foreground">
-                                    {item.quantity} x ${item.price.toFixed(2)}
+                                    {item.quantity} x ฿{item.price.toFixed(2)}
                                   </div>
                                 </div>
                               ))}

@@ -124,13 +124,13 @@ export const ProductCard = memo(function ProductCard({ product, index = 0 }: Pro
                 <div className="flex flex-col">
                   {hasDiscount ? (
                     <>
-                      <span className="text-xs text-slate-300 line-through mb-1">${product.price.toFixed(2)}</span>
+                      <span className="text-xs text-slate-300 line-through mb-1">฿{product.price.toFixed(2)}</span>
                       <div className="flex items-center space-x-3">
-                        <span className="text-2xl font-serif text-[#D4AF37]">${discountedPrice.toFixed(2)}</span>
+                        <span className="text-2xl font-serif text-[#D4AF37]">฿{discountedPrice.toFixed(2)}</span>
                       </div>
                     </>
                   ) : (
-                    <span className="text-2xl font-serif text-slate-900">${product.price.toFixed(2)}</span>
+                    <span className="text-2xl font-serif text-slate-900">฿{product.price.toFixed(2)}</span>
                   )}
                 </div>
 
