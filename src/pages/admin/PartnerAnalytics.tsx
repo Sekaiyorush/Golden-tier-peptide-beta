@@ -17,6 +17,7 @@ import {
 interface PartnerPerformance {
   id: string;
   name: string;
+  email: string;
   company: string;
   discountRate: number;
   totalPurchases: number;
@@ -82,6 +83,7 @@ export function PartnerAnalytics() {
       return {
         id: partner.id,
         name: partner.name,
+        email: partner.email,
         company: partner.company,
         discountRate: partner.discountRate,
         totalPurchases,
