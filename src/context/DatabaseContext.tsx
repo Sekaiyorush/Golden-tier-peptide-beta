@@ -227,6 +227,7 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
 
           return {
             id: o.friendly_id,
+            dbId: o.id,
             customerId: o.customer_id,
             customerName: customerProfile?.full_name || customerProfile?.email?.split('@')[0] || 'Unknown',
             items,
@@ -440,6 +441,16 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
     if (orderError) {
       console.error("Error creating order:", orderError);
       return;
+    }
+
+    // Update the optimistic order in state with the real Supabase UUID
+    if (newOrder) {
+      setDb(prev => ({
+        ...prev,
+        orders: prev.orders.map(o =>
+          o.id === order.id ? { ...o, dbId: newOrder.id } : o
+        )
+      }));
     }
 
     if (newOrder && order.items && order.items.length > 0) {

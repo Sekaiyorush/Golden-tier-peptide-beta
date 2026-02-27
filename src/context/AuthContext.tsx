@@ -236,7 +236,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   if (!isLoaded) {
-    return <div style={{ padding: '2rem', textAlign: 'center' }}>Loading application...</div>;
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="w-12 h-12 border-[1px] border-[#D4AF37]/20 border-t-[#D4AF37] rounded-full animate-spin"></div>
+      </div>
+    );
   }
 
   return (

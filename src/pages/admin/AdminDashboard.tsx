@@ -14,7 +14,8 @@ import {
   Network,
   Link as LinkIcon,
   BarChart3,
-  Settings
+  Settings,
+  Shield
 } from 'lucide-react';
 
 // Admin sub-pages
@@ -28,6 +29,7 @@ import { InventoryManagement } from './InventoryManagement';
 import { InvitationCodeManagement } from './InvitationCodeManagement';
 import { PartnerAnalytics } from './PartnerAnalytics';
 import { SettingsManagement } from './SettingsManagement';
+import { AuditLogViewer } from './AuditLogViewer';
 import { DashboardAnalytics } from '@/components/admin/DashboardAnalytics';
 
 export function AdminDashboard() {
@@ -46,6 +48,7 @@ export function AdminDashboard() {
     { path: '/admin/partner-analytics', label: 'Analytics', icon: BarChart3 },
     { path: '/admin/invitation-codes', label: 'Invitation Codes', icon: LinkIcon },
     { path: '/admin/qr-codes', label: 'QR Codes', icon: QrCode },
+    { path: '/admin/audit-log', label: 'Audit Log', icon: Shield },
     { path: '/admin/settings', label: 'Settings', icon: Settings },
   ];
 
@@ -140,6 +143,7 @@ export function AdminDashboard() {
             <Route path="/partner-analytics" element={<PartnerAnalytics />} />
             <Route path="/invitation-codes" element={<InvitationCodeManagement />} />
             <Route path="/qr-codes" element={<QRCodeManager />} />
+            <Route path="/audit-log" element={<AuditLogViewer />} />
             <Route path="/settings" element={<SettingsManagement />} />
           </Routes>
         </main>
