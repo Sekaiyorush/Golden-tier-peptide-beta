@@ -8,11 +8,6 @@ export interface CartItem {
   selectedVariant?: ProductVariant;
 }
 
-/** Unique key for a cart line item (product + optional variant) */
-function cartItemKey(item: CartItem): string {
-  return item.selectedVariant ? `${item.product.id}::${item.selectedVariant.sku}` : item.product.id;
-}
-
 /** Get the effective unit price for a cart item */
 export function getItemPrice(item: CartItem): number {
   return item.selectedVariant?.price ?? item.product.price;
