@@ -1,4 +1,4 @@
-import { useCart } from '@/context/CartContext';
+import { useCart, getItemPrice } from '@/context/CartContext';
 import { X, Plus, Minus, ShoppingBag, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -58,7 +58,10 @@ export function CartSidebar() {
 
                   <div className="flex-1 min-w-0">
                     <p className="font-medium text-slate-900 truncate">{item.product.name}</p>
-                    <p className="text-sm text-slate-500">${item.product.price.toFixed(2)}</p>
+                    {item.selectedVariant && (
+                      <p className="text-xs text-slate-400">{item.selectedVariant.label}</p>
+                    )}
+                    <p className="text-sm text-slate-500">฿{getItemPrice(item).toFixed(2)}</p>
                   </div>
 
                   <div className="flex items-center gap-2">
@@ -94,12 +97,12 @@ export function CartSidebar() {
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
                 <span className="text-slate-500">Subtotal</span>
-                <span className="font-medium text-slate-900">${cartSubtotal.toFixed(2)}</span>
+                <span className="font-medium text-slate-900">฿{cartSubtotal.toFixed(2)}</span>
               </div>
               {discountAmount > 0 && (
                 <div className="flex justify-between text-sm text-emerald-600">
                   <span>Partner Discount</span>
-                  <span className="font-medium">-${discountAmount.toFixed(2)}</span>
+                  <span className="font-medium">-฿{discountAmount.toFixed(2)}</span>
                 </div>
               )}
               <div className="flex justify-between text-sm">
@@ -108,7 +111,7 @@ export function CartSidebar() {
               </div>
               <div className="flex justify-between pt-2 border-t border-slate-200">
                 <span className="font-medium text-slate-900">Total</span>
-                <span className="text-xl font-semibold text-slate-900">${cartTotal.toFixed(2)}</span>
+                <span className="text-xl font-semibold text-slate-900">฿{cartTotal.toFixed(2)}</span>
               </div>
             </div>
 

@@ -1,17 +1,28 @@
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import type { Product } from '@/data/products';
+import type { Product, ProductVariant } from '@/data/products';
 
 export interface CartItem {
   product: Product;
   quantity: number;
+  selectedVariant?: ProductVariant;
+}
+
+/** Unique key for a cart line item (product + optional variant) */
+function cartItemKey(item: CartItem): string {
+  return item.selectedVariant ? `${item.product.id}::${item.selectedVariant.sku}` : item.product.id;
+}
+
+/** Get the effective unit price for a cart item */
+export function getItemPrice(item: CartItem): number {
+  return item.selectedVariant?.price ?? item.product.price;
 }
 
 interface CartContextType {
   items: CartItem[];
-  addToCart: (product: Product) => void;
-  removeFromCart: (productId: string) => void;
-  updateQuantity: (productId: string, quantity: number) => void;
+  addToCart: (product: Product, variant?: ProductVariant) => void;
+  removeFromCart: (productId: string, variantSku?: string) => void;
+  updateQuantity: (productId: string, quantity: number, variantSku?: string) => void;
   clearCart: () => void;
   toggleCart: () => void;
   isOpen: boolean;
@@ -47,6 +58,12 @@ function saveCartToStorage(items: CartItem[]) {
   }
 }
 
+function matchesItem(item: CartItem, productId: string, variantSku?: string): boolean {
+  if (item.product.id !== productId) return false;
+  if (variantSku) return item.selectedVariant?.sku === variantSku;
+  return !item.selectedVariant;
+}
+
 export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>(loadCartFromStorage);
   const [isOpen, setIsOpen] = useState(false);
@@ -57,32 +74,32 @@ export function CartProvider({ children }: { children: ReactNode }) {
     saveCartToStorage(items);
   }, [items]);
 
-  const addToCart = useCallback((product: Product) => {
+  const addToCart = useCallback((product: Product, variant?: ProductVariant) => {
     setItems((prev) => {
-      const existing = prev.find((item) => item.product.id === product.id);
+      const existing = prev.find((item) => matchesItem(item, product.id, variant?.sku));
       if (existing) {
         return prev.map((item) =>
-          item.product.id === product.id
+          matchesItem(item, product.id, variant?.sku)
             ? { ...item, quantity: item.quantity + 1 }
             : item
         );
       }
-      return [...prev, { product, quantity: 1 }];
+      return [...prev, { product, quantity: 1, selectedVariant: variant }];
     });
   }, []);
 
-  const removeFromCart = useCallback((productId: string) => {
-    setItems((prev) => prev.filter((item) => item.product.id !== productId));
+  const removeFromCart = useCallback((productId: string, variantSku?: string) => {
+    setItems((prev) => prev.filter((item) => !matchesItem(item, productId, variantSku)));
   }, []);
 
-  const updateQuantity = useCallback((productId: string, quantity: number) => {
+  const updateQuantity = useCallback((productId: string, quantity: number, variantSku?: string) => {
     if (quantity <= 0) {
-      setItems((prev) => prev.filter((item) => item.product.id !== productId));
+      setItems((prev) => prev.filter((item) => !matchesItem(item, productId, variantSku)));
       return;
     }
     setItems((prev) =>
       prev.map((item) =>
-        item.product.id === productId ? { ...item, quantity } : item
+        matchesItem(item, productId, variantSku) ? { ...item, quantity } : item
       )
     );
   }, []);
@@ -97,7 +114,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const cartCount = items.reduce((sum, item) => sum + item.quantity, 0);
   const cartSubtotal = items.reduce(
-    (sum, item) => sum + item.product.price * item.quantity,
+    (sum, item) => sum + getItemPrice(item) * item.quantity,
     0
   );
 

@@ -223,7 +223,7 @@ export function PartnersManagement() {
             <span className="text-sm text-slate-500">Total Purchases</span>
           </div>
           <p className="text-2xl font-semibold text-slate-900">
-            ${partnerList.reduce((sum, p) => sum + p.totalPurchases, 0).toLocaleString()}
+            ฿{partnerList.reduce((sum, p) => sum + p.totalPurchases, 0).toLocaleString()}
           </p>
         </div>
         <div className="bg-white p-4 rounded-xl border border-slate-200">
@@ -232,7 +232,7 @@ export function PartnersManagement() {
             <span className="text-sm text-slate-500">Total Resold</span>
           </div>
           <p className="text-2xl font-semibold text-slate-900">
-            ${partnerList.reduce((sum, p) => sum + p.totalResold, 0).toLocaleString()}
+            ฿{partnerList.reduce((sum, p) => sum + p.totalResold, 0).toLocaleString()}
           </p>
         </div>
       </div>
@@ -291,11 +291,11 @@ export function PartnersManagement() {
                 </div>
                 <div className="text-center">
                   <p className="text-xs text-slate-400">Purchases</p>
-                  <p className="font-semibold text-slate-900">${partner.totalPurchases.toLocaleString()}</p>
+                  <p className="font-semibold text-slate-900">฿{partner.totalPurchases.toLocaleString()}</p>
                 </div>
                 <div className="text-center">
                   <p className="text-xs text-slate-400">Resold</p>
-                  <p className="font-semibold text-emerald-600">${partner.totalResold.toLocaleString()}</p>
+                  <p className="font-semibold text-emerald-600">฿{partner.totalResold.toLocaleString()}</p>
                 </div>
               </div>
 

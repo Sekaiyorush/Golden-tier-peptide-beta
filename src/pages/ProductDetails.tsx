@@ -6,8 +6,9 @@ import { useDatabase } from '@/context/DatabaseContext';
 import { useToast } from '@/components/ui/useToast';
 import { SEO } from '@/components/SEO';
 import { Breadcrumbs } from '@/components/Breadcrumbs';
-import { ShoppingCart, Check, ShieldCheck, ArrowLeft, Plus, Minus, FileText } from 'lucide-react';
+import { ShoppingCart, Check, ShieldCheck, ArrowLeft, Plus, Minus, FileText, ChevronDown } from 'lucide-react';
 import { ReviewList } from '@/components/reviews/ReviewList';
+import type { ProductVariant } from '@/data/products';
 
 export function ProductDetails() {
     const { sku } = useParams<{ sku: string }>();
@@ -18,8 +19,16 @@ export function ProductDetails() {
     const navigate = useNavigate();
 
     const [quantity, setQuantity] = useState(1);
+    const [selectedVariant, setSelectedVariant] = useState<ProductVariant | undefined>(undefined);
 
     const product = db.products.find(p => p.sku === sku);
+
+    // Auto-select first variant when product loads
+    useEffect(() => {
+        if (product?.variants && product.variants.length > 0) {
+            setSelectedVariant(product.variants[0]);
+        }
+    }, [product]);
 
     // Scroll to top on mount
     useEffect(() => {
@@ -43,6 +52,9 @@ export function ProductDetails() {
         );
     }
 
+    const hasVariants = product.variants && product.variants.length > 0;
+    const activePrice = selectedVariant?.price ?? product.price;
+
     const getDiscountedPrice = (price: number) => {
         if (isPartner && user?.discountRate) {
             return price * (1 - user.discountRate / 100);
@@ -50,20 +62,18 @@ export function ProductDetails() {
         return price;
     };
 
-    const currentPrice = getDiscountedPrice(product.price);
+    const currentPrice = getDiscountedPrice(activePrice);
 
     const handleAddToCart = () => {
-        // Add multiple items to cart (CartContext currently doesn't support bulk add, we'll just loop or update context if needed)
-        // Actually the CartContext addToCart takes a product, but we might want multiple. For now we will add it N times.
         for (let i = 0; i < quantity; i++) {
-            addToCart(product);
+            addToCart(product, selectedVariant);
         }
-        addToast({ message: `Added ${quantity}x ${product.name} to your cart.`, type: 'success' });
+        const variantLabel = selectedVariant ? ` (${selectedVariant.label})` : '';
+        addToast({ message: `Added ${quantity}x ${product.name}${variantLabel} to your cart.`, type: 'success' });
     };
 
     return (
         <div className="min-h-screen bg-white py-12 relative overflow-hidden">
-            {/* Luxury Background Hint */}
             <div className="absolute inset-0 pointer-events-none z-0 bg-[radial-gradient(ellipse_at_center,_rgba(212,175,55,0.03)_0%,_rgba(255,255,255,1)_60%)]" />
 
             <SEO
@@ -87,7 +97,6 @@ export function ProductDetails() {
 
                         {/* Left: Product Image */}
                         <div className="relative bg-slate-50 flex items-center justify-center p-12 md:p-32 border-b md:border-b-0 md:border-r border-[#D4AF37]/20 overflow-hidden">
-                            {/* Subtle particle effect layered behind image */}
                             <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-[#D4AF37]/5 via-transparent to-transparent opacity-100 pointer-events-none" />
 
                             <div className="absolute top-8 left-8 z-10 flex items-center space-x-2 px-4 py-2 bg-white border border-[#D4AF37]/20 shadow-sm">
@@ -95,8 +104,7 @@ export function ProductDetails() {
                                 <span className="text-[10px] font-bold tracking-[0.2em] uppercase text-[#AA771C]">{product.purity}</span>
                             </div>
 
-                            <span className={`absolute top-8 right-8 px-4 py-2 text-[10px] font-bold tracking-[0.2em] uppercase z-10 shadow-sm ${product.inStock ? 'bg-white text-emerald-600 border border-emerald-100' : 'bg-white text-red-600 border border-red-100'
-                                }`}>
+                            <span className={`absolute top-8 right-8 px-4 py-2 text-[10px] font-bold tracking-[0.2em] uppercase z-10 shadow-sm ${product.inStock ? 'bg-white text-emerald-600 border border-emerald-100' : 'bg-white text-red-600 border border-red-100'}`}>
                                 {product.inStock ? 'IN STOCK' : 'OUT OF STOCK'}
                             </span>
 
@@ -105,7 +113,7 @@ export function ProductDetails() {
                                     <img src={product.imageUrl} alt={product.name} className="w-full h-full object-contain filter" />
                                 ) : (
                                     <div className="w-full h-full bg-white flex items-center justify-center shadow-inner border border-[#D4AF37]/10">
-                                        <span className="text-[#D4AF37] font-serif text-6xl">{product.name.split('-')[0]}</span>
+                                        <span className="text-[#D4AF37] font-serif text-6xl">{product.name.split('-')[0]?.split(' ')[0]}</span>
                                     </div>
                                 )}
                             </div>
@@ -116,20 +124,44 @@ export function ProductDetails() {
                             <div className="mb-4">
                                 <span className="text-[10px] font-bold tracking-[0.3em] text-[#AA771C] uppercase mb-4 block">{product.category}</span>
                                 <h1 className="text-4xl md:text-5xl lg:text-6xl font-serif text-slate-900 tracking-tight leading-tight">{product.name}</h1>
-                                <p className="text-[10px] font-bold tracking-[0.2em] text-slate-400 mt-6 uppercase">SKU: {product.sku}</p>
+                                <p className="text-[10px] font-bold tracking-[0.2em] text-slate-400 mt-6 uppercase">SKU: {selectedVariant?.sku || product.sku}</p>
                             </div>
 
                             <div className="my-8">
                                 <p className="text-slate-500 leading-relaxed text-sm md:text-base tracking-wide">{product.description}</p>
                             </div>
 
+                            {/* Variant Selector */}
+                            {hasVariants && (
+                                <div className="mb-8">
+                                    <label className="text-[10px] font-bold tracking-[0.2em] uppercase text-slate-400 block mb-3">SELECT DOSAGE</label>
+                                    <div className="relative">
+                                        <select
+                                            value={selectedVariant?.sku || ''}
+                                            onChange={(e) => {
+                                                const v = product.variants!.find(v => v.sku === e.target.value);
+                                                setSelectedVariant(v);
+                                            }}
+                                            className="w-full appearance-none bg-white border border-[#D4AF37]/30 px-5 py-4 pr-12 text-sm font-medium text-slate-900 focus:outline-none focus:border-[#D4AF37] transition-colors cursor-pointer"
+                                        >
+                                            {product.variants!.map(v => (
+                                                <option key={v.sku} value={v.sku}>
+                                                    {v.label} — ฿{v.price.toLocaleString()}
+                                                </option>
+                                            ))}
+                                        </select>
+                                        <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[#D4AF37] pointer-events-none" />
+                                    </div>
+                                </div>
+                            )}
+
                             {isPartner ? (
                                 <>
                                     <div className="mb-12">
                                         <div className="flex items-end gap-4 mb-2">
-                                            <span className="text-5xl font-serif text-slate-900 tracking-tight">${currentPrice.toFixed(2)}</span>
+                                            <span className="text-5xl font-serif text-slate-900 tracking-tight">฿{currentPrice.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span>
                                             {user?.discountRate && (
-                                                <span className="text-xl text-slate-400 line-through mb-1.5 font-light">${product.price.toFixed(2)}</span>
+                                                <span className="text-xl text-slate-400 line-through mb-1.5 font-light">฿{activePrice.toLocaleString()}</span>
                                             )}
                                         </div>
                                         {user?.discountRate && (
@@ -215,12 +247,11 @@ export function ProductDetails() {
                                     </div>
                                 )}
                             </div>
-
                         </div>
                     </div>
                 </div>
 
-                {/* Extended Description Tabs */}
+                {/* Extended Description */}
                 <div className="mt-16 bg-white border border-[#D4AF37]/20 p-10 md:p-16 shadow-[0_8px_40px_rgba(0,0,0,0.02)]">
                     <h3 className="text-3xl font-serif text-slate-900 mb-10 tracking-tight">Compound Specifications</h3>
                     <div className="text-slate-500 space-y-10 tracking-wide leading-relaxed text-sm md:text-base">
@@ -251,7 +282,6 @@ export function ProductDetails() {
                     <h3 className="text-3xl font-serif text-slate-900 mb-10 tracking-tight">Customer Reviews</h3>
                     <ReviewList productId={product.id} />
                 </div>
-
             </div>
         </div>
     );

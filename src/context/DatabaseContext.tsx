@@ -319,6 +319,7 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
           createdAt: p.created_at,
           updatedAt: p.updated_at,
           lowStockThreshold: p.low_stock_threshold || 10,
+          variants: p.variants || undefined,
         }));
 
         // Map inventory logs
