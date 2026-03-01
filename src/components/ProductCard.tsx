@@ -2,7 +2,6 @@ import { useState, memo } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ShoppingCart, Eye, Heart, Sparkles } from 'lucide-react';
-import { useCart } from '@/context/CartContext';
 import { useAuth } from '@/context/AuthContext';
 import type { Product } from '@/data/products';
 import { ProductRating } from '@/components/reviews/ProductRating';
@@ -13,7 +12,6 @@ interface ProductCardProps {
 }
 
 export const ProductCard = memo(function ProductCard({ product, index = 0 }: ProductCardProps) {
-  const { addToCart } = useCart();
   const { isPartner, user } = useAuth();
   const [isHovered, setIsHovered] = useState(false);
   const [isWishlisted, setIsWishlisted] = useState(false);

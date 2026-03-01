@@ -1,5 +1,4 @@
 import { Link } from 'react-router-dom';
-import { useCart } from '@/context/CartContext';
 import { useAuth } from '@/context/AuthContext';
 import { useDatabase } from '@/context/DatabaseContext';
 import { ShoppingCart, ArrowRight, Check } from 'lucide-react';
@@ -8,7 +7,6 @@ import { motion, useScroll, useTransform } from 'framer-motion';
 import { useRef } from 'react';
 
 export function FeaturedProducts() {
-  const { addToCart } = useCart();
   const { isPartner, user } = useAuth();
   const { db, isLoading } = useDatabase();
 
