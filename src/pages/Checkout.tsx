@@ -75,6 +75,7 @@ export function CheckoutPage() {
                 items: items.map(item => ({
                     product_id: item.product.id,
                     quantity: item.quantity,
+                    variant_sku: item.selectedVariant?.sku || null,
                 })),
                 shipping_name: shipping.fullName,
                 shipping_email: shipping.email,
@@ -427,9 +428,12 @@ export function CheckoutPage() {
 
                                 <ul className="space-y-3 mb-4">
                                     {items.map(item => (
-                                        <li key={item.product.id} className="flex justify-between items-start text-sm">
+                                        <li key={`${item.product.id}-${item.selectedVariant?.sku || 'base'}`} className="flex justify-between items-start text-sm">
                                             <div className="flex-1">
                                                 <p className="font-medium text-slate-900">{item.product.name}</p>
+                                                {item.selectedVariant && (
+                                                    <p className="text-xs text-slate-400">{item.selectedVariant.label}</p>
+                                                )}
                                                 <p className="text-slate-400">Qty: {item.quantity}</p>
                                             </div>
                                             <span className="font-medium text-slate-700 ml-4">

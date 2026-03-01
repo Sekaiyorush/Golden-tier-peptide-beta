@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { type Product } from '@/data/products';
+import { type Product, type ProductVariant } from '@/data/products';
 import { useDatabase } from '@/context/DatabaseContext';
 import {
   Plus,
@@ -8,9 +8,17 @@ import {
   Trash2,
   QrCode,
   ChevronLeft,
-  Package
+  Package,
+  X
 } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
+
+interface VariantFormRow {
+  sku: string;
+  label: string;
+  price: string;
+  stock: string;
+}
 
 interface ProductFormData {
   name: string;
@@ -24,6 +32,7 @@ interface ProductFormData {
   benefits: string;
   dosage: string;
   imageUrl: string;
+  variants: VariantFormRow[];
 }
 
 export function ProductsManagement() {
@@ -34,7 +43,7 @@ export function ProductsManagement() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [showQRCode, setShowQRCode] = useState<Product | null>(null);
-  const [formData, setFormData] = useState<ProductFormData>({
+  const emptyFormData: ProductFormData = {
     name: '',
     description: '',
     fullDescription: '',
@@ -46,7 +55,10 @@ export function ProductsManagement() {
     benefits: '',
     dosage: '',
     imageUrl: '',
-  });
+    variants: [],
+  };
+
+  const [formData, setFormData] = useState<ProductFormData>(emptyFormData);
 
   const filteredProducts = productList.filter(
     (product) =>
@@ -57,19 +69,7 @@ export function ProductsManagement() {
 
   const handleAddProduct = () => {
     setEditingProduct(null);
-    setFormData({
-      name: '',
-      description: '',
-      fullDescription: '',
-      price: '',
-      category: '',
-      purity: '99.0%',
-      stockQuantity: '0',
-      sku: '',
-      benefits: '',
-      dosage: '',
-      imageUrl: '',
-    });
+    setFormData(emptyFormData);
     setIsModalOpen(true);
   };
 
@@ -87,6 +87,12 @@ export function ProductsManagement() {
       benefits: product.benefits?.join('\n') || '',
       dosage: product.dosage || '',
       imageUrl: product.imageUrl || '',
+      variants: (product.variants || []).map(v => ({
+        sku: v.sku,
+        label: v.label,
+        price: v.price.toString(),
+        stock: v.stock.toString(),
+      })),
     });
     setIsModalOpen(true);
   };
@@ -97,8 +103,38 @@ export function ProductsManagement() {
     }
   };
 
+  const addVariantRow = () => {
+    setFormData(prev => ({
+      ...prev,
+      variants: [...prev.variants, { sku: '', label: '', price: '', stock: '100' }],
+    }));
+  };
+
+  const removeVariantRow = (idx: number) => {
+    setFormData(prev => ({
+      ...prev,
+      variants: prev.variants.filter((_, i) => i !== idx),
+    }));
+  };
+
+  const updateVariantRow = (idx: number, field: keyof VariantFormRow, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      variants: prev.variants.map((v, i) => i === idx ? { ...v, [field]: value } : v),
+    }));
+  };
+
   const handleSaveProduct = (e: React.FormEvent) => {
     e.preventDefault();
+
+    const parsedVariants: ProductVariant[] = formData.variants
+      .filter(v => v.sku && v.label && v.price)
+      .map(v => ({
+        sku: v.sku,
+        label: v.label,
+        price: parseFloat(v.price) || 0,
+        stock: parseInt(v.stock) || 0,
+      }));
 
     const newProduct: Product = {
       id: editingProduct?.id || Date.now().toString(),
@@ -116,6 +152,7 @@ export function ProductsManagement() {
       imageUrl: formData.imageUrl,
       createdAt: editingProduct?.createdAt || new Date().toISOString().split('T')[0],
       updatedAt: new Date().toISOString().split('T')[0],
+      variants: parsedVariants.length > 0 ? parsedVariants : undefined,
     };
 
     if (editingProduct) {
@@ -196,13 +233,26 @@ export function ProductsManagement() {
                     </span>
                   </td>
                   <td className="px-4 py-3 text-sm font-medium">
-                    ฿{product.price.toFixed(2)}
+                    {product.variants && product.variants.length > 0 ? (
+                      <span>from ฿{Math.min(...product.variants.map(v => v.price)).toLocaleString()}</span>
+                    ) : (
+                      <span>฿{product.price.toLocaleString()}</span>
+                    )}
                   </td>
                   <td className="px-4 py-3 text-sm">
-                    <span className={`${product.stockQuantity < 20 ? 'text-destructive' : 'text-green-600'
-                      }`}>
-                      {product.stockQuantity}
-                    </span>
+                    {product.variants && product.variants.length > 0 ? (
+                      <div className="flex flex-col gap-0.5">
+                        {product.variants.map(v => (
+                          <span key={v.sku} className={`text-xs ${v.stock < 20 ? 'text-destructive' : 'text-green-600'}`}>
+                            {v.label}: {v.stock}
+                          </span>
+                        ))}
+                      </div>
+                    ) : (
+                      <span className={`${product.stockQuantity < 20 ? 'text-destructive' : 'text-green-600'}`}>
+                        {product.stockQuantity}
+                      </span>
+                    )}
                   </td>
                   <td className="px-4 py-3 text-sm">{product.purity}</td>
                   <td className="px-4 py-3">
@@ -389,6 +439,75 @@ export function ProductsManagement() {
                   className="w-full px-3 py-2 border border-input rounded-lg bg-background focus:ring-primary focus:border-primary"
                   placeholder="Enter benefits, one per line..."
                 />
+              </div>
+
+              {/* Variants Editor */}
+              <div className="border-t border-border pt-4">
+                <div className="flex items-center justify-between mb-3">
+                  <label className="text-sm font-medium">Product Variants</label>
+                  <button
+                    type="button"
+                    onClick={addVariantRow}
+                    className="flex items-center gap-1 text-xs text-primary hover:text-primary-dark font-medium"
+                  >
+                    <Plus className="h-3 w-3" /> Add Variant
+                  </button>
+                </div>
+
+                {formData.variants.length === 0 && (
+                  <p className="text-xs text-muted-foreground mb-2">No variants. Product will use base price/stock. Click "Add Variant" for multi-size products.</p>
+                )}
+
+                {formData.variants.length > 0 && (
+                  <div className="space-y-2">
+                    <div className="grid grid-cols-[1fr_2fr_1fr_1fr_auto] gap-2 text-xs font-medium text-muted-foreground">
+                      <span>SKU</span>
+                      <span>Label</span>
+                      <span>Price (฿)</span>
+                      <span>Stock</span>
+                      <span></span>
+                    </div>
+                    {formData.variants.map((v, idx) => (
+                      <div key={idx} className="grid grid-cols-[1fr_2fr_1fr_1fr_auto] gap-2 items-center">
+                        <input
+                          type="text"
+                          placeholder="SKU"
+                          value={v.sku}
+                          onChange={e => updateVariantRow(idx, 'sku', e.target.value)}
+                          className="px-2 py-1.5 text-xs border border-input rounded bg-background"
+                        />
+                        <input
+                          type="text"
+                          placeholder="e.g. 5mg × 10 vials"
+                          value={v.label}
+                          onChange={e => updateVariantRow(idx, 'label', e.target.value)}
+                          className="px-2 py-1.5 text-xs border border-input rounded bg-background"
+                        />
+                        <input
+                          type="number"
+                          placeholder="Price"
+                          value={v.price}
+                          onChange={e => updateVariantRow(idx, 'price', e.target.value)}
+                          className="px-2 py-1.5 text-xs border border-input rounded bg-background"
+                        />
+                        <input
+                          type="number"
+                          placeholder="Stock"
+                          value={v.stock}
+                          onChange={e => updateVariantRow(idx, 'stock', e.target.value)}
+                          className="px-2 py-1.5 text-xs border border-input rounded bg-background"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeVariantRow(idx)}
+                          className="p-1 text-muted-foreground hover:text-destructive"
+                        >
+                          <X className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               <div className="flex justify-end space-x-3 pt-4">

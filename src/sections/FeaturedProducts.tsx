@@ -133,29 +133,40 @@ export function FeaturedProducts() {
 
                   <div className="flex items-end justify-between pt-6 mt-auto border-t border-[#D4AF37]/10">
                     <div>
-                      {isPartner ? (
-                        <div>
-                          <span className="text-[10px] uppercase tracking-[0.2em] text-slate-400 line-through block mb-1">฿{product.price.toFixed(2)}</span>
-                          <p className="text-2xl font-serif text-[#D4AF37]">
-                            ฿{getPrice(product.price).toFixed(2)}
-                          </p>
-                        </div>
-                      ) : (
+                      {isPartner ? (() => {
+                        const hasVariants = product.variants && product.variants.length > 0;
+                        const basePrice = hasVariants
+                          ? Math.min(...product.variants!.map(v => v.price))
+                          : product.price;
+                        return (
+                          <div>
+                            <span className="text-[10px] uppercase tracking-[0.2em] text-slate-400 line-through block mb-1">
+                              {hasVariants ? 'from ' : ''}฿{basePrice.toLocaleString()}
+                            </span>
+                            <div className="flex items-center space-x-1">
+                              {hasVariants && <span className="text-xs text-slate-400">from</span>}
+                              <p className="text-2xl font-serif text-[#D4AF37]">
+                                ฿{getPrice(basePrice).toLocaleString()}
+                              </p>
+                            </div>
+                          </div>
+                        );
+                      })() : (
                         <span className="inline-flex items-center px-4 py-2 border border-[#D4AF37]/20 bg-slate-50 text-slate-500 text-[9px] font-bold tracking-[0.3em] uppercase">
                           Partner Only
                         </span>
                       )}
                     </div>
                     {isPartner && (
-                      <button
-                        onClick={() => addToCart(product)}
-                        aria-label={`Add ${product.name} to cart`}
+                      <Link
+                        to={`/product/${product.sku}`}
+                        aria-label={`View ${product.name}`}
                         className="relative flex items-center justify-center w-12 h-12 bg-[#111] text-white hover:bg-black transition-all disabled:opacity-50 border border-[#111] group-btn shadow-md overflow-hidden focus:ring-2 focus:ring-[#D4AF37] outline-none"
                       >
                         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[#D4AF37]/20 to-transparent -translate-x-[150%] animate-[shimmer_3s_infinite]" />
                         <ShoppingCart className="relative z-10 h-4 w-4" aria-hidden="true" />
                         <span className="absolute bottom-0 left-0 w-0 h-[2px] bg-gradient-to-r from-[#D4AF37] to-[#F3E5AB] transition-all duration-500 ease-out group-hover:w-full" />
-                      </button>
+                      </Link>
                     )}
                   </div>
                 </div>

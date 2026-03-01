@@ -26,8 +26,18 @@ export const ProductCard = memo(function ProductCard({ product, index = 0 }: Pro
     return price;
   };
 
-  const discountedPrice = getDiscountedPrice(product.price);
+  const hasVariants = product.variants && product.variants.length > 0;
+  const displayPrice = hasVariants
+    ? Math.min(...product.variants!.map(v => v.price))
+    : product.price;
+  const discountedPrice = getDiscountedPrice(displayPrice);
   const hasDiscount = isPartner && user?.discountRate;
+  const allOutOfStock = hasVariants
+    ? product.variants!.every(v => v.stock <= 0)
+    : product.stockQuantity === 0;
+  const lowStock = hasVariants
+    ? product.variants!.some(v => v.stock > 0 && v.stock < (product.lowStockThreshold || 10))
+    : product.stockQuantity < (product.lowStockThreshold || 10) && product.stockQuantity > 0;
 
   return (
     <motion.div
@@ -50,7 +60,7 @@ export const ProductCard = memo(function ProductCard({ product, index = 0 }: Pro
         )}
 
         {/* Low Stock Badge */}
-        {product.stockQuantity < (product.lowStockThreshold || 10) && product.stockQuantity > 0 && (
+        {lowStock && (
           <div className="absolute top-4 right-4 z-20 px-3 py-1 bg-red-50 text-red-600 border border-red-100 text-[9px] font-bold tracking-[0.3em] uppercase shadow-sm">
             Low Stock
           </div>
@@ -124,32 +134,37 @@ export const ProductCard = memo(function ProductCard({ product, index = 0 }: Pro
                 <div className="flex flex-col">
                   {hasDiscount ? (
                     <>
-                      <span className="text-xs text-slate-300 line-through mb-1">฿{product.price.toFixed(2)}</span>
-                      <div className="flex items-center space-x-3">
-                        <span className="text-2xl font-serif text-[#D4AF37]">฿{discountedPrice.toFixed(2)}</span>
+                      <span className="text-xs text-slate-300 line-through mb-1">
+                        {hasVariants ? 'from ' : ''}฿{displayPrice.toLocaleString()}
+                      </span>
+                      <div className="flex items-center space-x-1">
+                        {hasVariants && <span className="text-xs text-slate-400 mr-0.5">from</span>}
+                        <span className="text-2xl font-serif text-[#D4AF37]">฿{discountedPrice.toLocaleString()}</span>
                       </div>
                     </>
                   ) : (
-                    <span className="text-2xl font-serif text-slate-900">฿{product.price.toFixed(2)}</span>
+                    <div className="flex items-center space-x-1">
+                      {hasVariants && <span className="text-xs text-slate-400 mr-0.5">from</span>}
+                      <span className="text-2xl font-serif text-slate-900">฿{displayPrice.toLocaleString()}</span>
+                    </div>
                   )}
                 </div>
 
-                <button
-                  onClick={() => addToCart(product)}
-                  disabled={product.stockQuantity === 0}
-                  className={`relative flex items-center justify-center w-12 h-12 overflow-hidden transition-all duration-300 ${product.stockQuantity === 0
-                    ? 'bg-slate-50 border border-slate-200 text-slate-300 cursor-not-allowed'
+                <Link
+                  to={`/product/${product.sku}`}
+                  className={`relative flex items-center justify-center w-12 h-12 overflow-hidden transition-all duration-300 ${allOutOfStock
+                    ? 'bg-slate-50 border border-slate-200 text-slate-300 cursor-not-allowed pointer-events-none'
                     : 'bg-[#111] text-white hover:bg-black group/btn border border-[#111]'
                     }`}
                 >
-                  {product.stockQuantity > 0 && (
+                  {!allOutOfStock && (
                     <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[#D4AF37]/20 to-transparent -translate-x-[150%] animate-[shimmer_3s_infinite]" />
                   )}
                   <ShoppingCart className="relative z-10 h-4 w-4" />
-                  {product.stockQuantity > 0 && (
+                  {!allOutOfStock && (
                     <span className="absolute bottom-0 left-0 w-0 h-[2px] bg-gradient-to-r from-[#D4AF37] to-[#F3E5AB] transition-all duration-500 ease-out group-hover/btn:w-full" />
                   )}
-                </button>
+                </Link>
               </>
             ) : (
               <div className="w-full flex justify-between items-center py-2">
@@ -160,13 +175,13 @@ export const ProductCard = memo(function ProductCard({ product, index = 0 }: Pro
 
           {/* Stock Status */}
           <div className="mt-4 flex items-center space-x-2">
-            <div className={`w-1.5 h-1.5 rounded-full ${product.stockQuantity === 0 ? 'bg-red-400' :
-              product.stockQuantity < (product.lowStockThreshold || 10) ? 'bg-amber-400' :
+            <div className={`w-1.5 h-1.5 rounded-full ${allOutOfStock ? 'bg-red-400' :
+              lowStock ? 'bg-amber-400' :
                 'bg-[#D4AF37]'
               }`} />
             <span className="text-[10px] font-bold tracking-[0.2em] uppercase text-slate-400">
-              {product.stockQuantity === 0 ? 'OUT OF STOCK' :
-                product.stockQuantity < (product.lowStockThreshold || 10) ? `ONLY ${product.stockQuantity} LEFT` :
+              {allOutOfStock ? 'OUT OF STOCK' :
+                lowStock ? 'LOW STOCK' :
                   'IN STOCK'}
             </span>
           </div>

@@ -6,7 +6,7 @@ import { useDatabase } from '@/context/DatabaseContext';
 import { useToast } from '@/components/ui/useToast';
 import { SEO } from '@/components/SEO';
 import { Breadcrumbs } from '@/components/Breadcrumbs';
-import { ShoppingCart, Check, ShieldCheck, ArrowLeft, Plus, Minus, FileText, ChevronDown } from 'lucide-react';
+import { ShoppingCart, Check, ShieldCheck, ArrowLeft, Plus, Minus, FileText, Package } from 'lucide-react';
 import { ReviewList } from '@/components/reviews/ReviewList';
 import type { ProductVariant } from '@/data/products';
 
@@ -54,6 +54,9 @@ export function ProductDetails() {
 
     const hasVariants = product.variants && product.variants.length > 0;
     const activePrice = selectedVariant?.price ?? product.price;
+    const variantInStock = selectedVariant ? selectedVariant.stock > 0 : product.inStock;
+    const variantStock = selectedVariant?.stock ?? product.stockQuantity;
+    const allVariantsOutOfStock = hasVariants ? product.variants!.every(v => v.stock <= 0) : !product.inStock;
 
     const getDiscountedPrice = (price: number) => {
         if (isPartner && user?.discountRate) {
@@ -104,8 +107,8 @@ export function ProductDetails() {
                                 <span className="text-[10px] font-bold tracking-[0.2em] uppercase text-[#AA771C]">{product.purity}</span>
                             </div>
 
-                            <span className={`absolute top-8 right-8 px-4 py-2 text-[10px] font-bold tracking-[0.2em] uppercase z-10 shadow-sm ${product.inStock ? 'bg-white text-emerald-600 border border-emerald-100' : 'bg-white text-red-600 border border-red-100'}`}>
-                                {product.inStock ? 'IN STOCK' : 'OUT OF STOCK'}
+                            <span className={`absolute top-8 right-8 px-4 py-2 text-[10px] font-bold tracking-[0.2em] uppercase z-10 shadow-sm ${!allVariantsOutOfStock ? 'bg-white text-emerald-600 border border-emerald-100' : 'bg-white text-red-600 border border-red-100'}`}>
+                                {!allVariantsOutOfStock ? 'IN STOCK' : 'OUT OF STOCK'}
                             </span>
 
                             <div className="relative z-0 w-64 h-64 md:w-96 md:h-96 flex items-center justify-center">
@@ -131,27 +134,45 @@ export function ProductDetails() {
                                 <p className="text-slate-500 leading-relaxed text-sm md:text-base tracking-wide">{product.description}</p>
                             </div>
 
-                            {/* Variant Selector */}
+                            {/* Variant Selector — Radio Button Chips */}
                             {hasVariants && (
                                 <div className="mb-8">
-                                    <label className="text-[10px] font-bold tracking-[0.2em] uppercase text-slate-400 block mb-3">SELECT DOSAGE</label>
-                                    <div className="relative">
-                                        <select
-                                            value={selectedVariant?.sku || ''}
-                                            onChange={(e) => {
-                                                const v = product.variants!.find(v => v.sku === e.target.value);
-                                                setSelectedVariant(v);
-                                            }}
-                                            className="w-full appearance-none bg-white border border-[#D4AF37]/30 px-5 py-4 pr-12 text-sm font-medium text-slate-900 focus:outline-none focus:border-[#D4AF37] transition-colors cursor-pointer"
-                                        >
-                                            {product.variants!.map(v => (
-                                                <option key={v.sku} value={v.sku}>
-                                                    {v.label} — ฿{v.price.toLocaleString()}
-                                                </option>
-                                            ))}
-                                        </select>
-                                        <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[#D4AF37] pointer-events-none" />
+                                    <label className="text-[10px] font-bold tracking-[0.2em] uppercase text-slate-400 block mb-3">SELECT OPTION</label>
+                                    <div className="flex flex-wrap gap-2">
+                                        {product.variants!.map(v => {
+                                            const isSelected = selectedVariant?.sku === v.sku;
+                                            const isOutOfStock = v.stock <= 0;
+                                            return (
+                                                <button
+                                                    key={v.sku}
+                                                    onClick={() => !isOutOfStock && setSelectedVariant(v)}
+                                                    disabled={isOutOfStock}
+                                                    className={`px-4 py-2.5 text-xs font-bold tracking-wide border transition-all duration-200 ${
+                                                        isOutOfStock
+                                                            ? 'border-slate-200 bg-slate-50 text-slate-300 line-through cursor-not-allowed'
+                                                            : isSelected
+                                                                ? 'border-[#D4AF37] bg-[#D4AF37] text-white shadow-md'
+                                                                : 'border-[#D4AF37]/30 bg-white text-slate-700 hover:border-[#D4AF37] hover:bg-[#D4AF37]/5 cursor-pointer'
+                                                    }`}
+                                                >
+                                                    {v.label}
+                                                </button>
+                                            );
+                                        })}
                                     </div>
+                                    {/* Per-variant stock info */}
+                                    {selectedVariant && (
+                                        <div className="mt-3 flex items-center gap-2">
+                                            <Package className="h-3.5 w-3.5 text-slate-400" />
+                                            {variantInStock ? (
+                                                <span className={`text-xs font-medium ${variantStock <= 10 ? 'text-amber-600' : 'text-emerald-600'}`}>
+                                                    {variantStock <= 10 ? `Only ${variantStock} left` : `${variantStock} in stock`}
+                                                </span>
+                                            ) : (
+                                                <span className="text-xs font-medium text-red-500">Out of Stock</span>
+                                            )}
+                                        </div>
+                                    )}
                                 </div>
                             )}
 
@@ -195,12 +216,12 @@ export function ProductDetails() {
                                         <div className="flex-1 flex flex-col justify-end pt-8">
                                             <button
                                                 onClick={handleAddToCart}
-                                                disabled={!product.inStock}
+                                                disabled={!variantInStock}
                                                 className="w-full h-14 flex items-center justify-center space-x-3 bg-[#111] text-white font-semibold text-[10px] tracking-[0.2em] uppercase transition-all disabled:opacity-50 disabled:cursor-not-allowed hover:bg-black border border-[#111] shadow-md group relative overflow-hidden"
                                             >
                                                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[#D4AF37]/20 to-transparent -translate-x-[150%] animate-[shimmer_3s_infinite]" />
                                                 <ShoppingCart className="relative z-10 h-4 w-4 transition-colors group-hover:text-[#D4AF37]" />
-                                                <span className="relative z-10">{product.inStock ? 'ACQUIRE COMPOUND' : 'CURRENTLY UNAVAILABLE'}</span>
+                                                <span className="relative z-10">{variantInStock ? 'ACQUIRE COMPOUND' : 'CURRENTLY UNAVAILABLE'}</span>
                                                 <span className="absolute bottom-0 left-0 w-0 h-[2px] bg-gradient-to-r from-[#D4AF37] to-[#F3E5AB] transition-all duration-500 ease-out group-hover:w-full" />
                                             </button>
                                         </div>
