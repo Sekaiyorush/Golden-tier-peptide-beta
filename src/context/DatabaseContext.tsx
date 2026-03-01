@@ -36,6 +36,7 @@ export interface InventoryLog {
   notes?: string;
   performedBy?: string;
   performedByName?: string;
+  variantSku?: string;
   createdAt: string;
 }
 
@@ -45,6 +46,7 @@ interface OrderItemRow {
   product_id: string;
   quantity: number;
   price_at_purchase: number;
+  variant_sku?: string | null;
   products?: { name: string } | null;
 }
 
@@ -65,7 +67,7 @@ interface DatabaseContextType {
   addOrder: (order: Order) => void;
   updateOrder: (id: string, updates: Partial<Order>) => void;
   createSecureOrder: (params: {
-    items: { product_id: string; quantity: number }[];
+    items: { product_id: string; quantity: number; variant_sku?: string | null }[];
     shipping_name: string;
     shipping_email: string;
     shipping_phone: string;
@@ -92,7 +94,7 @@ interface DatabaseContextType {
   deleteInvitationCode: (codeStr: string) => Promise<void>;
 
   // Inventory
-  addInventoryLog: (log: Omit<InventoryLog, 'id' | 'createdAt' | 'performedByName'>) => Promise<void>;
+  addInventoryLog: (log: Omit<InventoryLog, 'id' | 'createdAt' | 'performedByName'>, updateVariantStock?: boolean) => Promise<void>;
 
   // Site Settings
   updateSiteSettings: (updates: Partial<SiteSettings>) => Promise<boolean>;
@@ -222,7 +224,8 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
             productId: item.product_id,
             name: item.products?.name || 'Unknown Product',
             quantity: item.quantity,
-            price: Number(item.price_at_purchase)
+            price: Number(item.price_at_purchase),
+            variantSku: item.variant_sku || undefined,
           }));
 
           return {
@@ -331,6 +334,7 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
           notes: l.notes,
           performedBy: l.performed_by,
           performedByName: l.profiles?.full_name || 'Unknown',
+          variantSku: l.variant_sku || undefined,
           createdAt: l.created_at,
         }));
 
@@ -482,7 +486,7 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
 
   // Secure order creation via server-side RPC (validates prices, stock, discounts)
   const createSecureOrder = async (params: {
-    items: { product_id: string; quantity: number }[];
+    items: { product_id: string; quantity: number; variant_sku?: string | null }[];
     shipping_name: string;
     shipping_email: string;
     shipping_phone: string;
@@ -544,29 +548,18 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
       newStatus: updates.status,
     });
 
-    // Auto-deduct inventory when order is marked as delivered
+    // Log inventory entries when order is marked as delivered (stock was already deducted at order creation by the RPC)
     if (isBeingDelivered && currentOrder?.items && currentOrder.items.length > 0) {
       for (const item of currentOrder.items) {
-        const product = db.products.find(p => p.name === item.name || p.id === item.productId);
-        if (product) {
-          // Create inventory log entry
-          await supabase.from('inventory_log').insert({
-            product_id: product.id,
-            change_quantity: -item.quantity,
-            reason: 'sold',
-            notes: `Order ${id} delivered`,
-            performed_by: null, // system action
-          });
-
-          // Update product stock
-          const newQty = Math.max(0, product.stockQuantity - item.quantity);
-          await supabase.from('products').update({
-            stock_quantity: newQty,
-            in_stock: newQty > 0,
-          }).eq('id', product.id);
-        }
+        await supabase.from('inventory_log').insert({
+          product_id: item.productId,
+          change_quantity: -item.quantity,
+          reason: 'sold',
+          notes: `Order ${id} delivered`,
+          performed_by: null,
+          variant_sku: item.variantSku || null,
+        });
       }
-      // Refresh data to reflect new stock levels
       await loadData();
     }
 
@@ -731,13 +724,14 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
   };
 
   // ─── Inventory Logs ──────────────────────────────────────────────
-  const addInventoryLog = async (log: Omit<InventoryLog, 'id' | 'createdAt' | 'performedByName'>) => {
+  const addInventoryLog = async (log: Omit<InventoryLog, 'id' | 'createdAt' | 'performedByName'>, updateVariantStock = false) => {
     const { error } = await supabase.from('inventory_log').insert({
       product_id: log.productId,
       change_quantity: log.changeQuantity,
       reason: log.reason,
       notes: log.notes || null,
       performed_by: log.performedBy || null,
+      variant_sku: log.variantSku || null,
     });
 
     if (error) {
@@ -745,14 +739,28 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    // Update product stock quantity
-    const product = db.products.find(p => p.id === log.productId);
-    if (product) {
-      const newQty = product.stockQuantity + log.changeQuantity;
-      await updateProduct(log.productId, {
-        stockQuantity: Math.max(0, newQty),
-        inStock: newQty > 0,
-      });
+    // Update stock — variant-level or product-level
+    if (updateVariantStock && log.variantSku) {
+      const product = db.products.find(p => p.id === log.productId);
+      if (product?.variants) {
+        const updatedVariants = product.variants.map(v => {
+          if (v.sku === log.variantSku) {
+            return { ...v, stock: Math.max(0, v.stock + log.changeQuantity) };
+          }
+          return v;
+        });
+        await supabase.from('products').update({ variants: updatedVariants }).eq('id', log.productId);
+      }
+    } else {
+      // Product-level stock update
+      const product = db.products.find(p => p.id === log.productId);
+      if (product) {
+        const newQty = product.stockQuantity + log.changeQuantity;
+        await updateProduct(log.productId, {
+          stockQuantity: Math.max(0, newQty),
+          inStock: newQty > 0,
+        });
+      }
     }
 
     // Refresh to get latest data

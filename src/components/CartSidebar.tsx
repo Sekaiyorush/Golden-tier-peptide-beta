@@ -47,7 +47,7 @@ export function CartSidebar() {
             <div className="space-y-4">
               {items.map((item) => (
                 <div
-                  key={item.product.id}
+                  key={`${item.product.id}-${item.selectedVariant?.sku || 'base'}`}
                   className="flex items-center gap-4 p-4 bg-slate-50 rounded-xl"
                 >
                   <div className="w-14 h-14 bg-slate-200 rounded-lg flex items-center justify-center flex-shrink-0">
@@ -66,14 +66,14 @@ export function CartSidebar() {
 
                   <div className="flex items-center gap-2">
                     <button
-                      onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
+                      onClick={() => updateQuantity(item.product.id, item.quantity - 1, item.selectedVariant?.sku)}
                       className="w-8 h-8 flex items-center justify-center bg-white border border-slate-200 rounded-lg hover:bg-slate-100"
                     >
                       <Minus className="h-3 w-3" />
                     </button>
                     <span className="w-8 text-center font-medium">{item.quantity}</span>
                     <button
-                      onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
+                      onClick={() => updateQuantity(item.product.id, item.quantity + 1, item.selectedVariant?.sku)}
                       className="w-8 h-8 flex items-center justify-center bg-white border border-slate-200 rounded-lg hover:bg-slate-100"
                     >
                       <Plus className="h-3 w-3" />
@@ -81,7 +81,7 @@ export function CartSidebar() {
                   </div>
 
                   <button
-                    onClick={() => removeFromCart(item.product.id)}
+                    onClick={() => removeFromCart(item.product.id, item.selectedVariant?.sku)}
                     className="p-2 hover:bg-red-50 rounded-lg text-slate-400 hover:text-red-500"
                   >
                     <X className="h-4 w-4" />

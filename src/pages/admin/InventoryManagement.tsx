@@ -1,20 +1,31 @@
 import { useState } from 'react';
 import { useDatabase } from '@/context/DatabaseContext';
+import type { ProductVariant } from '@/data/products';
 import {
     PackageSearch,
     Plus,
     Minus,
     Search,
     AlertTriangle,
-    X
+    X,
+    ChevronDown,
+    ChevronRight
 } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
+
+interface AdjustTarget {
+    productId: string;
+    variantSku?: string;
+    label: string;
+}
 
 export function InventoryManagement() {
     const { db, addInventoryLog } = useDatabase();
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedProduct, setSelectedProduct] = useState<string | null>(null);
+    const [expandedProducts, setExpandedProducts] = useState<Set<string>>(new Set());
     const [isAdjustModalOpen, setIsAdjustModalOpen] = useState(false);
+    const [adjustTarget, setAdjustTarget] = useState<AdjustTarget | null>(null);
     const [adjustData, setAdjustData] = useState({
         changeQuantity: 0,
         reason: 'received' as 'received' | 'sold' | 'damaged' | 'returned' | 'adjustment',
@@ -34,50 +45,91 @@ export function InventoryManagement() {
         ? logs.filter(l => l.productId === selectedProduct)
         : logs;
 
-    const lowStockProducts = products.filter(p => p.stockQuantity < (p.lowStockThreshold || 10));
+    // Build low stock alerts — check both product-level and per-variant
+    const lowStockAlerts: { productName: string; sku: string; stock: number; label?: string }[] = [];
+    products.forEach(p => {
+        if (p.variants && p.variants.length > 0) {
+            p.variants.forEach(v => {
+                if (v.stock < (p.lowStockThreshold || 10)) {
+                    lowStockAlerts.push({ productName: p.name, sku: v.sku, stock: v.stock, label: v.label });
+                }
+            });
+        } else if (p.stockQuantity < (p.lowStockThreshold || 10)) {
+            lowStockAlerts.push({ productName: p.name, sku: p.sku, stock: p.stockQuantity });
+        }
+    });
+
+    const toggleExpand = (id: string) => {
+        setExpandedProducts(prev => {
+            const next = new Set(prev);
+            if (next.has(id)) next.delete(id);
+            else next.add(id);
+            return next;
+        });
+    };
+
+    const openAdjustModal = (productId: string, variantSku?: string, label?: string) => {
+        const product = products.find(p => p.id === productId);
+        if (!product) return;
+        const displayLabel = variantSku && label
+            ? `${product.name} — ${label}`
+            : product.name;
+        setAdjustTarget({ productId, variantSku, label: displayLabel });
+        setSelectedProduct(productId);
+        setAdjustData({ changeQuantity: 0, reason: 'received', notes: '' });
+        setIsAdjustModalOpen(true);
+    };
 
     const handleAdjustStock = () => {
-        if (!selectedProduct) return;
+        if (!adjustTarget) return;
 
         addInventoryLog({
-            productId: selectedProduct,
+            productId: adjustTarget.productId,
             changeQuantity: adjustData.changeQuantity,
             reason: adjustData.reason,
-            notes: adjustData.notes
-        });
+            notes: adjustData.notes,
+            variantSku: adjustTarget.variantSku,
+        }, !!adjustTarget.variantSku);
 
         setIsAdjustModalOpen(false);
+        setAdjustTarget(null);
         setAdjustData({ changeQuantity: 0, reason: 'received', notes: '' });
     };
+
+    const getVariantTotalStock = (variants: ProductVariant[]) =>
+        variants.reduce((sum, v) => sum + v.stock, 0);
 
     return (
         <div className="space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                     <h2 className="text-xl font-semibold text-slate-900">Inventory Management</h2>
-                    <p className="text-slate-500">Track and adjust product stock levels</p>
+                    <p className="text-slate-500">Track and adjust product &amp; variant stock levels</p>
                 </div>
             </div>
 
-            {lowStockProducts.length > 0 && (
+            {lowStockAlerts.length > 0 && (
                 <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
                     <div className="flex items-center space-x-2 text-amber-800 font-medium mb-3">
                         <AlertTriangle className="h-5 w-5" />
-                        <span>Low Stock Alerts ({lowStockProducts.length})</span>
+                        <span>Low Stock Alerts ({lowStockAlerts.length})</span>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-                        {lowStockProducts.map(p => (
-                            <div key={p.id} className="bg-white p-3 rounded-lg border border-amber-100 flex justify-between items-center">
+                        {lowStockAlerts.slice(0, 9).map((alert, i) => (
+                            <div key={i} className="bg-white p-3 rounded-lg border border-amber-100 flex justify-between items-center">
                                 <div>
-                                    <p className="font-medium text-slate-900">{p.name}</p>
-                                    <p className="text-xs text-slate-500">SKU: {p.sku}</p>
+                                    <p className="font-medium text-slate-900 text-sm">{alert.productName}</p>
+                                    {alert.label && <p className="text-xs text-slate-500">{alert.label}</p>}
+                                    <p className="text-xs text-slate-400">SKU: {alert.sku}</p>
                                 </div>
-                                <div className="text-right">
-                                    <p className="text-lg font-bold text-red-600">{p.stockQuantity}</p>
-                                    <p className="text-xs text-slate-400">Threshold: {p.lowStockThreshold || 10}</p>
-                                </div>
+                                <p className="text-lg font-bold text-red-600">{alert.stock}</p>
                             </div>
                         ))}
+                        {lowStockAlerts.length > 9 && (
+                            <div className="bg-white p-3 rounded-lg border border-amber-100 flex items-center justify-center">
+                                <p className="text-sm text-amber-700 font-medium">+{lowStockAlerts.length - 9} more</p>
+                            </div>
+                        )}
                     </div>
                 </div>
             )}
@@ -108,39 +160,101 @@ export function InventoryManagement() {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100">
-                                {products.map(p => (
-                                    <tr key={p.id} className={`hover:bg-slate-50 cursor-pointer ${selectedProduct === p.id ? 'bg-slate-50' : ''}`} onClick={() => setSelectedProduct(p.id)}>
-                                        <td className="py-3">
-                                            <p className="font-medium text-slate-900">{p.name}</p>
-                                            <p className="text-xs text-slate-500">{p.sku}</p>
-                                        </td>
-                                        <td className="py-3 text-right">
-                                            <span className={`inline-block px-2 py-1 rounded-full text-sm font-medium ${p.stockQuantity <= (p.lowStockThreshold || 10) ? 'bg-red-100 text-red-700' : 'bg-emerald-100 text-emerald-700'
-                                                }`}>
-                                                {p.stockQuantity} units
-                                            </span>
-                                        </td>
-                                        <td className="py-3 text-right">
-                                            <button
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    setSelectedProduct(p.id);
-                                                    setAdjustData({ changeQuantity: 0, reason: 'received', notes: '' });
-                                                    setIsAdjustModalOpen(true);
-                                                }}
-                                                className="px-3 py-1 bg-slate-100 text-slate-700 rounded hover:bg-slate-200 transition-colors text-sm font-medium"
-                                            >
-                                                Adjust
-                                            </button>
-                                        </td>
-                                    </tr>
-                                ))}
+                                {products.map(p => {
+                                    const hasVariants = p.variants && p.variants.length > 0;
+                                    const isExpanded = expandedProducts.has(p.id);
+
+                                    return (
+                                        <tr key={p.id} className="group">
+                                            <td colSpan={3} className="p-0">
+                                                {/* Product row */}
+                                                <div
+                                                    className={`flex items-center py-3 px-1 cursor-pointer hover:bg-slate-50 ${selectedProduct === p.id ? 'bg-slate-50' : ''}`}
+                                                    onClick={() => {
+                                                        setSelectedProduct(p.id);
+                                                        if (hasVariants) toggleExpand(p.id);
+                                                    }}
+                                                >
+                                                    <div className="flex-1 flex items-center gap-2">
+                                                        {hasVariants && (
+                                                            <span className="text-slate-400">
+                                                                {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                                                            </span>
+                                                        )}
+                                                        {!hasVariants && <span className="w-4" />}
+                                                        <div>
+                                                            <p className="font-medium text-slate-900">{p.name}</p>
+                                                            <p className="text-xs text-slate-500">{p.sku}{hasVariants ? ` · ${p.variants!.length} variants` : ''}</p>
+                                                        </div>
+                                                    </div>
+                                                    <div className="text-right mr-4">
+                                                        <span className={`inline-block px-2 py-1 rounded-full text-sm font-medium ${
+                                                            hasVariants
+                                                                ? (getVariantTotalStock(p.variants!) < (p.lowStockThreshold || 10) * p.variants!.length ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700')
+                                                                : (p.stockQuantity <= (p.lowStockThreshold || 10) ? 'bg-red-100 text-red-700' : 'bg-emerald-100 text-emerald-700')
+                                                        }`}>
+                                                            {hasVariants
+                                                                ? `${getVariantTotalStock(p.variants!)} total`
+                                                                : `${p.stockQuantity} units`}
+                                                        </span>
+                                                    </div>
+                                                    <div className="text-right">
+                                                        {!hasVariants && (
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    openAdjustModal(p.id);
+                                                                }}
+                                                                className="px-3 py-1 bg-slate-100 text-slate-700 rounded hover:bg-slate-200 transition-colors text-sm font-medium"
+                                                            >
+                                                                Adjust
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                </div>
+
+                                                {/* Expanded variant rows */}
+                                                {hasVariants && isExpanded && (
+                                                    <div className="ml-7 mb-2">
+                                                        {p.variants!.map(v => (
+                                                            <div
+                                                                key={v.sku}
+                                                                className="flex items-center py-2 px-3 bg-slate-50/50 border-l-2 border-slate-200 hover:bg-slate-100 text-sm"
+                                                            >
+                                                                <div className="flex-1">
+                                                                    <span className="text-slate-700 font-medium">{v.label}</span>
+                                                                    <span className="text-slate-400 text-xs ml-2">{v.sku}</span>
+                                                                </div>
+                                                                <span className={`px-2 py-0.5 rounded-full text-xs font-medium mr-3 ${
+                                                                    v.stock <= 0 ? 'bg-red-100 text-red-700'
+                                                                    : v.stock < (p.lowStockThreshold || 10) ? 'bg-amber-100 text-amber-700'
+                                                                    : 'bg-emerald-100 text-emerald-700'
+                                                                }`}>
+                                                                    {v.stock}
+                                                                </span>
+                                                                <button
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        openAdjustModal(p.id, v.sku, v.label);
+                                                                    }}
+                                                                    className="px-2 py-0.5 bg-slate-200 text-slate-600 rounded hover:bg-slate-300 transition-colors text-xs font-medium"
+                                                                >
+                                                                    Adjust
+                                                                </button>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
                             </tbody>
                         </table>
                     </div>
                 </div>
 
-                {/* Product Details & QR */}
+                {/* Product Details & History */}
                 <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5 flex flex-col h-[600px]">
                     <h3 className="font-semibold text-slate-900 mb-4">Stock History</h3>
 
@@ -156,14 +270,31 @@ export function InventoryManagement() {
                                 <div>
                                     <p className="font-bold text-slate-900">{products.find(p => p.id === selectedProduct)?.name}</p>
                                     <p className="text-sm text-slate-500 mb-2">Scan to view product page</p>
-                                    <div className="flex gap-2 text-xs">
-                                        <span className="bg-white px-2 py-1 rounded border border-slate-200">
-                                            Stock: {products.find(p => p.id === selectedProduct)?.stockQuantity}
-                                        </span>
-                                        <span className="bg-white px-2 py-1 rounded border border-slate-200">
-                                            Thr: {products.find(p => p.id === selectedProduct)?.lowStockThreshold || 10}
-                                        </span>
-                                    </div>
+                                    {(() => {
+                                        const prod = products.find(p => p.id === selectedProduct);
+                                        if (!prod) return null;
+                                        if (prod.variants && prod.variants.length > 0) {
+                                            return (
+                                                <div className="flex flex-wrap gap-1 text-xs">
+                                                    {prod.variants.map(v => (
+                                                        <span key={v.sku} className="bg-white px-2 py-1 rounded border border-slate-200">
+                                                            {v.label}: {v.stock}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            );
+                                        }
+                                        return (
+                                            <div className="flex gap-2 text-xs">
+                                                <span className="bg-white px-2 py-1 rounded border border-slate-200">
+                                                    Stock: {prod.stockQuantity}
+                                                </span>
+                                                <span className="bg-white px-2 py-1 rounded border border-slate-200">
+                                                    Thr: {prod.lowStockThreshold || 10}
+                                                </span>
+                                            </div>
+                                        );
+                                    })()}
                                 </div>
                             </div>
 
@@ -180,6 +311,9 @@ export function InventoryManagement() {
                                             </span>
                                         </div>
                                         <p className="text-sm font-medium text-slate-700 capitalize">{log.reason}</p>
+                                        {log.variantSku && (
+                                            <p className="text-xs text-slate-500 mt-0.5">Variant: {log.variantSku}</p>
+                                        )}
                                         {log.notes && <p className="text-xs text-slate-500 mt-1">{log.notes}</p>}
                                         <p className="text-xs text-slate-400 mt-1">By {log.performedByName}</p>
                                     </div>
@@ -198,7 +332,7 @@ export function InventoryManagement() {
             </div>
 
             {/* Adjust Stock Modal */}
-            {isAdjustModalOpen && selectedProduct && (
+            {isAdjustModalOpen && adjustTarget && (
                 <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
                     <div className="bg-white rounded-xl max-w-sm w-full p-5">
                         <div className="flex justify-between items-center mb-4">
@@ -209,7 +343,7 @@ export function InventoryManagement() {
                         </div>
 
                         <p className="text-sm font-medium text-slate-700 mb-4">
-                            {products.find(p => p.id === selectedProduct)?.name}
+                            {adjustTarget.label}
                         </p>
 
                         <div className="space-y-4">

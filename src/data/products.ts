@@ -2,6 +2,7 @@ export interface ProductVariant {
   sku: string;
   label: string;
   price: number;
+  stock: number;
 }
 
 export interface Product {
@@ -94,6 +95,7 @@ export interface Order {
     name: string;
     quantity: number;
     price: number;
+    variantSku?: string;
   }[];
   total: number;
   status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
