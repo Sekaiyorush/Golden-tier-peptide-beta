@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { useDatabase } from '@/context/DatabaseContext';
 import { formatDate } from '@/lib/formatDate';
+import { formatTHB } from '@/lib/formatPrice';
 import { PartnerNetwork } from './PartnerNetwork';
 import {
   Package,
@@ -132,7 +133,7 @@ export function PartnerDashboard() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-[10px] font-bold tracking-[0.2em] uppercase text-[#AA771C] mb-3">Total Purchases</p>
-                    <p className="text-4xl font-serif text-slate-900">฿{totalPurchases.toFixed(2)}</p>
+                    <p className="text-4xl font-serif text-slate-900">{formatTHB(totalPurchases)}</p>
                   </div>
                   <div className="w-12 h-12 bg-white border border-[#D4AF37]/10 flex items-center justify-center shadow-sm">
                     <ShoppingBag className="h-5 w-5 text-[#D4AF37]" />
@@ -144,7 +145,7 @@ export function PartnerDashboard() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-[10px] font-bold tracking-[0.2em] uppercase text-[#AA771C] mb-3">Est. Profit</p>
-                    <p className="text-4xl font-serif text-emerald-700">฿{estimatedProfit.toFixed(2)}</p>
+                    <p className="text-4xl font-serif text-emerald-700">{formatTHB(estimatedProfit)}</p>
                   </div>
                   <div className="w-12 h-12 bg-emerald-50 border border-emerald-100 flex items-center justify-center shadow-sm">
                     <TrendingUp className="h-5 w-5 text-emerald-600" />
@@ -192,7 +193,7 @@ export function PartnerDashboard() {
                       </div>
                       <div className="text-right flex items-center space-x-6">
                         <div className="text-right">
-                          <p className="font-serif text-xl text-slate-900">฿{order.total.toFixed(2)}</p>
+                          <p className="font-serif text-xl text-slate-900">{formatTHB(order.total)}</p>
                           <span className={`inline-flex items-center space-x-1 px-3 py-1 text-[9px] font-bold tracking-[0.2em] uppercase border mt-2 ${order.status === 'delivered' ? 'bg-emerald-50 text-emerald-700 border-emerald-200/50' :
                             order.status === 'shipped' ? 'bg-blue-50 text-blue-700 border-blue-200/50' :
                               'bg-amber-50 text-[#AA771C] border-[#D4AF37]/30'
@@ -319,11 +320,11 @@ export function PartnerDashboard() {
                     <p className="text-sm text-slate-500 mt-3 tracking-wide leading-relaxed line-clamp-2 flex-1">{product.description}</p>
                     <div className="mt-8 flex items-end justify-between pt-6 border-t border-[#D4AF37]/10">
                       <div>
-                        <p className="text-xs text-slate-400 line-through mb-1 tracking-wide">฿{product.price.toFixed(2)}</p>
-                        <p className="text-2xl font-serif text-[#D4AF37]">฿{getDiscountedPrice(product.price).toFixed(2)}</p>
+                        <p className="text-xs text-slate-400 line-through mb-1 tracking-wide">{formatTHB(product.price)}</p>
+                        <p className="text-2xl font-serif text-[#D4AF37]">{formatTHB(getDiscountedPrice(product.price))}</p>
                       </div>
                       <span className="px-3 py-1 bg-[#111] text-[#D4AF37] text-[9px] font-bold tracking-[0.2em] uppercase border border-[#D4AF37]/30 shadow-md">
-                        SAVE ฿{(product.price - getDiscountedPrice(product.price)).toFixed(2)}
+                        SAVE {formatTHB(product.price - getDiscountedPrice(product.price))}
                       </span>
                     </div>
                   </div>
@@ -359,7 +360,7 @@ export function PartnerDashboard() {
                     {order.items.map((item, idx) => (
                       <div key={idx} className="flex items-center justify-between text-sm">
                         <span className="text-slate-500 font-light tracking-wide">{item.quantity}x <span className="font-serif text-lg text-slate-900 ml-2">{item.name}</span></span>
-                        <span className="text-[#D4AF37] font-serif text-lg">฿{(item.price * item.quantity).toFixed(2)}</span>
+                        <span className="text-[#D4AF37] font-serif text-lg">{formatTHB(item.price * item.quantity)}</span>
                       </div>
                     ))}
                   </div>
@@ -370,7 +371,7 @@ export function PartnerDashboard() {
                     >
                       <Eye className="h-4 w-4 mr-2 group-hover:scale-110 transition-transform" /> VIEW TRACKING
                     </button>
-                    <span className="font-serif text-3xl text-slate-900 tracking-tight">฿{order.total.toFixed(2)}</span>
+                    <span className="font-serif text-3xl text-slate-900 tracking-tight">{formatTHB(order.total)}</span>
                   </div>
                 </div>
               ))}
@@ -400,11 +401,11 @@ export function PartnerDashboard() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
                   <div className="p-8 bg-slate-50 border border-[#D4AF37]/10 shadow-inner">
                     <p className="text-[10px] font-bold tracking-[0.2em] uppercase text-[#AA771C] mb-4">Available to Withdraw</p>
-                    <p className="text-5xl font-serif text-slate-900 tracking-tight">฿{estimatedProfit.toFixed(2)}</p>
+                    <p className="text-5xl font-serif text-slate-900 tracking-tight">{formatTHB(estimatedProfit)}</p>
                   </div>
                   <div className="p-8 bg-slate-50 border border-[#D4AF37]/10 shadow-inner">
                     <p className="text-[10px] font-bold tracking-[0.2em] uppercase text-slate-400 mb-4">Total Lifetime Earnings</p>
-                    <p className="text-4xl font-serif text-slate-400 tracking-tight">฿{estimatedProfit.toFixed(2)}</p>
+                    <p className="text-4xl font-serif text-slate-400 tracking-tight">{formatTHB(estimatedProfit)}</p>
                   </div>
                 </div>
               </div>
@@ -418,7 +419,7 @@ export function PartnerDashboard() {
                     if (Number(payoutAmount) > estimatedProfit) {
                       alert('You cannot withdraw more than your available balance.');
                     } else if (Number(payoutAmount) < 50) {
-                      alert('Minimum withdrawal amount is ฿50.00');
+                      alert('Minimum withdrawal amount is ฿50 THB');
                     } else {
                       alert('Payout request submitted successfully. Processing takes 2-3 business days.');
                       setPayoutAmount('');
@@ -427,7 +428,7 @@ export function PartnerDashboard() {
                   className="space-y-6"
                 >
                   <div>
-                    <label className="block text-[10px] font-bold tracking-[0.2em] uppercase text-slate-900 mb-3">Amount (฿)</label>
+                    <label className="block text-[10px] font-bold tracking-[0.2em] uppercase text-slate-900 mb-3">Amount (THB)</label>
                     <input
                       type="number"
                       min="50"
@@ -436,7 +437,7 @@ export function PartnerDashboard() {
                       value={payoutAmount}
                       onChange={(e) => setPayoutAmount(e.target.value)}
                       className="w-full px-4 py-3 bg-white border border-[#D4AF37]/30 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37]/50 transition-all font-serif text-lg"
-                      placeholder="Min ฿50.00"
+                      placeholder="Min ฿50 THB"
                     />
                   </div>
                   <div>
@@ -458,7 +459,7 @@ export function PartnerDashboard() {
                     <span className="relative z-10 transition-colors group-hover:text-[#D4AF37]">SUBMIT REQUEST</span>
                     <span className="absolute bottom-0 left-0 w-0 h-[2px] bg-gradient-to-r from-[#D4AF37] to-[#F3E5AB] transition-all duration-500 ease-out group-hover:w-full" />
                   </button>
-                  <p className="text-[10px] text-slate-400 uppercase tracking-widest text-center mt-4">Minimum withdrawal: ฿50.00</p>
+                  <p className="text-[10px] text-slate-400 uppercase tracking-widest text-center mt-4">Minimum withdrawal: ฿50 THB</p>
                 </form>
               </div>
             </div>

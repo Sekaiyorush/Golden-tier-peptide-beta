@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { useDatabase } from '@/context/DatabaseContext';
+import { formatTHB } from '@/lib/formatPrice';
 import {
   Package,
   ShoppingBag,
@@ -143,7 +144,7 @@ export function UserDashboard() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-[10px] font-bold tracking-[0.2em] uppercase text-[#AA771C] mb-3">Total Spent</p>
-                    <p className="text-4xl font-serif text-slate-900">฿{userProfile.totalSpent.toFixed(2)}</p>
+                    <p className="text-4xl font-serif text-slate-900">{formatTHB(userProfile.totalSpent)}</p>
                   </div>
                   <div className="w-12 h-12 bg-white border border-[#D4AF37]/10 flex items-center justify-center shadow-sm">
                     <CreditCard className="h-5 w-5 text-[#D4AF37]" />
@@ -189,7 +190,7 @@ export function UserDashboard() {
                     </div>
                     <div className="text-right flex items-center space-x-6 justify-between md:justify-end">
                       <div className="text-left md:text-right">
-                        <p className="font-serif text-xl text-slate-900">฿{order.total.toFixed(2)}</p>
+                        <p className="font-serif text-xl text-slate-900">{formatTHB(order.total)}</p>
                         <span className={`inline-flex items-center space-x-1 px-3 py-1 text-[9px] font-bold tracking-[0.2em] uppercase border mt-2 ${order.status === 'delivered' ? 'bg-emerald-50 text-emerald-700 border-emerald-200/50' :
                           order.status === 'shipped' ? 'bg-blue-50 text-blue-700 border-blue-200/50' :
                             'bg-amber-50 text-[#AA771C] border-[#D4AF37]/30'
@@ -245,7 +246,7 @@ export function UserDashboard() {
                     {order.items.map((item, idx) => (
                       <div key={idx} className="flex items-center justify-between text-sm">
                         <span className="text-slate-500 tracking-wide">{item.quantity}x <span className="font-semibold text-slate-900">{item.name}</span></span>
-                        <span className="text-slate-900 font-medium">฿{(item.price * item.quantity).toFixed(2)}</span>
+                        <span className="text-slate-900 font-medium">{formatTHB(item.price * item.quantity)}</span>
                       </div>
                     ))}
                   </div>
@@ -256,7 +257,7 @@ export function UserDashboard() {
                     >
                       <Eye className="h-4 w-4 mr-2" /> VIEW DETAILS
                     </button>
-                    <span className="font-serif text-xl text-slate-900">Total: ฿{order.total.toFixed(2)}</span>
+                    <span className="font-serif text-xl text-slate-900">Total: {formatTHB(order.total)}</span>
                   </div>
                 </div>
               ))}

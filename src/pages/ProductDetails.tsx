@@ -9,6 +9,7 @@ import { Breadcrumbs } from '@/components/Breadcrumbs';
 import { ShoppingCart, Check, ShieldCheck, ArrowLeft, Plus, Minus, FileText, Package } from 'lucide-react';
 import { ReviewList } from '@/components/reviews/ReviewList';
 import type { ProductVariant } from '@/data/products';
+import { formatTHB } from '@/lib/formatPrice';
 
 export function ProductDetails() {
     const { sku } = useParams<{ sku: string }>();
@@ -180,9 +181,9 @@ export function ProductDetails() {
                                 <>
                                     <div className="mb-12">
                                         <div className="flex items-end gap-4 mb-2">
-                                            <span className="text-5xl font-serif text-slate-900 tracking-tight">฿{currentPrice.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span>
+                                            <span className="text-5xl font-serif text-slate-900 tracking-tight">{formatTHB(currentPrice)}</span>
                                             {user?.discountRate && (
-                                                <span className="text-xl text-slate-400 line-through mb-1.5 font-light">฿{activePrice.toLocaleString()}</span>
+                                                <span className="text-xl text-slate-400 line-through mb-1.5 font-light">{formatTHB(activePrice)}</span>
                                             )}
                                         </div>
                                         {user?.discountRate && (

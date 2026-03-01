@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { useDatabase } from '@/context/DatabaseContext';
 import { useCart } from '@/context/CartContext';
+import { formatTHB } from '@/lib/formatPrice';
 import { 
   ShoppingBag, 
   Heart, 
@@ -214,7 +215,7 @@ export function CustomerQuickActions() {
                   <div>
                     <p className="font-medium text-slate-900">{item.name}</p>
                     <div className="flex items-center space-x-3 text-sm text-slate-500">
-                      <span>฿{item.price.toFixed(2)}</span>
+                      <span>{formatTHB(item.price)}</span>
                       <span>•</span>
                       <span>Ordered {item.timesOrdered} time{item.timesOrdered > 1 ? 's' : ''}</span>
                     </div>

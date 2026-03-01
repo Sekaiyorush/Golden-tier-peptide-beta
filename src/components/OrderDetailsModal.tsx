@@ -1,6 +1,7 @@
 import { X, CheckCircle2, Truck, Clock, MapPin, Package, AlertCircle } from 'lucide-react';
 import type { Order } from '@/data/products';
 import { useDatabase } from '@/context/DatabaseContext';
+import { formatTHB } from '@/lib/formatPrice';
 
 interface OrderDetailsModalProps {
     order: Order;
@@ -145,13 +146,13 @@ export function OrderDetailsModal({ order, onClose }: OrderDetailsModalProps) {
                                             <div className="font-medium text-slate-900">{item.quantity}x</div>
                                             <div className="text-slate-600">{item.name}</div>
                                         </div>
-                                        <div className="font-medium text-slate-900">฿{(item.price * item.quantity).toFixed(2)}</div>
+                                        <div className="font-medium text-slate-900">{formatTHB(item.price * item.quantity)}</div>
                                     </div>
                                 ))}
                             </div>
                             <div className="bg-slate-50 p-4 border-t border-slate-200 flex items-center justify-between">
                                 <span className="font-medium text-slate-700">Total</span>
-                                <span className="font-bold text-slate-900 text-lg">฿{order.total.toFixed(2)}</span>
+                                <span className="font-bold text-slate-900 text-lg">{formatTHB(order.total)}</span>
                             </div>
                         </div>
                     </div>
