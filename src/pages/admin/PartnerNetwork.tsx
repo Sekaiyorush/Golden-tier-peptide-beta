@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { type Partner } from '@/data/products';
 import { useDatabase } from '@/context/DatabaseContext';
+import { formatTHB } from '@/lib/formatPrice';
 import {
   Search,
   Users,
@@ -138,14 +139,14 @@ export function PartnerNetwork() {
             <Percent className="h-4 w-4 text-indigo-500" />
             <span className="text-sm text-slate-500">Total Purchases</span>
           </div>
-          <p className="text-2xl font-semibold text-slate-900">฿{totalNetworkPurchases.toLocaleString()}</p>
+          <p className="text-2xl font-semibold text-slate-900">{formatTHB(totalNetworkPurchases)}</p>
         </div>
         <div className="bg-white p-4 rounded-xl border border-slate-200">
           <div className="flex items-center space-x-2 mb-2">
             <TrendingUp className="h-4 w-4 text-amber-500" />
             <span className="text-sm text-slate-500">Total Resold</span>
           </div>
-          <p className="text-2xl font-semibold text-slate-900">฿{totalNetworkResold.toLocaleString()}</p>
+          <p className="text-2xl font-semibold text-slate-900">{formatTHB(totalNetworkResold)}</p>
         </div>
       </div>
 
@@ -218,16 +219,16 @@ export function PartnerNetwork() {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-slate-500">Total Purchases</span>
-                    <span className="text-slate-900">฿{selectedPartner.totalPurchases.toLocaleString()}</span>
+                    <span className="text-slate-900">{formatTHB(selectedPartner.totalPurchases)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-slate-500">Total Resold</span>
-                    <span className="text-slate-900">฿{selectedPartner.totalResold.toLocaleString()}</span>
+                    <span className="text-slate-900">{formatTHB(selectedPartner.totalResold)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-slate-500">Est. Profit</span>
                     <span className="font-medium text-emerald-600">
-                      ${(selectedPartner.totalResold - selectedPartner.totalPurchases).toLocaleString()}
+                      {formatTHB(selectedPartner.totalResold - selectedPartner.totalPurchases)}
                     </span>
                   </div>
                 </div>
@@ -261,7 +262,7 @@ export function PartnerNetwork() {
                     <p className="text-xs text-slate-500">{partner.company}</p>
                   </div>
                   <div className="text-right">
-                    <p className="font-medium text-slate-900">฿{partner.totalResold.toLocaleString()}</p>
+                    <p className="font-medium text-slate-900">{formatTHB(partner.totalResold)}</p>
                     <p className="text-xs text-emerald-600">resold</p>
                   </div>
                 </div>

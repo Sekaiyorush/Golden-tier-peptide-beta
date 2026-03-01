@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useDatabase } from '@/context/DatabaseContext';
 import { formatDate } from '@/lib/formatDate';
+import { formatTHB } from '@/lib/formatPrice';
 import { TableRowSkeleton } from '@/components/skeletons/TableRowSkeleton';
 import {
   Search,
@@ -69,7 +70,7 @@ export function CustomersManagement() {
         <div className="bg-white p-4 rounded-xl border border-slate-200">
           <p className="text-sm text-slate-500">Total Revenue</p>
           <p className="text-2xl font-semibold text-slate-900">
-            ฿{customerList.reduce((sum, c) => sum + c.totalSpent, 0).toLocaleString()}
+            {formatTHB(customerList.reduce((sum, c) => sum + c.totalSpent, 0))}
           </p>
         </div>
       </div>

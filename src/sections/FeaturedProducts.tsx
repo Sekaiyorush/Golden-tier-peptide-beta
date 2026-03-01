@@ -5,6 +5,7 @@ import { ShoppingCart, ArrowRight, Check } from 'lucide-react';
 import { ProductRating } from '@/components/reviews/ProductRating';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { useRef } from 'react';
+import { formatTHB } from '@/lib/formatPrice';
 
 export function FeaturedProducts() {
   const { isPartner, user } = useAuth();
@@ -139,12 +140,12 @@ export function FeaturedProducts() {
                         return (
                           <div>
                             <span className="text-[10px] uppercase tracking-[0.2em] text-slate-400 line-through block mb-1">
-                              {hasVariants ? 'from ' : ''}฿{basePrice.toLocaleString()}
+                              {hasVariants ? 'from ' : ''}{formatTHB(basePrice)}
                             </span>
                             <div className="flex items-center space-x-1">
                               {hasVariants && <span className="text-xs text-slate-400">from</span>}
                               <p className="text-2xl font-serif text-[#D4AF37]">
-                                ฿{getPrice(basePrice).toLocaleString()}
+                                {formatTHB(getPrice(basePrice))}
                               </p>
                             </div>
                           </div>

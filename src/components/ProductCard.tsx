@@ -5,6 +5,7 @@ import { ShoppingCart, Eye, Heart, Sparkles } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import type { Product } from '@/data/products';
 import { ProductRating } from '@/components/reviews/ProductRating';
+import { formatTHB } from '@/lib/formatPrice';
 
 interface ProductCardProps {
   product: Product;
@@ -133,17 +134,17 @@ export const ProductCard = memo(function ProductCard({ product, index = 0 }: Pro
                   {hasDiscount ? (
                     <>
                       <span className="text-xs text-slate-300 line-through mb-1">
-                        {hasVariants ? 'from ' : ''}฿{displayPrice.toLocaleString()}
+                        {hasVariants ? 'from ' : ''}{formatTHB(displayPrice)}
                       </span>
                       <div className="flex items-center space-x-1">
                         {hasVariants && <span className="text-xs text-slate-400 mr-0.5">from</span>}
-                        <span className="text-2xl font-serif text-[#D4AF37]">฿{discountedPrice.toLocaleString()}</span>
+                        <span className="text-2xl font-serif text-[#D4AF37]">{formatTHB(discountedPrice)}</span>
                       </div>
                     </>
                   ) : (
                     <div className="flex items-center space-x-1">
                       {hasVariants && <span className="text-xs text-slate-400 mr-0.5">from</span>}
-                      <span className="text-2xl font-serif text-slate-900">฿{displayPrice.toLocaleString()}</span>
+                      <span className="text-2xl font-serif text-slate-900">{formatTHB(displayPrice)}</span>
                     </div>
                   )}
                 </div>

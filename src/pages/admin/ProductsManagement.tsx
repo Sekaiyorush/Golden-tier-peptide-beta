@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { type Product, type ProductVariant } from '@/data/products';
 import { useDatabase } from '@/context/DatabaseContext';
+import { formatTHB } from '@/lib/formatPrice';
 import {
   Plus,
   Search,
@@ -234,9 +235,9 @@ export function ProductsManagement() {
                   </td>
                   <td className="px-4 py-3 text-sm font-medium">
                     {product.variants && product.variants.length > 0 ? (
-                      <span>from ฿{Math.min(...product.variants.map(v => v.price)).toLocaleString()}</span>
+                      <span>from {formatTHB(Math.min(...product.variants.map(v => v.price)))}</span>
                     ) : (
-                      <span>฿{product.price.toLocaleString()}</span>
+                      <span>{formatTHB(product.price)}</span>
                     )}
                   </td>
                   <td className="px-4 py-3 text-sm">
@@ -368,7 +369,7 @@ export function ProductsManagement() {
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-sm font-medium mb-1">Price (฿) *</label>
+                  <label className="block text-sm font-medium mb-1">Price (THB) *</label>
                   <input
                     type="number"
                     step="0.01"
@@ -463,7 +464,7 @@ export function ProductsManagement() {
                     <div className="grid grid-cols-[1fr_2fr_1fr_1fr_auto] gap-2 text-xs font-medium text-muted-foreground">
                       <span>SKU</span>
                       <span>Label</span>
-                      <span>Price (฿)</span>
+                      <span>Price (THB)</span>
                       <span>Stock</span>
                       <span></span>
                     </div>

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useDatabase } from '@/context/DatabaseContext';
 import { type Order } from '@/data/products';
 import { formatDate } from '@/lib/formatDate';
+import { formatTHB } from '@/lib/formatPrice';
 import { TableRowSkeleton } from '@/components/skeletons/TableRowSkeleton';
 import { OrderNotes } from '@/components/admin/OrderNotes';
 import { BulkActionToolbar } from '@/components/admin/BulkActionToolbar';
@@ -248,7 +249,7 @@ export function OrdersManagement() {
                     </td>
                     <td className="px-4 py-3 text-sm">{formatDate(order.createdAt)}</td>
                     <td className="px-4 py-3 text-sm font-medium">
-                      ฿{order.total.toFixed(2)}
+                      {formatTHB(order.total)}
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center space-x-2">
@@ -310,7 +311,7 @@ export function OrdersManagement() {
                                     <span>{item.name}</span>
                                   </div>
                                   <div className="text-sm text-muted-foreground">
-                                    {item.quantity} x ฿{item.price.toFixed(2)}
+                                    {item.quantity} x {formatTHB(item.price)}
                                   </div>
                                 </div>
                               ))}

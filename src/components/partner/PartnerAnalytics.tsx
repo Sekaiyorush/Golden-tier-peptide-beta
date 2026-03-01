@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { useDatabase } from '@/context/DatabaseContext';
+import { formatTHB } from '@/lib/formatPrice';
 import { 
   TrendingUp, 
   DollarSign, 
@@ -104,7 +105,7 @@ export function PartnerAnalytics() {
       newNotifications.push({
         id: `order-${order.id}`,
         type: 'order',
-        message: `Order #${order.id} confirmed - ฿${order.total.toFixed(2)}`,
+        message: `Order #${order.id} confirmed - ${formatTHB(order.total)}`,
         timestamp: order.createdAt,
         read: false
       });
@@ -186,7 +187,7 @@ export function PartnerAnalytics() {
           <div className="flex items-center justify-between mb-4">
             <div>
               <p className="text-xs font-bold tracking-widest uppercase text-slate-400 mb-1">Total Earnings</p>
-              <p className="text-3xl font-serif text-slate-900">฿{stats.totalEarnings.toFixed(2)}</p>
+              <p className="text-3xl font-serif text-slate-900">{formatTHB(stats.totalEarnings)}</p>
             </div>
             <div className="w-12 h-12 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-500/20">
               <DollarSign className="h-6 w-6 text-white" />
