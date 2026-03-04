@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
+import { toast } from 'sonner';
 import type { InvitationCode } from '@/data/invitations';
 import { useDatabase } from './DatabaseContext';
 import { supabase } from '@/lib/supabase';
@@ -26,7 +27,7 @@ interface AuthContextType {
   isAdmin: boolean;
   isPartner: boolean;
   isCustomer: boolean;
-  login: (email: string, password: string) => Promise<boolean>;
+  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   register: (name: string, email: string, password: string, invitationCode: string) => Promise<{ success: boolean; error?: string }>;
   resetPasswordForEmail: (email: string) => Promise<{ success: boolean; error?: string }>;
   updatePassword: (password: string) => Promise<{ success: boolean; error?: string }>;
@@ -81,7 +82,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
-  const login = async (email: string, password: string): Promise<boolean> => {
+  const login = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
     // Check rate limit before attempting login
     const { data: allowed } = await supabase.rpc('check_rate_limit', {
       p_identifier: email,
@@ -91,16 +92,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     if (allowed === false) {
-      alert('Too many login attempts. Please wait 15 minutes before trying again.');
-      return false;
+      return { success: false, error: 'Too many login attempts. Please wait 15 minutes before trying again.' };
     }
 
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
-      alert(error.message);
-      return false;
+      // Generic message to prevent user enumeration (A2)
+      return { success: false, error: 'Invalid email or password. Please try again.' };
     }
-    return true;
+    return { success: true };
   };
 
   // Server-side invitation code validation via RPC
@@ -152,7 +152,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     if (allowed === false) {
-      return { success: false, error: 'Too many registration attempts. Please wait before trying again.' };
+      return { success: false, error: 'Too many attempts. Please wait and try again.' };
     }
 
     // Validate the invitation code server-side via RPC
@@ -173,7 +173,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       password,
     });
 
-    if (authError) return { success: false, error: authError.message };
+    if (authError) {
+      console.error('Registration auth error:', authError.message);
+      return { success: false, error: 'Registration failed. Please try again.' };
+    }
 
     if (authData.user) {
       // Create profile with the correct role from invitation code
@@ -187,7 +190,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         status: 'active',
       });
 
-      if (profileError) return { success: false, error: profileError.message };
+      if (profileError) {
+        console.error('Registration profile error:', profileError.message);
+        return { success: false, error: 'Registration failed. Please try again.' };
+      }
 
       // Consume the invitation code server-side (atomic increment)
       await supabase.rpc('use_invitation_code', { code_input: invitationCode });
@@ -210,14 +216,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     if (allowed === false) {
-      return { success: false, error: 'Too many password reset attempts. Please wait before trying again.' };
+      return { success: false, error: 'Too many attempts. Please wait and try again.' };
     }
 
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/reset-password`,
     });
     if (error) {
-      return { success: false, error: error.message };
+      console.error('Password reset error:', error.message);
+      return { success: false, error: 'Registration failed. Please try again.' };
     }
     return { success: true };
   };
@@ -225,7 +232,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const updatePassword = async (password: string) => {
     const { error } = await supabase.auth.updateUser({ password });
     if (error) {
-      return { success: false, error: error.message };
+      console.error('Update password error:', error.message);
+      return { success: false, error: 'Registration failed. Please try again.' };
     }
     return { success: true };
   };

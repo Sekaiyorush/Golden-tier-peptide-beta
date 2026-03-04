@@ -1,10 +1,16 @@
+import { useEffect } from 'react';
 import { useCart, getItemPrice } from '@/context/CartContext';
 import { formatTHB } from '@/lib/formatPrice';
 import { X, Plus, Minus, ShoppingBag, ArrowRight } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 
 export function CartSidebar() {
   const { items, isOpen, setIsOpen, removeFromCart, updateQuantity, cartSubtotal, discountAmount, cartTotal } = useCart();
+  const location = useLocation();
+
+  useEffect(() => {
+    setIsOpen(false);
+  }, [location.pathname]);
 
   if (!isOpen) return null;
 

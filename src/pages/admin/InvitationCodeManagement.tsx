@@ -33,6 +33,7 @@ export function InvitationCodeManagement() {
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [selectedCode, setSelectedCode] = useState<InvitationCode | null>(null);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
+  const [bulkGenerateSuccess, setBulkGenerateSuccess] = useState(false);
 
   // Form states
   const [newCodeType, setNewCodeType] = useState<InvitationCodeType>('admin_user');
@@ -136,7 +137,8 @@ export function InvitationCodeManagement() {
     }
     // Copy all codes to clipboard
     navigator.clipboard.writeText(codes.join('\n'));
-    alert(`Generated 10 codes and copied to clipboard!`);
+    setBulkGenerateSuccess(true);
+    setTimeout(() => setBulkGenerateSuccess(false), 3000);
   };
 
   const getTypeIcon = (type: InvitationCodeType) => {
@@ -174,10 +176,11 @@ export function InvitationCodeManagement() {
         <div className="flex items-center space-x-3">
           <button
             onClick={handleBulkGenerate}
-            className="flex items-center space-x-2 px-4 py-2 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors"
+            disabled={bulkGenerateSuccess}
+            className="flex items-center space-x-2 px-4 py-2 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors disabled:opacity-80"
           >
-            <RefreshCw className="h-4 w-4" />
-            <span>Bulk Generate</span>
+            {bulkGenerateSuccess ? <Check className="h-4 w-4 text-emerald-500" /> : <RefreshCw className="h-4 w-4" />}
+            <span className={bulkGenerateSuccess ? "text-emerald-600 font-medium" : ""}>{bulkGenerateSuccess ? "Generated & Copied!" : "Bulk Generate"}</span>
           </button>
           <button
             onClick={() => setShowCreateModal(true)}

@@ -15,6 +15,7 @@ import {
     Bitcoin,
 } from 'lucide-react';
 import { formatTHB } from '@/lib/formatPrice';
+import { z } from 'zod';
 
 type PaymentMethod = 'bank_transfer' | 'crypto';
 
@@ -30,6 +31,20 @@ interface ShippingForm {
     notes: string;
 }
 
+const ShippingSchema = z.object({
+    fullName: z.string().min(1, 'Full name is required').max(200, 'Full name is too long'),
+    email: z.string().email('Please enter a valid email'),
+    phone: z.string().regex(/\d{7,}/, 'Please enter a valid phone number (at least 7 digits)'),
+    address: z.string().min(1, 'Street address is required').max(200, 'Address is too long'),
+    city: z.string().min(1, 'City is required').max(200, 'City name is too long'),
+    state: z.string().max(200, 'State name is too long').optional(),
+    zip: z.string().max(20, 'ZIP code is too long').optional(),
+    country: z.string().min(1, 'Country is required').max(200, 'Country name is too long'),
+    notes: z.string().optional(),
+});
+
+type ShippingErrors = Partial<Record<keyof ShippingForm, string>>;
+
 export function CheckoutPage() {
     const { items, cartSubtotal, discountAmount, cartTotal, clearCart } = useCart();
     const { user, isPartner } = useAuth();
@@ -40,6 +55,7 @@ export function CheckoutPage() {
     const [orderId, setOrderId] = useState('');
     const [orderError, setOrderError] = useState('');
     const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('bank_transfer');
+    const [shippingErrors, setShippingErrors] = useState<ShippingErrors>({});
     const [shipping, setShipping] = useState<ShippingForm>({
         fullName: user?.name || '',
         email: user?.email || '',
@@ -54,15 +70,27 @@ export function CheckoutPage() {
 
     const updateShipping = (field: keyof ShippingForm, value: string) => {
         setShipping(prev => ({ ...prev, [field]: value }));
+        if (shippingErrors[field]) {
+            setShippingErrors(prev => ({ ...prev, [field]: undefined }));
+        }
     };
 
-    const isShippingValid =
-        shipping.fullName.trim() !== '' &&
-        shipping.email.trim() !== '' &&
-        shipping.phone.trim() !== '' &&
-        shipping.address.trim() !== '' &&
-        shipping.city.trim() !== '' &&
-        shipping.country.trim() !== '';
+    const handleContinueToPayment = () => {
+        const result = ShippingSchema.safeParse(shipping);
+        if (!result.success) {
+            const fieldErrors: ShippingErrors = {};
+            for (const issue of result.error.issues) {
+                const field = issue.path[0] as keyof ShippingForm;
+                if (!fieldErrors[field]) {
+                    fieldErrors[field] = issue.message;
+                }
+            }
+            setShippingErrors(fieldErrors);
+            return;
+        }
+        setShippingErrors({});
+        setStep(2);
+    };
 
     const handlePlaceOrder = async () => {
         if (items.length === 0 || !user) return;
@@ -177,40 +205,55 @@ export function CheckoutPage() {
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         <div>
                                             <label className="block text-sm font-medium text-slate-700 mb-1.5">Full Name *</label>
-                                            <input type="text" required value={shipping.fullName}
+                                            <input type="text" value={shipping.fullName}
                                                 onChange={e => updateShipping('fullName', e.target.value)}
                                                 className="w-full h-11 px-4 rounded-lg border border-slate-200 focus:ring-2 focus:ring-slate-200 focus:border-slate-300" />
+                                            {shippingErrors.fullName && (
+                                                <p className="text-xs text-red-600 mt-1">{shippingErrors.fullName}</p>
+                                            )}
                                         </div>
                                         <div>
                                             <label className="block text-sm font-medium text-slate-700 mb-1.5">Email *</label>
-                                            <input type="email" required value={shipping.email}
+                                            <input type="email" value={shipping.email}
                                                 onChange={e => updateShipping('email', e.target.value)}
                                                 className="w-full h-11 px-4 rounded-lg border border-slate-200 focus:ring-2 focus:ring-slate-200 focus:border-slate-300" />
+                                            {shippingErrors.email && (
+                                                <p className="text-xs text-red-600 mt-1">{shippingErrors.email}</p>
+                                            )}
                                         </div>
                                     </div>
 
                                     <div>
                                         <label className="block text-sm font-medium text-slate-700 mb-1.5">Phone Number *</label>
-                                        <input type="tel" required value={shipping.phone}
+                                        <input type="tel" value={shipping.phone}
                                             onChange={e => updateShipping('phone', e.target.value)}
                                             className="w-full h-11 px-4 rounded-lg border border-slate-200 focus:ring-2 focus:ring-slate-200 focus:border-slate-300"
                                             placeholder="+1 (555) 000-0000" />
+                                        {shippingErrors.phone && (
+                                            <p className="text-xs text-red-600 mt-1">{shippingErrors.phone}</p>
+                                        )}
                                     </div>
 
                                     <div>
                                         <label className="block text-sm font-medium text-slate-700 mb-1.5">Street Address *</label>
-                                        <input type="text" required value={shipping.address}
+                                        <input type="text" value={shipping.address}
                                             onChange={e => updateShipping('address', e.target.value)}
                                             className="w-full h-11 px-4 rounded-lg border border-slate-200 focus:ring-2 focus:ring-slate-200 focus:border-slate-300"
                                             placeholder="123 Main St, Apt 4" />
+                                        {shippingErrors.address && (
+                                            <p className="text-xs text-red-600 mt-1">{shippingErrors.address}</p>
+                                        )}
                                     </div>
 
                                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                                         <div className="col-span-2 sm:col-span-1">
                                             <label className="block text-sm font-medium text-slate-700 mb-1.5">City *</label>
-                                            <input type="text" required value={shipping.city}
+                                            <input type="text" value={shipping.city}
                                                 onChange={e => updateShipping('city', e.target.value)}
                                                 className="w-full h-11 px-4 rounded-lg border border-slate-200 focus:ring-2 focus:ring-slate-200 focus:border-slate-300" />
+                                            {shippingErrors.city && (
+                                                <p className="text-xs text-red-600 mt-1">{shippingErrors.city}</p>
+                                            )}
                                         </div>
                                         <div>
                                             <label className="block text-sm font-medium text-slate-700 mb-1.5">State</label>
@@ -223,13 +266,19 @@ export function CheckoutPage() {
                                             <input type="text" value={shipping.zip}
                                                 onChange={e => updateShipping('zip', e.target.value)}
                                                 className="w-full h-11 px-4 rounded-lg border border-slate-200 focus:ring-2 focus:ring-slate-200 focus:border-slate-300" />
+                                            {shippingErrors.zip && (
+                                                <p className="text-xs text-red-600 mt-1">{shippingErrors.zip}</p>
+                                            )}
                                         </div>
                                         <div>
                                             <label className="block text-sm font-medium text-slate-700 mb-1.5">Country *</label>
-                                            <input type="text" required value={shipping.country}
+                                            <input type="text" value={shipping.country}
                                                 onChange={e => updateShipping('country', e.target.value)}
                                                 className="w-full h-11 px-4 rounded-lg border border-slate-200 focus:ring-2 focus:ring-slate-200 focus:border-slate-300"
                                                 placeholder="US" />
+                                            {shippingErrors.country && (
+                                                <p className="text-xs text-red-600 mt-1">{shippingErrors.country}</p>
+                                            )}
                                         </div>
                                     </div>
 
@@ -243,9 +292,8 @@ export function CheckoutPage() {
                                 </div>
 
                                 <button
-                                    onClick={() => setStep(2)}
-                                    disabled={!isShippingValid}
-                                    className="w-full mt-6 h-12 bg-slate-900 text-white rounded-lg font-medium hover:bg-slate-800 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                                    onClick={handleContinueToPayment}
+                                    className="w-full mt-6 h-12 bg-slate-900 text-white rounded-lg font-medium hover:bg-slate-800 transition-colors"
                                 >
                                     Continue to Payment
                                 </button>

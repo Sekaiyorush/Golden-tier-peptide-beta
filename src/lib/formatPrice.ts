@@ -7,6 +7,8 @@
  * @returns Formatted string like "฿1,234.00 THB" or "฿1,234 THB"
  */
 export function formatTHB(amount: number, showDecimals = true): string {
+  // Guard against NaN, Infinity, or non-finite values (D5)
+  if (!Number.isFinite(amount)) return '฿0.00 THB';
   const formatted = amount.toLocaleString('en-US', {
     minimumFractionDigits: showDecimals ? 2 : 0,
     maximumFractionDigits: showDecimals ? 2 : 0,

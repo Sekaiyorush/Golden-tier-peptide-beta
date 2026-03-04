@@ -1,4 +1,5 @@
-import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef, type ReactNode } from 'react';
+import { z } from 'zod';
 import { useAuth } from '@/context/AuthContext';
 import type { Product, ProductVariant } from '@/data/products';
 
@@ -28,30 +29,25 @@ interface CartContextType {
   cartTotal: number;
 }
 
-const CART_STORAGE_KEY = 'goldentier_cart';
+const productSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  price: z.number(),
+  sku: z.string(),
+}).passthrough();
+
+const cartItemSchema = z.object({
+  product: productSchema,
+  quantity: z.number().int().positive(),
+  selectedVariant: z.object({
+    sku: z.string(),
+    price: z.number(),
+  }).passthrough().optional(),
+});
+
+const cartItemsSchema = z.array(cartItemSchema);
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
-
-function loadCartFromStorage(): CartItem[] {
-  try {
-    const stored = localStorage.getItem(CART_STORAGE_KEY);
-    if (stored) {
-      const parsed = JSON.parse(stored);
-      if (Array.isArray(parsed)) return parsed;
-    }
-  } catch {
-    // Corrupted data — ignore
-  }
-  return [];
-}
-
-function saveCartToStorage(items: CartItem[]) {
-  try {
-    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
-  } catch {
-    // Storage full or unavailable — ignore
-  }
-}
 
 function matchesItem(item: CartItem, productId: string, variantSku?: string): boolean {
   if (item.product.id !== productId) return false;
@@ -60,14 +56,67 @@ function matchesItem(item: CartItem, productId: string, variantSku?: string): bo
 }
 
 export function CartProvider({ children }: { children: ReactNode }) {
-  const [items, setItems] = useState<CartItem[]>(loadCartFromStorage);
-  const [isOpen, setIsOpen] = useState(false);
   const { user, isPartner } = useAuth();
+  const [items, setItems] = useState<CartItem[]>([]);
+  const [isOpen, setIsOpen] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
+  const previousUserId = useRef(user?.id);
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Persist cart to localStorage whenever items change
+  // Load cart on mount or user change
   useEffect(() => {
-    saveCartToStorage(items);
-  }, [items]);
+    const key = user?.id ? `goldentier_cart_${user.id}` : 'goldentier_cart_guest';
+    const stored = localStorage.getItem(key);
+
+    // Logout detection: If previous user existed and now there's none
+    if (previousUserId.current && !user?.id) {
+      setItems([]);
+      localStorage.removeItem('goldentier_cart_guest');
+      setIsLoaded(true);
+      previousUserId.current = user?.id;
+      return;
+    }
+    previousUserId.current = user?.id;
+
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        const result = cartItemsSchema.safeParse(parsed);
+        if (result.success) {
+          setItems(result.data as unknown as CartItem[]);
+        } else {
+          console.error('Invalid cart data in storage:', result.error);
+          setItems([]);
+        }
+      } catch {
+        setItems([]);
+      }
+    } else {
+      setItems([]);
+    }
+    setIsLoaded(true);
+  }, [user?.id]);
+
+  // Persist cart to localStorage with 500ms debounce
+  useEffect(() => {
+    if (!isLoaded) return;
+    if (saveTimerRef.current !== null) {
+      clearTimeout(saveTimerRef.current);
+    }
+    saveTimerRef.current = setTimeout(() => {
+      const key = user?.id ? `goldentier_cart_${user.id}` : 'goldentier_cart_guest';
+      try {
+        localStorage.setItem(key, JSON.stringify(items));
+      } catch {
+        // Storage full or unavailable — ignore
+      }
+    }, 500);
+    return () => {
+      if (saveTimerRef.current !== null) {
+        clearTimeout(saveTimerRef.current);
+      }
+    };
+  }, [items, user?.id, isLoaded]);
 
   const addToCart = useCallback((product: Product, variant?: ProductVariant) => {
     setItems((prev) => {
@@ -107,14 +156,25 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setIsOpen((prev) => !prev);
   }, []);
 
-  const cartCount = items.reduce((sum, item) => sum + item.quantity, 0);
-  const cartSubtotal = items.reduce(
-    (sum, item) => sum + getItemPrice(item) * item.quantity,
-    0
+  const cartCount = useMemo(
+    () => items.reduce((sum, item) => sum + item.quantity, 0),
+    [items]
   );
 
-  const discountAmount = isPartner && user?.discountRate ? cartSubtotal * (user.discountRate / 100) : 0;
-  const cartTotal = cartSubtotal - discountAmount;
+  const cartSubtotal = useMemo(
+    () => items.reduce((sum, item) => sum + getItemPrice(item) * item.quantity, 0),
+    [items]
+  );
+
+  const discountAmount = useMemo(
+    () => (isPartner && user?.discountRate ? cartSubtotal * (user.discountRate / 100) : 0),
+    [cartSubtotal, isPartner, user?.discountRate]
+  );
+
+  const cartTotal = useMemo(
+    () => cartSubtotal - discountAmount,
+    [cartSubtotal, discountAmount]
+  );
 
   return (
     <CartContext.Provider

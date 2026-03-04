@@ -59,6 +59,7 @@ export function PartnersManagement() {
   const [showPassword, setShowPassword] = useState(false);
   const [createdCredentials, setCreatedCredentials] = useState<{ email: string; password: string } | null>(null);
   const [copiedField, setCopiedField] = useState<string | null>(null);
+  const [formError, setFormError] = useState('');
 
   const filteredPartners = partnerList.filter(
     (partner) =>
@@ -99,7 +100,8 @@ export function PartnersManagement() {
     if (window.confirm(`Are you SURE you want to completely delete the partner account for ${partner.name}? This action cannot be undone and will permanently remove their access.`)) {
       const result = await deletePartner(partner.id);
       if (!result.success) {
-        alert(`Failed to delete partner: ${result.error}`);
+        console.error('Delete failed:', result.error);
+        window.alert(`Failed to delete partner: ${result.error}`);
       }
     }
   };
@@ -121,9 +123,10 @@ export function PartnersManagement() {
     e.preventDefault();
 
     if (!formData.name || !formData.email || !formData.company || !formData.phone) {
-      alert('Please fill in all required fields');
+      setFormError('Please fill in all required fields');
       return;
     }
+    setFormError('');
 
     setIsSubmitting(true);
 
@@ -144,7 +147,7 @@ export function PartnersManagement() {
     } else {
       // Create new partner account in Supabase
       if (!formData.password || formData.password.length < 8) {
-        alert('Password must be at least 8 characters');
+        setFormError('Password must be at least 8 characters');
         setIsSubmitting(false);
         return;
       }
@@ -166,7 +169,7 @@ export function PartnersManagement() {
       if (result.success) {
         setCreatedCredentials({ email: formData.email, password: formData.password });
       } else {
-        alert(`Error creating partner: ${result.error}`);
+        setFormError(`Error creating partner: ${result.error}`);
       }
     }
   };
@@ -405,6 +408,11 @@ export function PartnersManagement() {
             ) : (
               // Form for creating/editing
               <form onSubmit={handleSavePartner} className="p-5 space-y-4">
+                {formError && (
+                  <div className="p-3 bg-red-50 text-red-600 border border-red-200 rounded-lg text-sm">
+                    {formError}
+                  </div>
+                )}
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">
                     Full Name <span className="text-red-500">*</span>

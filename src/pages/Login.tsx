@@ -2,30 +2,44 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { Eye, EyeOff, Mail, Lock, ArrowRight } from 'lucide-react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+
+const LoginSchema = z.object({
+  email: z.string().email('Please enter a valid email'),
+  password: z.string().min(1, 'Password is required'),
+});
+type LoginFormData = z.infer<typeof LoginSchema>;
 
 export function Login() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState('');
+  const [serverError, setServerError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginFormData>({
+    resolver: zodResolver(LoginSchema),
+  });
+
+  const onSubmit = async (data: LoginFormData) => {
+    setServerError('');
     setIsLoading(true);
 
     try {
-      const success = await login(email, password);
-      if (success) {
+      const result = await login(data.email, data.password);
+      if (result.success) {
         navigate('/');
       } else {
-        setError('Invalid email or password');
+        setServerError(result.error || 'Invalid email or password');
       }
     } catch {
-      setError('An error occurred. Please try again.');
+      setServerError('An error occurred. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -47,26 +61,27 @@ export function Login() {
           </div>
 
           <div className="bg-white/80 backdrop-blur-md border border-[#D4AF37]/20 p-10 shadow-[0_8px_40px_rgba(0,0,0,0.04)] relative">
-            {error && (
+            {serverError && (
               <div className="p-3 rounded-lg bg-red-50 text-red-600 text-sm mb-4">
-                {error}
+                {serverError}
               </div>
             )}
 
-            <form className="space-y-6" onSubmit={handleSubmit}>
+            <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
               <div>
                 <label className="block text-[10px] font-bold tracking-[0.2em] uppercase text-slate-400 mb-2">Email</label>
                 <div className="relative">
                   <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[#D4AF37]/50" />
                   <input
                     type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    {...register('email')}
                     className="w-full h-12 pl-12 pr-4 bg-transparent border border-[#D4AF37]/20 focus:border-[#D4AF37] focus:ring-0 text-sm transition-all text-slate-800 placeholder-slate-300"
                     placeholder="ENTER YOUR EMAIL"
-                    required
                   />
                 </div>
+                {errors.email && (
+                  <p className="text-xs text-red-600 mt-1.5">{errors.email.message}</p>
+                )}
               </div>
 
               <div>
@@ -75,11 +90,9 @@ export function Login() {
                   <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[#D4AF37]/50" />
                   <input
                     type={showPassword ? 'text' : 'password'}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    {...register('password')}
                     className="w-full h-12 pl-12 pr-12 bg-transparent border border-[#D4AF37]/20 focus:border-[#D4AF37] focus:ring-0 text-sm transition-all text-slate-800 placeholder-slate-300"
                     placeholder="ENTER YOUR PASSWORD"
-                    required
                   />
                   <button
                     type="button"
@@ -89,6 +102,9 @@ export function Login() {
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
+                {errors.password && (
+                  <p className="text-xs text-red-600 mt-1.5">{errors.password.message}</p>
+                )}
               </div>
 
               <div className="flex items-center justify-between text-[10px] font-bold tracking-widest uppercase">

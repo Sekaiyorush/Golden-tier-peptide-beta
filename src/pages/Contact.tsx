@@ -1,11 +1,42 @@
+import { useState } from 'react';
 import { Mail, MapPin, Phone, MessageSquare } from 'lucide-react';
 import { useDatabase } from '@/context/DatabaseContext';
 import { SEO } from '@/components/SEO';
 import { Breadcrumbs } from '@/components/Breadcrumbs';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+
+const ContactSchema = z.object({
+  name: z.string().min(1, 'Full name is required'),
+  email: z.string().email('Please enter a valid email'),
+  subject: z.string().min(1, 'Subject is required'),
+  message: z.string().min(10, 'Message must be at least 10 characters'),
+});
+type ContactFormData = z.infer<typeof ContactSchema>;
 
 export function Contact() {
     const { db } = useDatabase();
     const settings = db.siteSettings;
+    const [sent, setSent] = useState(false);
+    const handleContactSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        setSent(true);
+    };
+
+    const {
+        register,
+        handleSubmit,
+        reset,
+        formState: { errors },
+    } = useForm<ContactFormData>({
+        resolver: zodResolver(ContactSchema),
+    });
+
+    const onSubmit = (_data: ContactFormData) => {
+        alert('Message sent! We will get back to you soon.');
+        reset();
+    };
 
     return (
         <div className="min-h-screen bg-white py-14 relative overflow-hidden">
@@ -52,31 +83,41 @@ export function Contact() {
                         <h2 className="text-3xl font-serif text-slate-900 tracking-tight">Send an Inquiry</h2>
                         <p className="text-sm font-light text-slate-500 mt-3 max-w-md tracking-wide">Provide detailed information so our team can assist you most effectively.</p>
                     </div>
-                    <form className="space-y-8" onSubmit={e => { e.preventDefault(); alert('Message sent! We will get back to you soon.'); }}>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
-                            <div>
-                                <label className="block text-[10px] font-bold tracking-[0.2em] uppercase text-slate-400 mb-3">Full Name</label>
-                                <input type="text" required className="w-full h-14 px-5 bg-slate-50 border border-[#D4AF37]/20 focus:ring-1 focus:ring-[#D4AF37]/50 focus:border-[#D4AF37] focus:bg-white text-sm transition-all outline-none" placeholder="Dr. John Doe" />
+                    {sent ? (
+                        <div className="text-center py-12">
+                            <div className="w-16 h-16 bg-emerald-50 border border-emerald-200 flex items-center justify-center mx-auto mb-4">
+                                <span className="text-emerald-600 text-2xl">✓</span>
+                            </div>
+                            <h3 className="text-2xl font-serif text-slate-900 mb-2">Message Dispatched</h3>
+                            <p className="text-sm text-slate-500">We will get back to you as soon as possible.</p>
+                        </div>
+                    ) : (
+                        <form className="space-y-8" onSubmit={handleContactSubmit}>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+                                <div>
+                                    <label className="block text-[10px] font-bold tracking-[0.2em] uppercase text-slate-400 mb-3">Full Name</label>
+                                    <input type="text" required className="w-full h-14 px-5 bg-slate-50 border border-[#D4AF37]/20 focus:ring-1 focus:ring-[#D4AF37]/50 focus:border-[#D4AF37] focus:bg-white text-sm transition-all outline-none" placeholder="Dr. John Doe" />
+                                </div>
+                                <div>
+                                    <label className="block text-[10px] font-bold tracking-[0.2em] uppercase text-slate-400 mb-3">Email Address</label>
+                                    <input type="email" required className="w-full h-14 px-5 bg-slate-50 border border-[#D4AF37]/20 focus:ring-1 focus:ring-[#D4AF37]/50 focus:border-[#D4AF37] focus:bg-white text-sm transition-all outline-none" placeholder="name@institution.edu" />
+                                </div>
                             </div>
                             <div>
-                                <label className="block text-[10px] font-bold tracking-[0.2em] uppercase text-slate-400 mb-3">Email Address</label>
-                                <input type="email" required className="w-full h-14 px-5 bg-slate-50 border border-[#D4AF37]/20 focus:ring-1 focus:ring-[#D4AF37]/50 focus:border-[#D4AF37] focus:bg-white text-sm transition-all outline-none" placeholder="name@institution.edu" />
+                                <label className="block text-[10px] font-bold tracking-[0.2em] uppercase text-slate-400 mb-3">Subject</label>
+                                <input type="text" required className="w-full h-14 px-5 bg-slate-50 border border-[#D4AF37]/20 focus:ring-1 focus:ring-[#D4AF37]/50 focus:border-[#D4AF37] focus:bg-white text-sm transition-all outline-none" placeholder="Nature of your inquiry" />
                             </div>
-                        </div>
-                        <div>
-                            <label className="block text-[10px] font-bold tracking-[0.2em] uppercase text-slate-400 mb-3">Subject</label>
-                            <input type="text" required className="w-full h-14 px-5 bg-slate-50 border border-[#D4AF37]/20 focus:ring-1 focus:ring-[#D4AF37]/50 focus:border-[#D4AF37] focus:bg-white text-sm transition-all outline-none" placeholder="Nature of your inquiry" />
-                        </div>
-                        <div>
-                            <label className="block text-[10px] font-bold tracking-[0.2em] uppercase text-slate-400 mb-3">Message</label>
-                            <textarea rows={5} required className="w-full px-5 py-5 bg-slate-50 border border-[#D4AF37]/20 focus:ring-1 focus:ring-[#D4AF37]/50 focus:border-[#D4AF37] focus:bg-white text-sm transition-all resize-none outline-none" placeholder="Please detail your request..." />
-                        </div>
-                        <button type="submit" className="w-full h-16 mt-8 bg-[#111] border border-[#111] text-white text-[10px] font-bold tracking-[0.2em] uppercase transition-all hover:bg-black shadow-md group relative overflow-hidden flex items-center justify-center">
-                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[#D4AF37]/20 to-transparent -translate-x-[150%] animate-[shimmer_3s_infinite]" />
-                            <span className="relative z-10 transition-colors group-hover:text-[#D4AF37]">DISPATCH MESSAGE</span>
-                            <span className="absolute bottom-0 left-0 w-0 h-[2px] bg-gradient-to-r from-[#D4AF37] to-[#F3E5AB] transition-all duration-500 ease-out group-hover:w-full" />
-                        </button>
-                    </form>
+                            <div>
+                                <label className="block text-[10px] font-bold tracking-[0.2em] uppercase text-slate-400 mb-3">Message</label>
+                                <textarea rows={5} required className="w-full px-5 py-5 bg-slate-50 border border-[#D4AF37]/20 focus:ring-1 focus:ring-[#D4AF37]/50 focus:border-[#D4AF37] focus:bg-white text-sm transition-all resize-none outline-none" placeholder="Please detail your request..." />
+                            </div>
+                            <button type="submit" className="w-full h-16 mt-8 bg-[#111] border border-[#111] text-white text-[10px] font-bold tracking-[0.2em] uppercase transition-all hover:bg-black shadow-md group relative overflow-hidden flex items-center justify-center">
+                                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[#D4AF37]/20 to-transparent -translate-x-[150%] animate-[shimmer_3s_infinite]" />
+                                <span className="relative z-10 transition-colors group-hover:text-[#D4AF37]">DISPATCH MESSAGE</span>
+                                <span className="absolute bottom-0 left-0 w-0 h-[2px] bg-gradient-to-r from-[#D4AF37] to-[#F3E5AB] transition-all duration-500 ease-out group-hover:w-full" />
+                            </button>
+                        </form>
+                    )}
                 </div>
             </div>
         </div>
