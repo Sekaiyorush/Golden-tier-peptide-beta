@@ -26,7 +26,7 @@ interface AuthContextType {
   isAdmin: boolean;
   isPartner: boolean;
   isCustomer: boolean;
-  login: (email: string, password: string) => Promise<boolean>;
+  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   register: (name: string, email: string, password: string, invitationCode: string) => Promise<{ success: boolean; error?: string }>;
   resetPasswordForEmail: (email: string) => Promise<{ success: boolean; error?: string }>;
   updatePassword: (password: string) => Promise<{ success: boolean; error?: string }>;
@@ -81,7 +81,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
-  const login = async (email: string, password: string): Promise<boolean> => {
+  const login = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
     // Check rate limit before attempting login
     const { data: allowed } = await supabase.rpc('check_rate_limit', {
       p_identifier: email,
@@ -91,16 +91,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     if (allowed === false) {
-      alert('Too many login attempts. Please wait 15 minutes before trying again.');
-      return false;
+      return { success: false, error: 'Too many login attempts. Please wait 15 minutes before trying again.' };
     }
 
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
-      alert(error.message);
-      return false;
+      // Generic message to prevent user enumeration (A2)
+      return { success: false, error: 'Invalid email or password. Please try again.' };
     }
-    return true;
+    return { success: true };
   };
 
   // Server-side invitation code validation via RPC

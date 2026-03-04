@@ -32,6 +32,7 @@ export function PartnerDashboard() {
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [payoutAmount, setPayoutAmount] = useState('');
   const [payoutMethod, setPayoutMethod] = useState('bank');
+  const [payoutMessage, setPayoutMessage] = useState<{ type: 'error' | 'success', text: string } | null>(null);
 
   // Get partner details
   const partnerDetails = partners.find(p => p.id === user?.partnerId);
@@ -349,8 +350,8 @@ export function PartnerDashboard() {
                       <p className="text-sm font-light text-slate-500 tracking-wide">{formatDate(order.createdAt)}</p>
                     </div>
                     <span className={`inline-flex items-center space-x-2 px-4 py-2 text-[10px] font-bold tracking-[0.2em] uppercase border ${order.status === 'delivered' ? 'bg-emerald-50 text-emerald-700 border-emerald-200/50' :
-                        order.status === 'shipped' ? 'bg-blue-50 text-blue-700 border-blue-200/50' :
-                          'bg-amber-50 text-[#AA771C] border-[#D4AF37]/30'
+                      order.status === 'shipped' ? 'bg-blue-50 text-blue-700 border-blue-200/50' :
+                        'bg-amber-50 text-[#AA771C] border-[#D4AF37]/30'
                       }`}>
                       {getStatusIcon(order.status)}
                       <span className="ml-1">{order.status}</span>
@@ -417,16 +418,21 @@ export function PartnerDashboard() {
                   onSubmit={(e) => {
                     e.preventDefault();
                     if (Number(payoutAmount) > estimatedProfit) {
-                      alert('You cannot withdraw more than your available balance.');
+                      setPayoutMessage({ type: 'error', text: 'You cannot withdraw more than your available balance.' });
                     } else if (Number(payoutAmount) < 50) {
-                      alert('Minimum withdrawal amount is ฿50 THB');
+                      setPayoutMessage({ type: 'error', text: 'Minimum withdrawal amount is ฿50 THB' });
                     } else {
-                      alert('Payout request submitted successfully. Processing takes 2-3 business days.');
+                      setPayoutMessage({ type: 'success', text: 'Payout request submitted successfully. Processing takes 2-3 business days.' });
                       setPayoutAmount('');
                     }
                   }}
                   className="space-y-6"
                 >
+                  {payoutMessage && (
+                    <div className={`p-4 text-sm ${payoutMessage.type === 'error' ? 'bg-red-50 text-red-600 border border-red-100' : 'bg-emerald-50 text-emerald-700 border border-emerald-100'}`}>
+                      {payoutMessage.text}
+                    </div>
+                  )}
                   <div>
                     <label className="block text-[10px] font-bold tracking-[0.2em] uppercase text-slate-900 mb-3">Amount (THB)</label>
                     <input

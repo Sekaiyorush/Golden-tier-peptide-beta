@@ -91,7 +91,6 @@ export function OrderNotes({ orderId }: OrderNotesProps) {
 
     if (error) {
       console.error('Error adding note:', error);
-      alert('Failed to add note');
       setIsSending(false);
       return;
     }
@@ -103,7 +102,7 @@ export function OrderNotes({ orderId }: OrderNotesProps) {
       entity_type: 'order',
       entity_id: orderId,
       details: { note_preview: newNote.trim().slice(0, 100), is_internal: isInternal },
-    }).then(() => {});
+    }).then(() => { });
 
     setNewNote('');
     setIsSending(false);
@@ -128,11 +127,10 @@ export function OrderNotes({ orderId }: OrderNotesProps) {
           <p className="text-xs text-slate-400 text-center py-4">No notes yet</p>
         ) : (
           notes.map((note) => (
-            <div key={note.id} className={`p-3 rounded-lg text-sm ${
-              note.user_id === user?.id
+            <div key={note.id} className={`p-3 rounded-lg text-sm ${note.user_id === user?.id
                 ? 'bg-blue-50 border border-blue-100 ml-4'
                 : 'bg-slate-50 border border-slate-100 mr-4'
-            }`}>
+              }`}>
               <div className="flex items-center justify-between mb-1">
                 <div className="flex items-center space-x-2">
                   <span className="font-medium text-slate-700 text-xs">

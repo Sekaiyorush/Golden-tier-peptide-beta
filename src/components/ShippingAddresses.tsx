@@ -64,6 +64,7 @@ export function ShippingAddresses({ onSelect, selectedId }: ShippingAddressesPro
   const [editingAddress, setEditingAddress] = useState<ShippingAddress | null>(null);
   const [formData, setFormData] = useState<ShippingAddressFormData>(initialForm);
   const [isSaving, setIsSaving] = useState(false);
+  const [formError, setFormError] = useState('');
 
   const fetchAddresses = async () => {
     if (!user) return;
@@ -144,7 +145,8 @@ export function ShippingAddresses({ onSelect, selectedId }: ShippingAddressesPro
         .eq('id', editingAddress.id);
 
       if (error) {
-        alert('Failed to update address');
+        console.error('Failed to update address:', error);
+        setFormError('Failed to update address. Please try again.');
         setIsSaving(false);
         return;
       }
@@ -165,7 +167,8 @@ export function ShippingAddresses({ onSelect, selectedId }: ShippingAddressesPro
         });
 
       if (error) {
-        alert('Failed to save address');
+        console.error('Failed to save address:', error);
+        setFormError('Failed to save address. Please try again.');
         setIsSaving(false);
         return;
       }
@@ -238,11 +241,10 @@ export function ShippingAddresses({ onSelect, selectedId }: ShippingAddressesPro
             <div
               key={addr.id}
               onClick={() => isSelectMode && onSelect?.(addr)}
-              className={`p-6 border transition-all ${
-                isSelectMode
-                  ? `cursor-pointer hover:border-[#D4AF37]/50 ${selectedId === addr.id ? 'border-[#D4AF37] bg-[#D4AF37]/5 ring-1 ring-[#D4AF37]/30' : 'border-[#D4AF37]/20'}`
-                  : 'border-[#D4AF37]/20'
-              }`}
+              className={`p-6 border transition-all ${isSelectMode
+                ? `cursor-pointer hover:border-[#D4AF37]/50 ${selectedId === addr.id ? 'border-[#D4AF37] bg-[#D4AF37]/5 ring-1 ring-[#D4AF37]/30' : 'border-[#D4AF37]/20'}`
+                : 'border-[#D4AF37]/20'
+                }`}
             >
               <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center space-x-2">
@@ -321,6 +323,11 @@ export function ShippingAddresses({ onSelect, selectedId }: ShippingAddressesPro
               </button>
             </div>
             <form onSubmit={handleSave} className="p-6 space-y-4">
+              {formError && (
+                <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm border border-red-200">
+                  {formError}
+                </div>
+              )}
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-[10px] font-bold tracking-[0.15em] uppercase text-slate-700 mb-1">Label</label>
