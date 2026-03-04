@@ -2,20 +2,41 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { Eye, EyeOff, Mail, Lock, User, Ticket, Check, X, ArrowRight } from 'lucide-react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+
+const RegisterSchema = z.object({
+  email: z.string().email('Please enter a valid email'),
+  password: z.string().min(8, 'Password must be at least 8 characters'),
+  confirmPassword: z.string(),
+  invitationCode: z.string()
+    .min(6, 'Invitation code must be at least 6 characters')
+    .regex(/^[A-Z0-9]+$/, 'Invalid invitation code format'),
+}).refine(data => data.password === data.confirmPassword, {
+  message: 'Passwords do not match',
+  path: ['confirmPassword'],
+});
+type RegisterFormData = z.infer<typeof RegisterSchema>;
 
 export function Register() {
   const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [invitationCode, setInvitationCode] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState('');
+  const [serverError, setServerError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [codeValidating, setCodeValidating] = useState(false);
   const [codeValidation, setCodeValidation] = useState<{ valid: boolean; message: string; type?: string } | null>(null);
-  const { register, validateCode } = useAuth();
+  const { register: registerUser, validateCode } = useAuth();
   const navigate = useNavigate();
+
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    formState: { errors },
+  } = useForm<RegisterFormData>({
+    resolver: zodResolver(RegisterSchema),
+  });
 
   const validateInvitationCode = async (code: string) => {
     if (!code) {
@@ -24,7 +45,6 @@ export function Register() {
     }
 
     setCodeValidating(true);
-    // Simulate API delay
     await new Promise(resolve => setTimeout(resolve, 300));
 
     const result = await validateCode(code);
@@ -49,46 +69,31 @@ export function Register() {
   };
 
   const handleCodeChange = (value: string) => {
-    setInvitationCode(value.toUpperCase());
-    if (value.length >= 6) {
-      validateInvitationCode(value.toUpperCase());
+    const upper = value.trim().toUpperCase();
+    setValue('invitationCode', upper, { shouldValidate: false });
+    if (upper.length >= 6) {
+      validateInvitationCode(upper);
     } else {
       setCodeValidation(null);
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-
-    if (!invitationCode) {
-      setError('Invitation code is required');
-      return;
-    }
+  const onSubmit = async (data: RegisterFormData) => {
+    setServerError('');
 
     if (!codeValidation?.valid) {
-      setError('Please enter a valid invitation code');
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      setError('Passwords do not match');
-      return;
-    }
-
-    if (password.length < 8) {
-      setError('Password must be at least 8 characters');
+      setServerError('Please enter a valid invitation code');
       return;
     }
 
     setIsLoading(true);
 
-    const result = await register(name, email, password, invitationCode);
+    const result = await registerUser(name, data.email, data.password, data.invitationCode);
 
     if (result.success) {
       navigate('/');
     } else {
-      setError(result.error || 'Registration failed');
+      setServerError(result.error || 'Registration failed');
     }
 
     setIsLoading(false);
@@ -109,13 +114,13 @@ export function Register() {
           </div>
 
           <div className="bg-white/80 backdrop-blur-md border border-[#D4AF37]/20 p-10 shadow-[0_8px_40px_rgba(0,0,0,0.04)] relative">
-            {error && (
+            {serverError && (
               <div className="p-3 rounded-lg bg-red-50 text-red-600 text-sm mb-4">
-                {error}
+                {serverError}
               </div>
             )}
 
-            <form className="space-y-6" onSubmit={handleSubmit}>
+            <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
               {/* Invitation Code - First and most important */}
               <div>
                 <label className="block text-[10px] font-bold tracking-[0.2em] uppercase text-slate-400 mb-2">
@@ -125,7 +130,7 @@ export function Register() {
                   <Ticket className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[#D4AF37]/50" />
                   <input
                     type="text"
-                    value={invitationCode}
+                    {...register('invitationCode')}
                     onChange={(e) => handleCodeChange(e.target.value)}
                     className={`w-full h-12 pl-12 pr-12 bg-transparent border focus:ring-0 transition-all uppercase text-sm text-slate-800 placeholder-slate-300 ${codeValidation?.valid
                       ? 'border-[#D4AF37] bg-[#D4AF37]/5'
@@ -134,7 +139,6 @@ export function Register() {
                         : 'border-[#D4AF37]/20 focus:border-[#D4AF37]'
                       }`}
                     placeholder="ENTER INVITATION CODE"
-                    required
                   />
                   {codeValidating && (
                     <div className="absolute right-3 top-1/2 -translate-y-1/2">
@@ -155,6 +159,9 @@ export function Register() {
                   <p className={`text-xs mt-1.5 ${codeValidation.valid ? 'text-emerald-600' : 'text-red-600'}`}>
                     {codeValidation.message}
                   </p>
+                )}
+                {errors.invitationCode && !codeValidation && (
+                  <p className="text-xs text-red-600 mt-1.5">{errors.invitationCode.message}</p>
                 )}
                 <p className="text-[10px] tracking-wide uppercase text-slate-400 mt-2">
                   Need a code? Contact an admin
@@ -184,13 +191,14 @@ export function Register() {
                   <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[#D4AF37]/50" />
                   <input
                     type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    {...register('email')}
                     className="w-full h-12 pl-12 pr-4 bg-transparent border border-[#D4AF37]/20 focus:border-[#D4AF37] focus:ring-0 text-sm transition-all text-slate-800 placeholder-slate-300"
                     placeholder="ENTER YOUR EMAIL"
-                    required
                   />
                 </div>
+                {errors.email && (
+                  <p className="text-xs text-red-600 mt-1.5">{errors.email.message}</p>
+                )}
               </div>
 
               <div>
@@ -199,11 +207,9 @@ export function Register() {
                   <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[#D4AF37]/50" />
                   <input
                     type={showPassword ? 'text' : 'password'}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    {...register('password')}
                     className="w-full h-12 pl-12 pr-12 bg-transparent border border-[#D4AF37]/20 focus:border-[#D4AF37] focus:ring-0 text-sm transition-all text-slate-800 placeholder-slate-300"
                     placeholder="CREATE PASSWORD"
-                    required
                   />
                   <button
                     type="button"
@@ -213,6 +219,9 @@ export function Register() {
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
+                {errors.password && (
+                  <p className="text-xs text-red-600 mt-1.5">{errors.password.message}</p>
+                )}
               </div>
 
               <div>
@@ -221,13 +230,14 @@ export function Register() {
                   <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[#D4AF37]/50" />
                   <input
                     type={showPassword ? 'text' : 'password'}
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    {...register('confirmPassword')}
                     className="w-full h-12 pl-12 pr-4 bg-transparent border border-[#D4AF37]/20 focus:border-[#D4AF37] focus:ring-0 text-sm transition-all text-slate-800 placeholder-slate-300"
                     placeholder="CONFIRM PASSWORD"
-                    required
                   />
                 </div>
+                {errors.confirmPassword && (
+                  <p className="text-xs text-red-600 mt-1.5">{errors.confirmPassword.message}</p>
+                )}
               </div>
 
               <button

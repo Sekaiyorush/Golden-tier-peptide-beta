@@ -56,6 +56,7 @@ interface DatabaseContextType {
   db: AppDatabase;
   setDb: React.Dispatch<React.SetStateAction<AppDatabase>>;
   isLoading: boolean;
+  dataError: string | null;
   refreshData: () => Promise<void>;
 
   // Products
@@ -65,7 +66,7 @@ interface DatabaseContextType {
 
   // Orders
   addOrder: (order: Order) => void;
-  updateOrder: (id: string, updates: Partial<Order>) => void;
+  updateOrder: (id: string, updates: Partial<Order>) => Promise<{ success: boolean; error?: string }>;
   createSecureOrder: (params: {
     items: { product_id: string; quantity: number; variant_sku?: string | null }[];
     shipping_name: string;
@@ -124,6 +125,7 @@ const INITIAL_DB_STATE: AppDatabase = {
 export function DatabaseProvider({ children }: { children: ReactNode }) {
   const [db, setDbState] = useState<AppDatabase>(INITIAL_DB_STATE);
   const [isLoading, setIsLoading] = useState(true);
+  const [dataError, setDataError] = useState<string | null>(null);
 
   // ─── Audit Logging Helper ────────────────────────────────────────
   const logAudit = async (action: string, entityType: string, entityId: string, details?: Record<string, unknown>) => {
@@ -161,6 +163,10 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
         supabase.from('inventory_log').select('*, profiles(full_name)'),
         supabase.from('site_settings').select('*').eq('id', 'default').single()
       ]);
+
+      if (!products) {
+        setDataError('Unable to load products. Please refresh.');
+      }
 
       if (products && profiles) {
         // Parse settings
@@ -365,7 +371,6 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
 
   // ─── Products CRUD ──────────────────────────────────────────────
   const addProduct = async (product: Product) => {
-    setDb(prev => ({ ...prev, products: [...prev.products, product] }));
     const { error } = await supabase.from('products').insert({
       sku: product.sku,
       name: product.name,
@@ -383,6 +388,7 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
     if (error) {
       console.error(error);
     } else {
+      setDb(prev => ({ ...prev, products: [...prev.products, product] }));
       logAudit('create', 'product', product.id, { name: product.name, sku: product.sku, price: product.price });
     }
   };
@@ -527,9 +533,29 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
     return { success: false, error: data?.error || 'Unknown error' };
   };
 
-  const updateOrder = async (id: string, updates: Partial<Order>) => {
+  const updateOrder = async (id: string, updates: Partial<Order>): Promise<{ success: boolean; error?: string }> => {
+    const VALID_ORDER_STATUSES = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'] as const;
+    const VALID_TRANSITIONS: Record<string, string[]> = {
+      pending: ['processing', 'cancelled'],
+      processing: ['shipped', 'cancelled'],
+      shipped: ['delivered'],
+      delivered: [],
+      cancelled: [],
+    };
+    if (updates.status && !VALID_ORDER_STATUSES.includes(updates.status as any)) {
+      return { success: false, error: 'Invalid order status' };
+    }
+
     // Check if we're marking as delivered — need to deduct inventory
     const currentOrder = db.orders.find(o => o.id === id);
+
+    if (updates.status && currentOrder?.status) {
+      const allowed = VALID_TRANSITIONS[currentOrder.status] || [];
+      if (!allowed.includes(updates.status)) {
+        return { success: false, error: `Invalid transition from ${currentOrder.status} to ${updates.status}` };
+      }
+    }
+
     const isBeingDelivered = updates.status === 'delivered' && currentOrder?.status !== 'delivered';
 
     setDb(prev => ({
@@ -570,6 +596,8 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
         await emailService.sendOrderStatusUpdate(customer.email, id, updates.status);
       }
     }
+
+    return { success: true };
   };
 
   // ─── Partners CRUD ──────────────────────────────────────────────
@@ -794,7 +822,7 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
 
   return (
     <DatabaseContext.Provider value={{
-      db, setDb, isLoading, refreshData: loadData,
+      db, setDb, isLoading, dataError, refreshData: loadData,
       addProduct, updateProduct, deleteProduct,
       addOrder, updateOrder, createSecureOrder,
       addPartner, updatePartner, deletePartner,

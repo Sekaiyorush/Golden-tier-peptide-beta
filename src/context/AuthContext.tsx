@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
+import { toast } from 'sonner';
 import type { InvitationCode } from '@/data/invitations';
 import { useDatabase } from './DatabaseContext';
 import { supabase } from '@/lib/supabase';
@@ -91,13 +92,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     if (allowed === false) {
-      alert('Too many login attempts. Please wait 15 minutes before trying again.');
+      toast.error('Too many attempts. Please wait and try again.');
       return false;
     }
 
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
-      alert(error.message);
+      console.error('Login error:', error.message);
+      toast.error('Invalid email or password');
       return false;
     }
     return true;
@@ -152,7 +154,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     if (allowed === false) {
-      return { success: false, error: 'Too many registration attempts. Please wait before trying again.' };
+      return { success: false, error: 'Too many attempts. Please wait and try again.' };
     }
 
     // Validate the invitation code server-side via RPC
@@ -173,7 +175,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       password,
     });
 
-    if (authError) return { success: false, error: authError.message };
+    if (authError) {
+      console.error('Registration auth error:', authError.message);
+      return { success: false, error: 'Registration failed. Please try again.' };
+    }
 
     if (authData.user) {
       // Create profile with the correct role from invitation code
@@ -187,7 +192,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         status: 'active',
       });
 
-      if (profileError) return { success: false, error: profileError.message };
+      if (profileError) {
+        console.error('Registration profile error:', profileError.message);
+        return { success: false, error: 'Registration failed. Please try again.' };
+      }
 
       // Consume the invitation code server-side (atomic increment)
       await supabase.rpc('use_invitation_code', { code_input: invitationCode });
@@ -210,14 +218,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     if (allowed === false) {
-      return { success: false, error: 'Too many password reset attempts. Please wait before trying again.' };
+      return { success: false, error: 'Too many attempts. Please wait and try again.' };
     }
 
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/reset-password`,
     });
     if (error) {
-      return { success: false, error: error.message };
+      console.error('Password reset error:', error.message);
+      return { success: false, error: 'Registration failed. Please try again.' };
     }
     return { success: true };
   };
@@ -225,7 +234,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const updatePassword = async (password: string) => {
     const { error } = await supabase.auth.updateUser({ password });
     if (error) {
-      return { success: false, error: error.message };
+      console.error('Update password error:', error.message);
+      return { success: false, error: 'Registration failed. Please try again.' };
     }
     return { success: true };
   };

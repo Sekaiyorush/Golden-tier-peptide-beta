@@ -56,7 +56,7 @@ export function ProductDetails() {
     const hasVariants = product.variants && product.variants.length > 0;
     const activePrice = selectedVariant?.price ?? product.price;
     const variantInStock = selectedVariant ? selectedVariant.stock > 0 : product.inStock;
-    const variantStock = selectedVariant?.stock ?? product.stockQuantity;
+    const variantStock = selectedVariant?.stock ?? product.stockQuantity ?? 0;
     const allVariantsOutOfStock = hasVariants ? product.variants!.every(v => v.stock <= 0) : !product.inStock;
 
     const getDiscountedPrice = (price: number) => {
@@ -143,12 +143,13 @@ export function ProductDetails() {
                                         {product.variants!.map(v => {
                                             const isSelected = selectedVariant?.sku === v.sku;
                                             const isOutOfStock = v.stock <= 0;
+                                            const variantDiscountedPrice = isPartner && user?.discountRate ? v.price * (1 - user.discountRate / 100) : null;
                                             return (
                                                 <button
                                                     key={v.sku}
                                                     onClick={() => !isOutOfStock && setSelectedVariant(v)}
                                                     disabled={isOutOfStock}
-                                                    className={`px-4 py-2.5 text-xs font-bold tracking-wide border transition-all duration-200 ${
+                                                    className={`px-4 py-2.5 text-xs font-bold tracking-wide border transition-all duration-200 flex flex-col items-start ${
                                                         isOutOfStock
                                                             ? 'border-slate-200 bg-slate-50 text-slate-300 line-through cursor-not-allowed'
                                                             : isSelected
@@ -156,7 +157,12 @@ export function ProductDetails() {
                                                                 : 'border-[#D4AF37]/30 bg-white text-slate-700 hover:border-[#D4AF37] hover:bg-[#D4AF37]/5 cursor-pointer'
                                                     }`}
                                                 >
-                                                    {v.label}
+                                                    <span>{v.label}</span>
+                                                    {variantDiscountedPrice !== null && !isOutOfStock && (
+                                                        <span className={`text-[10px] font-semibold mt-0.5 ${isSelected ? 'text-white/80' : 'text-[#D4AF37]'}`}>
+                                                            {formatTHB(variantDiscountedPrice)}
+                                                        </span>
+                                                    )}
                                                 </button>
                                             );
                                         })}
@@ -222,7 +228,7 @@ export function ProductDetails() {
                                             >
                                                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[#D4AF37]/20 to-transparent -translate-x-[150%] animate-[shimmer_3s_infinite]" />
                                                 <ShoppingCart className="relative z-10 h-4 w-4 transition-colors group-hover:text-[#D4AF37]" />
-                                                <span className="relative z-10">{variantInStock ? 'ACQUIRE COMPOUND' : 'CURRENTLY UNAVAILABLE'}</span>
+                                                <span className="relative z-10">{variantInStock ? 'ACQUIRE COMPOUND' : 'OUT OF STOCK'}</span>
                                                 <span className="absolute bottom-0 left-0 w-0 h-[2px] bg-gradient-to-r from-[#D4AF37] to-[#F3E5AB] transition-all duration-500 ease-out group-hover:w-full" />
                                             </button>
                                         </div>

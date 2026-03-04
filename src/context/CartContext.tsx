@@ -1,4 +1,5 @@
-import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef, type ReactNode } from 'react';
+import { z } from 'zod';
 import { useAuth } from '@/context/AuthContext';
 import type { Product, ProductVariant } from '@/data/products';
 
@@ -28,16 +29,28 @@ interface CartContextType {
   cartTotal: number;
 }
 
-const CART_STORAGE_KEY = 'goldentier_cart';
-
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
-function loadCartFromStorage(): CartItem[] {
+// G5: Namespace cart key by userId
+function getCartStorageKey(userId: string | undefined): string {
+  return userId ? `goldentier_cart_${userId}` : 'goldentier_cart_guest';
+}
+
+// G7: Zod schema for cart validation
+const CartItemSchema = z.array(z.object({
+  product: z.object({ id: z.string() }).passthrough(),
+  quantity: z.number().int().min(1).max(999),
+  selectedVariant: z.any().optional(),
+}));
+
+function loadCartFromStorage(userId: string | undefined): CartItem[] {
   try {
-    const stored = localStorage.getItem(CART_STORAGE_KEY);
+    const stored = localStorage.getItem(getCartStorageKey(userId));
     if (stored) {
       const parsed = JSON.parse(stored);
-      if (Array.isArray(parsed)) return parsed;
+      const result = CartItemSchema.safeParse(parsed);
+      if (!result.success) return [];
+      return result.data as CartItem[];
     }
   } catch {
     // Corrupted data — ignore
@@ -45,9 +58,9 @@ function loadCartFromStorage(): CartItem[] {
   return [];
 }
 
-function saveCartToStorage(items: CartItem[]) {
+function saveCartToStorage(items: CartItem[], userId: string | undefined) {
   try {
-    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
+    localStorage.setItem(getCartStorageKey(userId), JSON.stringify(items));
   } catch {
     // Storage full or unavailable — ignore
   }
@@ -60,14 +73,39 @@ function matchesItem(item: CartItem, productId: string, variantSku?: string): bo
 }
 
 export function CartProvider({ children }: { children: ReactNode }) {
-  const [items, setItems] = useState<CartItem[]>(loadCartFromStorage);
-  const [isOpen, setIsOpen] = useState(false);
   const { user, isPartner } = useAuth();
+  const userId = user?.id;
 
-  // Persist cart to localStorage whenever items change
+  const [items, setItems] = useState<CartItem[]>(() => loadCartFromStorage(userId));
+  const [isOpen, setIsOpen] = useState(false);
+
+  // G9: Ref for debounce timer
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // G5+G6: Reload cart when userId changes; clear on logout
   useEffect(() => {
-    saveCartToStorage(items);
-  }, [items]);
+    if (userId === undefined) {
+      // User logged out — clear cart state and remove previous storage entry
+      setItems([]);
+    } else {
+      setItems(loadCartFromStorage(userId));
+    }
+  }, [userId]);
+
+  // G9: Persist cart to localStorage with 500ms debounce
+  useEffect(() => {
+    if (saveTimerRef.current !== null) {
+      clearTimeout(saveTimerRef.current);
+    }
+    saveTimerRef.current = setTimeout(() => {
+      saveCartToStorage(items, userId);
+    }, 500);
+    return () => {
+      if (saveTimerRef.current !== null) {
+        clearTimeout(saveTimerRef.current);
+      }
+    };
+  }, [items, userId]);
 
   const addToCart = useCallback((product: Product, variant?: ProductVariant) => {
     setItems((prev) => {
@@ -107,14 +145,26 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setIsOpen((prev) => !prev);
   }, []);
 
-  const cartCount = items.reduce((sum, item) => sum + item.quantity, 0);
-  const cartSubtotal = items.reduce(
-    (sum, item) => sum + getItemPrice(item) * item.quantity,
-    0
+  // G8: useMemo for cart calculations
+  const cartCount = useMemo(
+    () => items.reduce((sum, item) => sum + item.quantity, 0),
+    [items]
   );
 
-  const discountAmount = isPartner && user?.discountRate ? cartSubtotal * (user.discountRate / 100) : 0;
-  const cartTotal = cartSubtotal - discountAmount;
+  const cartSubtotal = useMemo(
+    () => items.reduce((sum, item) => sum + getItemPrice(item) * item.quantity, 0),
+    [items]
+  );
+
+  const discountAmount = useMemo(
+    () => (isPartner && user?.discountRate ? cartSubtotal * (user.discountRate / 100) : 0),
+    [cartSubtotal, isPartner, user?.discountRate]
+  );
+
+  const cartTotal = useMemo(
+    () => cartSubtotal - discountAmount,
+    [cartSubtotal, discountAmount]
+  );
 
   return (
     <CartContext.Provider

@@ -51,7 +51,11 @@
       "Bash(git merge claude/hardcore-murdock)",
       "Bash(git add src/sections/FeaturedProducts.tsx src/components/ProductCard.tsx)",
       "Bash(git add src/lib/formatPrice.ts src/lib/emailService.ts src/components/CartSidebar.tsx src/components/OrderDetailsModal.tsx src/components/ProductCard.tsx src/components/admin/DashboardAnalytics.tsx src/components/customer/CustomerQuickActions.tsx src/components/partner/PartnerAnalytics.tsx src/pages/Checkout.tsx src/pages/ProductDetails.tsx src/pages/admin/CustomersManagement.tsx src/pages/admin/OrdersManagement.tsx src/pages/admin/PartnerAnalytics.tsx src/pages/admin/PartnerNetwork.tsx src/pages/admin/PartnersManagement.tsx src/pages/admin/ProductsManagement.tsx src/pages/dashboard/UserDashboard.tsx src/pages/partner/PartnerDashboard.tsx src/pages/partner/PartnerNetwork.tsx src/sections/FeaturedProducts.tsx)",
-      "Bash(gh run list --limit 3)"
+      "Bash(gh run list --limit 3)",
+      "Bash(wc:*)",
+      "WebFetch(domain:skillsmp.com)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:raw.githubusercontent.com)"
     ]
   }
 }

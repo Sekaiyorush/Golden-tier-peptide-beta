@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useDatabase } from '@/context/DatabaseContext';
 import { SEO } from '@/components/SEO';
@@ -17,14 +17,26 @@ export function Products() {
   const categories = useMemo(() => Array.from(new Set(products.map(p => p.category))).sort(), [products]);
 
   const [searchTerm, setSearchTerm] = useState(queryParam);
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(queryParam);
+  const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>('name');
+
+  useEffect(() => {
+    if (debounceTimer.current) clearTimeout(debounceTimer.current);
+    debounceTimer.current = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 500);
+    return () => {
+      if (debounceTimer.current) clearTimeout(debounceTimer.current);
+    };
+  }, [searchTerm]);
 
   const filteredProducts = useMemo(() => {
     let result = products;
 
-    if (searchTerm) {
-      const term = searchTerm.toLowerCase();
+    if (debouncedSearchTerm) {
+      const term = debouncedSearchTerm.toLowerCase();
       result = result.filter(
         (p) =>
           p.name.toLowerCase().includes(term) ||
@@ -50,7 +62,7 @@ export function Products() {
     });
 
     return result;
-  }, [searchTerm, selectedCategory, sortBy, products]);
+  }, [debouncedSearchTerm, selectedCategory, sortBy, products]);
 
   return (
     <div className="min-h-screen bg-white py-12 relative overflow-hidden">
@@ -125,6 +137,7 @@ export function Products() {
               <button
                 onClick={() => {
                   setSearchTerm('');
+                  setDebouncedSearchTerm('');
                   setSelectedCategory('all');
                 }}
                 className="text-[10px] font-bold tracking-[0.2em] uppercase text-[#AA771C] hover:text-[#D4AF37] transition-colors"
@@ -171,6 +184,7 @@ export function Products() {
             <button
               onClick={() => {
                 setSearchTerm('');
+                setDebouncedSearchTerm('');
                 setSelectedCategory('all');
               }}
               className="inline-flex items-center justify-center px-8 py-3 bg-[#111] text-white text-[10px] font-bold tracking-[0.2em] uppercase transition-all hover:bg-black group overflow-hidden relative"
