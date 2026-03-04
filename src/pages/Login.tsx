@@ -32,11 +32,11 @@ export function Login() {
     setIsLoading(true);
 
     try {
-      const success = await login(data.email, data.password);
-      if (success) {
+      const result = await login(data.email, data.password);
+      if (result.success) {
         navigate('/');
       } else {
-        setServerError('Invalid email or password');
+        setServerError(result.error || 'Invalid email or password');
       }
     } catch {
       setServerError('An error occurred. Please try again.');

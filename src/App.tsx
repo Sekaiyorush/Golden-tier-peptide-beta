@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate, Link } from 'react-ro
 import { LanguageProvider } from '@/context/LanguageContext';
 import { CartProvider } from '@/context/CartContext';
 import { AuthProvider, useAuth } from '@/context/AuthContext';
-import { DatabaseProvider } from '@/context/DatabaseContext';
+import { DatabaseProvider, useDatabase } from '@/context/DatabaseContext';
 import { ToastProvider } from '@/components/ui/Toast';
 import { PremiumEffects } from '@/components/PremiumEffects';
 import { BackToTop } from '@/components/ui/BackToTop';
@@ -102,17 +102,30 @@ function NotFoundPage() {
   );
 }
 
-// Main App Content with Router
 function AppContent() {
   const { isAuthenticated, isPartner } = useAuth();
+  const { dbError } = useDatabase();
+
+  // Check if we're in a password recovery flow (from Supabase magic link)
+  // Supabase redirects to root (/) with recovery token in hash, or /reset-password
+  const isRecoveryFlow = typeof window !== 'undefined' &&
+    (window.location.hash.includes('type=recovery') ||
+      window.location.hash.includes('access_token=') ||
+      window.location.pathname === '/reset-password');
 
   return (
     <Router>
       <Suspense fallback={<PageLoader />}>
+        {dbError && (
+          <div className="bg-red-600 text-white text-center py-3 px-4 shadow-md sticky top-0 z-[100] text-sm font-medium tracking-wide relative">
+            <span className="absolute inset-0 bg-black/10 mix-blend-multiply" />
+            <span className="relative">System Notice: {dbError}. Some features may be unavailable.</span>
+          </div>
+        )}
         <Routes>
           {/* Auth pages — always accessible */}
-          <Route path="/login" element={isAuthenticated ? <Navigate to="/" replace /> : <Login />} />
-          <Route path="/register" element={isAuthenticated ? <Navigate to="/" replace /> : <Register />} />
+          <Route path="/login" element={isAuthenticated && !isRecoveryFlow ? <Navigate to="/" replace /> : <Login />} />
+          <Route path="/register" element={isAuthenticated && !isRecoveryFlow ? <Navigate to="/" replace /> : <Register />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
 
@@ -120,7 +133,10 @@ function AppContent() {
           <Route
             path="/*"
             element={
-              !isAuthenticated ? (
+              isRecoveryFlow ? (
+                // Show reset password page during recovery flow, even if authenticated
+                <ResetPassword />
+              ) : !isAuthenticated ? (
                 // Visitors see ONLY the landing page
                 <Routes>
                   <Route path="*" element={<LandingPage />} />

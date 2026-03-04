@@ -29,42 +29,25 @@ interface CartContextType {
   cartTotal: number;
 }
 
+const productSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  price: z.number(),
+  sku: z.string(),
+}).passthrough();
+
+const cartItemSchema = z.object({
+  product: productSchema,
+  quantity: z.number().int().positive(),
+  selectedVariant: z.object({
+    sku: z.string(),
+    price: z.number(),
+  }).passthrough().optional(),
+});
+
+const cartItemsSchema = z.array(cartItemSchema);
+
 const CartContext = createContext<CartContextType | undefined>(undefined);
-
-// G5: Namespace cart key by userId
-function getCartStorageKey(userId: string | undefined): string {
-  return userId ? `goldentier_cart_${userId}` : 'goldentier_cart_guest';
-}
-
-// G7: Zod schema for cart validation
-const CartItemSchema = z.array(z.object({
-  product: z.object({ id: z.string() }).passthrough(),
-  quantity: z.number().int().min(1).max(999),
-  selectedVariant: z.any().optional(),
-}));
-
-function loadCartFromStorage(userId: string | undefined): CartItem[] {
-  try {
-    const stored = localStorage.getItem(getCartStorageKey(userId));
-    if (stored) {
-      const parsed = JSON.parse(stored);
-      const result = CartItemSchema.safeParse(parsed);
-      if (!result.success) return [];
-      return result.data as CartItem[];
-    }
-  } catch {
-    // Corrupted data — ignore
-  }
-  return [];
-}
-
-function saveCartToStorage(items: CartItem[], userId: string | undefined) {
-  try {
-    localStorage.setItem(getCartStorageKey(userId), JSON.stringify(items));
-  } catch {
-    // Storage full or unavailable — ignore
-  }
-}
 
 function matchesItem(item: CartItem, productId: string, variantSku?: string): boolean {
   if (item.product.id !== productId) return false;
@@ -74,38 +57,66 @@ function matchesItem(item: CartItem, productId: string, variantSku?: string): bo
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const { user, isPartner } = useAuth();
-  const userId = user?.id;
-
-  const [items, setItems] = useState<CartItem[]>(() => loadCartFromStorage(userId));
+  const [items, setItems] = useState<CartItem[]>([]);
   const [isOpen, setIsOpen] = useState(false);
-
-  // G9: Ref for debounce timer
+  const [isLoaded, setIsLoaded] = useState(false);
+  const previousUserId = useRef(user?.id);
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // G5+G6: Reload cart when userId changes; clear on logout
+  // Load cart on mount or user change
   useEffect(() => {
-    if (userId === undefined) {
-      // User logged out — clear cart state and remove previous storage entry
-      setItems([]);
-    } else {
-      setItems(loadCartFromStorage(userId));
-    }
-  }, [userId]);
+    const key = user?.id ? `goldentier_cart_${user.id}` : 'goldentier_cart_guest';
+    const stored = localStorage.getItem(key);
 
-  // G9: Persist cart to localStorage with 500ms debounce
+    // Logout detection: If previous user existed and now there's none
+    if (previousUserId.current && !user?.id) {
+      setItems([]);
+      localStorage.removeItem('goldentier_cart_guest');
+      setIsLoaded(true);
+      previousUserId.current = user?.id;
+      return;
+    }
+    previousUserId.current = user?.id;
+
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        const result = cartItemsSchema.safeParse(parsed);
+        if (result.success) {
+          setItems(result.data as unknown as CartItem[]);
+        } else {
+          console.error('Invalid cart data in storage:', result.error);
+          setItems([]);
+        }
+      } catch {
+        setItems([]);
+      }
+    } else {
+      setItems([]);
+    }
+    setIsLoaded(true);
+  }, [user?.id]);
+
+  // Persist cart to localStorage with 500ms debounce
   useEffect(() => {
+    if (!isLoaded) return;
     if (saveTimerRef.current !== null) {
       clearTimeout(saveTimerRef.current);
     }
     saveTimerRef.current = setTimeout(() => {
-      saveCartToStorage(items, userId);
+      const key = user?.id ? `goldentier_cart_${user.id}` : 'goldentier_cart_guest';
+      try {
+        localStorage.setItem(key, JSON.stringify(items));
+      } catch {
+        // Storage full or unavailable — ignore
+      }
     }, 500);
     return () => {
       if (saveTimerRef.current !== null) {
         clearTimeout(saveTimerRef.current);
       }
     };
-  }, [items, userId]);
+  }, [items, user?.id, isLoaded]);
 
   const addToCart = useCallback((product: Product, variant?: ProductVariant) => {
     setItems((prev) => {
@@ -145,7 +156,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setIsOpen((prev) => !prev);
   }, []);
 
-  // G8: useMemo for cart calculations
   const cartCount = useMemo(
     () => items.reduce((sum, item) => sum + item.quantity, 0),
     [items]

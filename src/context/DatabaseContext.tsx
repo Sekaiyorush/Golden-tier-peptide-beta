@@ -56,7 +56,7 @@ interface DatabaseContextType {
   db: AppDatabase;
   setDb: React.Dispatch<React.SetStateAction<AppDatabase>>;
   isLoading: boolean;
-  dataError: string | null;
+  dbError: string | null;
   refreshData: () => Promise<void>;
 
   // Products
@@ -125,7 +125,7 @@ const INITIAL_DB_STATE: AppDatabase = {
 export function DatabaseProvider({ children }: { children: ReactNode }) {
   const [db, setDbState] = useState<AppDatabase>(INITIAL_DB_STATE);
   const [isLoading, setIsLoading] = useState(true);
-  const [dataError, setDataError] = useState<string | null>(null);
+  const [dbError, setDbError] = useState<string | null>(null);
 
   // ─── Audit Logging Helper ────────────────────────────────────────
   const logAudit = async (action: string, entityType: string, entityId: string, details?: Record<string, unknown>) => {
@@ -145,6 +145,8 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
   };
 
   const loadData = async () => {
+    setIsLoading(true);
+    setDbError(null);
     try {
       const [
         { data: products },
@@ -165,7 +167,7 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
       ]);
 
       if (!products) {
-        setDataError('Unable to load products. Please refresh.');
+        setDbError('Unable to load products. Please refresh.');
       }
 
       if (products && profiles) {
@@ -355,8 +357,9 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
           siteSettings,
         });
       }
-    } catch (err) {
+    } catch (err: unknown) {
       console.error("Error loading Supabase data:", err);
+      setDbError(err instanceof Error ? err.message : 'An unknown error occurred loading data');
     } finally {
       setIsLoading(false);
     }
@@ -388,7 +391,7 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
     if (error) {
       console.error(error);
     } else {
-      setDb(prev => ({ ...prev, products: [...prev.products, product] }));
+      await loadData();
       logAudit('create', 'product', product.id, { name: product.name, sku: product.sku, price: product.price });
     }
   };
@@ -822,7 +825,7 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
 
   return (
     <DatabaseContext.Provider value={{
-      db, setDb, isLoading, dataError, refreshData: loadData,
+      db, setDb, isLoading, dbError, refreshData: loadData,
       addProduct, updateProduct, deleteProduct,
       addOrder, updateOrder, createSecureOrder,
       addPartner, updatePartner, deletePartner,

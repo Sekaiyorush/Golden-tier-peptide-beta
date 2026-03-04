@@ -54,8 +54,11 @@ export function UserDashboard() {
     country: userProfile.address?.country || '',
   });
 
+  const [saveError, setSaveError] = useState('');
+
   const handleSaveProfile = async () => {
     setIsSaving(true);
+    setSaveError('');
     try {
       await updateCustomer(userProfile.id, {
         name: formData.name,
@@ -71,7 +74,7 @@ export function UserDashboard() {
       setIsEditingProfile(false);
     } catch (e) {
       console.error(e);
-      alert('Failed to save profile. Please try again.');
+      setSaveError('Failed to save profile. Please try again.');
     } finally {
       setIsSaving(false);
     }
@@ -235,8 +238,8 @@ export function UserDashboard() {
                       <p className="text-xs text-slate-400 mt-1">{formatDate(order.createdAt)}</p>
                     </div>
                     <span className={`inline-flex items-center space-x-1 px-3 py-1 text-[9px] font-bold tracking-[0.2em] uppercase border ${order.status === 'delivered' ? 'bg-emerald-50 text-emerald-700 border-emerald-200/50' :
-                        order.status === 'shipped' ? 'bg-blue-50 text-blue-700 border-blue-200/50' :
-                          'bg-amber-50 text-[#AA771C] border-[#D4AF37]/30'
+                      order.status === 'shipped' ? 'bg-blue-50 text-blue-700 border-blue-200/50' :
+                        'bg-amber-50 text-[#AA771C] border-[#D4AF37]/30'
                       }`}>
                       {getStatusIcon(order.status)}
                       <span className="ml-1">{order.status}</span>
@@ -324,6 +327,11 @@ export function UserDashboard() {
               )}
             </div>
             <div className="p-8 space-y-10">
+              {saveError && (
+                <div className="bg-red-50 text-red-600 p-4 border border-red-200 text-sm">
+                  {saveError}
+                </div>
+              )}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div>
                   <label className="block text-[10px] font-bold tracking-[0.2em] uppercase text-[#AA771C] mb-3">FULL NAME</label>

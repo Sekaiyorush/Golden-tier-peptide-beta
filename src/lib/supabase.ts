@@ -8,10 +8,11 @@ if (!supabaseUrl || !supabaseAnonKey) {
 }
 
 if (!supabaseUrl.startsWith('https://')) {
-  throw new Error('VITE_SUPABASE_URL must start with https://');
+    console.error('Security Warning: VITE_SUPABASE_URL must start with https://');
 }
+
 if (!supabaseAnonKey.startsWith('eyJ')) {
-  throw new Error('VITE_SUPABASE_ANON_KEY appears invalid');
+    console.error('Security Warning: VITE_SUPABASE_ANON_KEY appears to be invalid. It should be a JWT token starting with "eyJ".');
 }
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);

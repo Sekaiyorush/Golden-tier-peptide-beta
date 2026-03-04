@@ -55,7 +55,14 @@
       "Bash(wc:*)",
       "WebFetch(domain:skillsmp.com)",
       "WebFetch(domain:github.com)",
-      "WebFetch(domain:raw.githubusercontent.com)"
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(git merge main --no-commit)",
+      "Bash(git merge --abort)",
+      "Bash(git rm -r --cached dist/ node_modules/.tmp/ node_modules/.vite/)",
+      "Bash(git merge main)",
+      "Bash(git rm -f dist/index.html \"node_modules/.tmp/tsconfig.app.tsbuildinfo\" \"node_modules/.vite/deps/@react-three_drei.js\" \"node_modules/.vite/deps/@react-three_fiber.js\" \"node_modules/.vite/deps/_metadata.json\")",
+      "Bash(done)",
+      "Bash(git add -A)"
     ]
   }
 }
