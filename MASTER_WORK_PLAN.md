@@ -88,6 +88,20 @@
 
 ---
 
+### Stream Zeta — Quality, Reliability & Automation
+**Files owned:** `QUALITY_AND_RELIABILITY_STRATEGY.md`, `src/test/`, `playwright.config.ts` (future)
+
+| # | Issue | Severity | Source |
+|---|---|---|---|
+| Z1 | Execute Round 1 Manual QA Audit using QA_CHECKLIST.md | High | Quality Strategy |
+| Z2 | Install and configure Playwright for Critical Path E2E testing | High | Quality Strategy |
+| Z3 | Expand Vitest coverage to 70%+ (focus on Cart/Database Contexts) | Medium | Quality Strategy |
+| Z4 | Implement single-step atomic registration RPC (backend coordination) | High | Quality Strategy |
+| Z5 | Establish Core Web Vitals targets (LCP < 1.5s, CLS < 0.1) | Medium | Quality Strategy |
+| Z6 | Audit ARIA labels and keyboard navigation for premium UI components | Medium | Quality Strategy |
+
+---
+
 ## Requires Supabase / Backend Work (Cannot be fixed in frontend code)
 
 These items require direct Supabase dashboard access or Edge Function deployment:
@@ -144,6 +158,7 @@ These items require direct Supabase dashboard access or Edge Function deployment
 - [x] **Gamma** — Product & cart UX/security ✅
 - [x] **Delta** — Performance, a11y, data layer ✅
 - [ ] **Epsilon** — UI/UX Pro Max Reimplementation (Planning phase complete 📄)
+- [ ] **Zeta** — Quality, Reliability & Automation (Strategy defined 📄)
 - [ ] **QA & Design Testing Phase** — Validating core flows and design gaps (TEST_STRATEGY_AND_CHECKLIST.md)
 - [ ] **Supabase** — Backend/RLS/RPC (manual)
 - [ ] **Integrations** — Payments + Email (future sprint)
