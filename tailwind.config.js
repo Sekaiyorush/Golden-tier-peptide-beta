@@ -76,23 +76,22 @@ module.exports = {
           800: '#64420A',
           900: '#432B06',
         },
-        emerald: {
-          500: '#10b981',
-          600: '#059669',
-        },
-        amber: {
-          500: '#f59e0b',
-          600: '#d97706',
-        },
-        rose: {
-          500: '#f43f5e',
-          600: '#e11d48',
+        platinum: {
+          50: '#f8f9fa',
+          100: '#e9ecef',
+          200: '#dee2e6',
+          300: '#ced4da',
+          400: '#adb5bd',
+          500: '#6c757d',
         },
       },
       fontFamily: {
         sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+        serif: ['Playfair Display', 'serif'],
       },
       borderRadius: {
+        '2xl': '1rem',
+        '3xl': '1.5rem',
         xl: "calc(var(--radius) + 4px)",
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
@@ -103,6 +102,8 @@ module.exports = {
         xs: "0 1px 2px 0 rgb(0 0 0 / 0.05)",
         soft: "0 4px 20px -2px rgb(0 0 0 / 0.05)",
         card: "0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)",
+        premium: "0 20px 40px -10px rgba(212, 175, 55, 0.15)",
+        'premium-hover': "0 30px 60px -12px rgba(212, 175, 55, 0.25)",
       },
       keyframes: {
         "accordion-down": {
@@ -135,6 +136,14 @@ module.exports = {
             transform: "translateX(150%)"
           }
         },
+        "float": {
+          "0%, 100%": { transform: "translateY(0)" },
+          "50%": { transform: "translateY(-10px)" },
+        },
+        "reveal": {
+          "0%": { opacity: "0", filter: "blur(10px)", transform: "translateY(20px)" },
+          "100%": { opacity: "1", filter: "blur(0px)", transform: "translateY(0)" },
+        }
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -143,6 +152,8 @@ module.exports = {
         "gradient-x": "gradient-x 5s ease infinite",
         "shimmer": "shimmer 3s infinite",
         "spin-slow": "spin 8s linear infinite",
+        "float": "float 6s ease-in-out infinite",
+        "reveal": "reveal 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards",
       },
     },
   },
