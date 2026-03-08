@@ -17,84 +17,92 @@ export function CartSidebar() {
   return (
     <>
       <div
-        className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50"
+        className="fixed inset-0 bg-black/40 backdrop-blur-md z-50 transition-all duration-700"
         onClick={() => setIsOpen(false)}
       />
 
-      <div className="fixed right-0 top-0 h-full w-full max-w-md bg-white border-l border-slate-200 z-50 shadow-2xl flex flex-col font-sans">
-        <div className="flex items-center justify-between p-6 border-b border-slate-100">
+      <div className="fixed right-0 top-0 h-full w-full max-w-lg bg-white z-[60] shadow-[0_0_100px_rgba(0,0,0,0.2)] flex flex-col font-sans animate-reveal border-l border-gold-300/10">
+        <div className="flex items-center justify-between p-10 border-b border-slate-100/50">
           <div>
-            <h2 className="text-2xl font-serif text-slate-900 leading-none">Your Cart</h2>
-            <p className="text-[10px] font-bold tracking-[0.2em] text-slate-400 uppercase mt-2">{items.length} items for acquisition</p>
+            <h2 className="text-3xl font-serif text-slate-900 leading-none tracking-tight">Your Selection</h2>
+            <p className="text-[10px] font-bold tracking-[0.4em] text-gold-600 uppercase mt-4">{items.length} units for acquisition</p>
           </div>
           <button
             onClick={() => setIsOpen(false)}
-            className="p-2 border border-transparent hover:border-slate-200 transition-colors"
+            className="w-12 h-12 flex items-center justify-center border border-slate-100 hover:border-gold-500 hover:text-gold-600 transition-all duration-500 rounded-full"
           >
-            <X className="h-5 w-5 text-slate-400" />
+            <X className="h-5 w-5 opacity-40 hover:opacity-100" />
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-6">
+        <div className="flex-1 overflow-y-auto p-10 custom-scrollbar">
           {items.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-center py-12">
-              <div className="w-16 h-16 border border-[#D4AF37]/20 flex items-center justify-center mb-6 relative">
-                <div className="absolute -top-px -left-px w-2 h-2 border-t border-l border-[#D4AF37]" />
-                <div className="absolute -bottom-px -right-px w-2 h-2 border-b border-r border-[#D4AF37]" />
-                <ShoppingBag className="h-8 w-8 text-[#D4AF37]/30" />
+              <div className="w-24 h-24 border border-gold-300/20 flex items-center justify-center mb-8 relative">
+                <div className="absolute -top-1 -left-1 w-3 h-3 border-t border-l border-gold-500" />
+                <div className="absolute -bottom-1 -right-1 w-3 h-3 border-b border-r border-gold-500" />
+                <ShoppingBag className="h-10 w-10 text-gold-500/20" />
               </div>
-              <p className="text-xs font-bold tracking-[0.2em] text-slate-900 uppercase">Cart is Empty</p>
-              <p className="text-[10px] text-slate-400 mt-2 uppercase tracking-widest">No premium compounds selected</p>
+              <p className="text-sm font-bold tracking-[0.3em] text-slate-900 uppercase">Cart is Empty</p>
+              <p className="text-[10px] text-slate-400 mt-4 uppercase tracking-[0.2em] font-light max-w-[200px] leading-relaxed">No premium formulations currently staged for acquisition</p>
               <button
                 onClick={() => setIsOpen(false)}
-                className="mt-8 px-8 py-3 bg-[#111] text-white text-[10px] font-bold tracking-[0.2em] uppercase border border-[#111] hover:text-[#D4AF37] transition-colors"
+                className="mt-12 btn-premium text-[10px] px-12"
               >
                 Return to Catalog
               </button>
             </div>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-6">
               {items.map((item) => (
                 <div
                   key={`${item.product.id}-${item.selectedVariant?.sku || 'base'}`}
-                  className="flex items-center gap-4 p-4 border border-slate-100 bg-slate-50/50 relative"
+                  className="flex items-center gap-6 p-6 border border-slate-100 bg-slate-50/30 relative group hover:bg-white hover:border-gold-300/30 hover:shadow-premium transition-all duration-700"
                 >
-                  <div className="w-16 h-16 border border-slate-200 flex items-center justify-center flex-shrink-0 bg-white">
-                    <span className="text-slate-400 font-bold text-[10px] uppercase tracking-tighter">
-                      {item.product.name.substring(0, 3)}
-                    </span>
+                  <div className="w-20 h-20 border border-slate-200 flex items-center justify-center flex-shrink-0 bg-white p-4 group-hover:border-gold-300/50 transition-colors duration-700">
+                    {item.product.imageUrl ? (
+                      <img src={item.product.imageUrl} alt={item.product.name} className="w-full h-full object-contain" />
+                    ) : (
+                      <span className="text-gold-600 font-serif text-xl">
+                        {item.product.name.charAt(0)}
+                      </span>
+                    )}
                   </div>
 
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs font-bold text-slate-900 uppercase truncate">{item.product.name}</p>
+                    <p className="text-[11px] font-bold text-slate-900 uppercase tracking-widest truncate">{item.product.name}</p>
                     {item.selectedVariant && (
-                      <p className="text-[10px] font-bold text-[#AA771C] uppercase mt-0.5">{item.selectedVariant.label}</p>
+                      <div className="flex items-center mt-1">
+                        <div className="h-[1px] w-3 bg-gold-500/50 mr-2" />
+                        <p className="text-[10px] font-bold text-gold-600 uppercase tracking-widest">{item.selectedVariant.label}</p>
+                      </div>
                     )}
-                    <p className="text-[10px] text-slate-400 mt-1">{formatTHB(getItemPrice(item))}</p>
+                    <p className="text-[10px] text-slate-400 mt-2 font-medium">{formatTHB(getItemPrice(item))}</p>
                   </div>
 
-                  <div className="flex items-center border border-slate-200 bg-white">
+                  <div className="flex flex-col items-center gap-3">
+                    <div className="flex items-center border border-slate-200 bg-white rounded-sm overflow-hidden">
+                      <button
+                        onClick={() => updateQuantity(item.product.id, item.quantity - 1, item.selectedVariant?.sku)}
+                        className="w-8 h-8 flex items-center justify-center hover:bg-gold-500/5 hover:text-gold-600 transition-all border-r border-slate-100"
+                      >
+                        <Minus className="h-3 w-3" />
+                      </button>
+                      <span className="w-10 text-center text-[11px] font-bold font-serif">{item.quantity}</span>
+                      <button
+                        onClick={() => updateQuantity(item.product.id, item.quantity + 1, item.selectedVariant?.sku)}
+                        className="w-8 h-8 flex items-center justify-center hover:bg-gold-500/5 hover:text-gold-600 transition-all border-l border-slate-100"
+                      >
+                        <Plus className="h-3 w-3" />
+                      </button>
+                    </div>
                     <button
-                      onClick={() => updateQuantity(item.product.id, item.quantity - 1, item.selectedVariant?.sku)}
-                      className="w-8 h-8 flex items-center justify-center hover:bg-slate-50 transition-colors border-r border-slate-200"
+                      onClick={() => removeFromCart(item.product.id, item.selectedVariant?.sku)}
+                      className="text-[9px] font-bold tracking-[0.2em] text-slate-300 hover:text-red-500 uppercase transition-colors"
                     >
-                      <Minus className="h-3 w-3 text-slate-400" />
-                    </button>
-                    <span className="w-8 text-center text-[10px] font-bold">{item.quantity}</span>
-                    <button
-                      onClick={() => updateQuantity(item.product.id, item.quantity + 1, item.selectedVariant?.sku)}
-                      className="w-8 h-8 flex items-center justify-center hover:bg-slate-50 transition-colors border-l border-slate-200"
-                    >
-                      <Plus className="h-3 w-3 text-slate-400" />
+                      Remove
                     </button>
                   </div>
-
-                  <button
-                    onClick={() => removeFromCart(item.product.id, item.selectedVariant?.sku)}
-                    className="p-2 text-slate-300 hover:text-red-500 transition-colors"
-                  >
-                    <X className="h-4 w-4" />
-                  </button>
                 </div>
               ))}
             </div>
@@ -102,52 +110,51 @@ export function CartSidebar() {
         </div>
 
         {items.length > 0 && (
-          <div className="border-t border-slate-100 p-6 space-y-6 bg-white relative">
-            <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-[#D4AF37]/0 via-[#D4AF37]/30 to-[#D4AF37]/0" />
+          <div className="border-t border-slate-100 p-10 space-y-8 bg-white relative">
+            <div className="absolute top-0 left-0 w-full h-[1px] bg-gold-gradient opacity-20" />
             
-            <div className="space-y-3">
-              <div className="flex justify-between text-[10px] font-bold tracking-widest text-slate-400 uppercase">
+            <div className="space-y-4">
+              <div className="flex justify-between text-[11px] font-bold tracking-[0.2em] text-slate-400 uppercase">
                 <span>Subtotal</span>
                 <span className="text-slate-900">{formatTHB(cartSubtotal)}</span>
               </div>
               {discountAmount > 0 && (
-                <div className="flex justify-between text-[10px] font-bold tracking-widest text-emerald-600 uppercase">
-                  <span>Partner Discount</span>
+                <div className="flex justify-between text-[11px] font-bold tracking-[0.2em] text-emerald-600 uppercase">
+                  <span>Partner Privilege (Applied)</span>
                   <span>-{formatTHB(discountAmount)}</span>
                 </div>
               )}
-              <div className="flex justify-between text-[10px] font-bold tracking-widest text-slate-400 uppercase">
-                <span>Logistics</span>
-                <span className="text-slate-400 italic">TBD</span>
+              <div className="flex justify-between text-[11px] font-bold tracking-[0.2em] text-slate-400 uppercase">
+                <span>Validated Logistics</span>
+                <span className="text-slate-400 font-light italic">Calculated at Checkout</span>
               </div>
-              <div className="flex justify-between pt-4 border-t border-slate-100">
-                <span className="text-xs font-bold tracking-[0.2em] text-slate-900 uppercase">Total Acquisition</span>
-                <span className="text-xl font-serif text-[#AA771C]">{formatTHB(cartTotal)}</span>
+              <div className="flex justify-between pt-8 border-t border-slate-100 items-baseline">
+                <span className="text-xs font-bold tracking-[0.3em] text-slate-900 uppercase">Total Acquisition</span>
+                <span className="text-4xl font-serif text-gold-gradient">{formatTHB(cartTotal)}</span>
               </div>
             </div>
 
             <Link
               to="/checkout"
               onClick={() => setIsOpen(false)}
-              className="w-full h-14 bg-[#111] text-white text-[11px] font-bold tracking-[0.2em] uppercase flex items-center justify-center relative group overflow-hidden border border-[#111]"
+              className="w-full h-20 bg-[#111] text-white text-[11px] font-bold tracking-[0.4em] uppercase flex items-center justify-center relative group overflow-hidden border border-[#111] shadow-2xl active:scale-[0.98] transition-transform"
             >
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[#D4AF37]/10 to-transparent -translate-x-[150%] group-hover:animate-[shimmer_3s_infinite]" />
-              <span className="relative z-10 flex items-center gap-3 group-hover:text-[#D4AF37]">
-                Initialize Checkout
-                <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+              <div className="absolute inset-0 bg-gold-gradient opacity-0 group-hover:opacity-10 transition-opacity duration-1000" />
+              <span className="relative z-10 flex items-center gap-4 group-hover:text-gold-300 transition-colors">
+                INITIALIZE CHECKOUT
+                <ArrowRight className="h-5 w-5 group-hover:translate-x-2 transition-transform duration-500" />
               </span>
-              <span className="absolute bottom-0 left-0 w-0 h-[1px] bg-[#D4AF37] transition-all duration-500 group-hover:w-full" />
+              <span className="absolute bottom-0 left-0 w-0 h-[2px] bg-gold-gradient transition-all duration-700 ease-out group-hover:w-full" />
             </Link>
 
             <button
               onClick={() => setIsOpen(false)}
-              className="w-full text-[10px] font-bold tracking-widest text-slate-400 hover:text-slate-900 uppercase transition-colors"
+              className="w-full text-[10px] font-bold tracking-[0.3em] text-slate-300 hover:text-gold-600 uppercase transition-all duration-500 text-center"
             >
-              Continue Research
+              CONTINUE EXPLORATION
             </button>
           </div>
         )}
-      </div>
       </div>
     </>
   );

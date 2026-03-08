@@ -201,48 +201,49 @@ export function LandingPage() {
 
                 <motion.div
                     style={{ y: yTitle }}
-                    className="max-w-4xl mx-auto text-center"
+                    className="max-w-6xl mx-auto text-center"
                 >
                     {/* Main Title - Shiny Gold Gradient */}
                     <motion.h1
-                        initial={{ opacity: 0, y: 20, filter: "blur(10px)" }}
+                        initial={{ opacity: 0, y: 40, filter: "blur(20px)" }}
                         animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-                        transition={{ duration: 1.5, ease: [0.22, 1, 0.36, 1], delay: 0.5 }}
-                        className="text-[4rem] sm:text-[6rem] lg:text-[8rem] font-serif tracking-tight leading-[0.9] text-transparent bg-clip-text bg-gradient-to-r from-[#AA771C] via-[#F3E5AB] to-[#D4AF37] animate-gradient-x bg-[length:200%_auto] pb-4"
+                        transition={{ duration: 1.8, ease: [0.22, 1, 0.36, 1], delay: 0.5 }}
+                        className="text-[5rem] sm:text-[8rem] lg:text-[11rem] font-serif tracking-tighter leading-[0.85] text-gold-gradient pb-6"
                     >
-                        Purity.
+                        Absolute.
                         <br />
-                        Precision.
+                        Purity.
                     </motion.h1>
 
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
-                        transition={{ duration: 1.5, delay: 1 }}
-                        className="mt-12"
+                        transition={{ duration: 2, delay: 1.2 }}
+                        className="mt-16 relative"
                     >
-                        <p className="text-sm md:text-base font-light tracking-[0.2em] text-slate-400 max-w-xl mx-auto leading-relaxed uppercase">
+                        <div className="absolute left-1/2 -translate-x-1/2 -top-8 w-12 h-[1px] bg-gold-gradient opacity-50" />
+                        <p className="text-sm md:text-lg font-light tracking-[0.4em] text-slate-400 max-w-2xl mx-auto leading-relaxed uppercase">
                             {companyDescription}
                         </p>
                     </motion.div>
 
                     {/* Luxury CTA Button */}
                     <motion.div
-                        initial={{ opacity: 0, y: 20 }}
+                        initial={{ opacity: 0, y: 30 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 1.5, ease: [0.22, 1, 0.36, 1], delay: 1.2 }}
-                        className="mt-20 flex justify-center"
+                        transition={{ duration: 1.5, ease: [0.22, 1, 0.36, 1], delay: 1.5 }}
+                        className="mt-24 flex justify-center"
                     >
                         <Link
                             to="/login"
-                            className="group relative flex items-center justify-center w-32 h-32 rounded-full border border-[#D4AF37]/30 hover:border-[#D4AF37] transition-colors duration-700 mx-auto"
+                            className="group relative flex flex-col items-center justify-center w-40 h-40 rounded-full border border-gold-300/20 hover:border-gold-500 transition-all duration-1000 mx-auto"
                         >
                             {/* Rotating glowing arc */}
-                            <div className="absolute inset-[-1px] rounded-full bg-gradient-to-tr from-[#D4AF37] to-transparent opacity-0 group-hover:opacity-100 animate-spin-slow transition-opacity duration-700" />
+                            <div className="absolute inset-[-2px] rounded-full bg-gold-gradient opacity-0 group-hover:opacity-100 animate-spin-slow transition-opacity duration-1000" />
                             <div className="absolute inset-[1px] rounded-full bg-white z-0" />
 
-                            <span className="relative z-10 text-[10px] font-bold tracking-[0.3em] uppercase text-[#AA771C] group-hover:text-[#D4AF37] transition-colors duration-500">
-                                Enter <br /><span className="mt-1 block">Portal</span>
+                            <span className="relative z-10 text-[10px] font-bold tracking-[0.4em] uppercase text-gold-gradient group-hover:scale-110 transition-transform duration-700 text-center">
+                                ENTER <br /><span className="mt-2 block opacity-50 group-hover:opacity-100 transition-opacity">DOMAIN</span>
                             </span>
                         </Link>
                     </motion.div>

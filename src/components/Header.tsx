@@ -26,45 +26,44 @@ export function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-white border-b border-[#D4AF37]/20 transition-all duration-300">
-      <div className="container mx-auto flex h-20 items-center justify-between px-6 md:px-12">
+    <header className="sticky top-0 z-50 w-full bg-white/80 backdrop-blur-md border-b border-[#D4AF37]/10 transition-all duration-300">
+      <div className="container mx-auto flex h-24 items-center justify-between px-6 md:px-12">
         {/* Logo */}
-        <Link to="/" className="flex items-center group">
+        <Link to="/" className="flex items-center group relative">
+          <div className="absolute inset-0 bg-gold-500/10 blur-2xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
           <img
             src="/brand-logo-gold.png"
             alt="Golden Tier Logo"
-            className="h-20 w-auto object-contain drop-shadow-sm group-hover:drop-shadow-[0_0_8px_rgba(212,175,55,0.5)] transition-all duration-500 transform group-hover:scale-105"
+            className="h-20 w-auto object-contain drop-shadow-sm group-hover:drop-shadow-[0_0_15px_rgba(212,175,55,0.4)] transition-all duration-700 transform group-hover:scale-105 relative z-10"
           />
         </Link>
 
         {/* Desktop Navigation */}
-        <nav aria-label="Main Navigation" className="hidden md:flex items-center space-x-10">
-          <Link to="/products" className="text-[10px] font-bold tracking-[0.2em] uppercase text-slate-400 hover:text-[#D4AF37] transition-colors duration-500">
-            Products
-          </Link>
-          <Link to="/about" className="text-[10px] font-bold tracking-[0.2em] uppercase text-slate-400 hover:text-[#D4AF37] transition-colors duration-500">
-            About
-          </Link>
-          <Link to="/research" className="text-[10px] font-bold tracking-[0.2em] uppercase text-slate-400 hover:text-[#D4AF37] transition-colors duration-500">
-            Research
-          </Link>
-          <Link to="/contact" className="text-[10px] font-bold tracking-[0.2em] uppercase text-slate-400 hover:text-[#D4AF37] transition-colors duration-500">
-            Contact
-          </Link>
+        <nav aria-label="Main Navigation" className="hidden lg:flex items-center space-x-12">
+          {['Products', 'About', 'Research', 'Contact'].map((item) => (
+            <Link
+              key={item}
+              to={`/${item.toLowerCase()}`}
+              className="relative text-[10px] font-bold tracking-[0.3em] uppercase text-slate-400 hover:text-[#D4AF37] transition-all duration-500 group"
+            >
+              <span>{item}</span>
+              <span className="absolute -bottom-2 left-0 w-0 h-[1px] bg-[#D4AF37] transition-all duration-500 group-hover:w-full" />
+            </Link>
+          ))}
         </nav>
 
-        <div className="hidden md:flex flex-1 max-w-xs mx-6">
+        <div className="hidden xl:flex flex-1 max-w-xs mx-12">
           <SearchBar />
         </div>
 
         {/* Actions */}
-        <div className="flex items-center space-x-5">
+        <div className="flex items-center space-x-6">
           <button
             onClick={toggleLanguage}
-            className="flex items-center space-x-1.5 text-[10px] font-semibold tracking-widest text-slate-400 hover:text-gold-500 transition-colors duration-300 uppercase"
+            className="hidden sm:flex items-center space-x-2 text-[10px] font-bold tracking-[0.2em] text-slate-400 hover:text-gold-500 transition-colors duration-500 uppercase"
             title="Switch language"
           >
-            <Globe className="h-4 w-4" />
+            <Globe className="h-3.5 w-3.5" />
             <span>{language}</span>
           </button>
 
@@ -72,11 +71,11 @@ export function Header() {
             <button
               onClick={toggleCart}
               aria-label={`Shopping cart with ${cartCount} items`}
-              className="relative p-2 text-slate-400 hover:text-gold-500 transition-colors duration-300"
+              className="relative p-2.5 text-slate-400 hover:text-gold-500 transition-all duration-300 hover:scale-110"
             >
               <ShoppingCart className="h-5 w-5" />
               {cartCount > 0 && (
-                <span className="absolute 0 right-0 flex h-4 w-4 items-center justify-center bg-[#D4AF37] text-[9px] font-bold text-white shadow-sm shadow-[#D4AF37]/40">
+                <span className="absolute top-0 right-0 flex h-4 w-4 items-center justify-center bg-[#D4AF37] text-[9px] font-bold text-white shadow-lg shadow-[#D4AF37]/30 rounded-full animate-reveal">
                   {cartCount}
                 </span>
               )}
@@ -84,49 +83,41 @@ export function Header() {
           )}
 
           {isAuthenticated ? (
-            <div className="hidden md:flex items-center space-x-6">
-              {/* Dashboard Link */}
-              <Link
-                to={getDashboardLink()}
-                className="flex items-center space-x-2 text-[10px] font-bold tracking-[0.2em] uppercase text-[#AA771C] hover:text-[#D4AF37] transition-colors duration-500"
-              >
-                <LayoutDashboard className="h-4 w-4" />
-                <span>{getDashboardLabel()}</span>
-              </Link>
-
+            <div className="flex items-center space-x-6">
               {/* User Menu */}
               <div className="relative">
                 <button
                   aria-label="User account menu"
                   aria-expanded={isUserMenuOpen}
                   onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                  className="flex items-center space-x-2 p-1 border border-[#D4AF37]/20 hover:border-[#D4AF37] rounded-full transition-all duration-500 group"
+                  className="flex items-center space-x-3 p-1.5 border border-[#D4AF37]/20 hover:border-[#D4AF37] rounded-full transition-all duration-700 group bg-slate-50/50"
                 >
-                  <div className="w-8 h-8 rounded-full flex items-center justify-center transition-colors">
-                    <User className="h-4 w-4 text-[#AA771C] group-hover:text-[#D4AF37]" />
+                  <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center border border-[#D4AF37]/10 shadow-sm transition-colors group-hover:border-[#D4AF37]/40">
+                    <User className="h-4 w-4 text-[#AA771C] group-hover:text-[#D4AF37] transition-colors" />
                   </div>
                 </button>
 
                 {isUserMenuOpen && (
-                  <div className="absolute right-0 mt-3 w-56 bg-white border border-[#D4AF37]/20 p-2 shadow-xl shadow-black/5">
+                  <div className="absolute right-0 mt-4 w-64 bg-white border border-[#D4AF37]/10 p-2 shadow-2xl animate-reveal overflow-hidden">
+                    <div className="absolute top-0 left-0 w-full h-[2px] bg-gold-gradient" />
                     <Link
                       to={getDashboardLink()}
-                      className="flex items-center space-x-3 px-4 py-3 text-[10px] font-bold tracking-widest text-slate-600 hover:text-[#D4AF37] hover:bg-slate-50 transition-colors uppercase"
+                      className="flex items-center space-x-3 px-4 py-4 text-[10px] font-bold tracking-widest text-slate-600 hover:text-[#D4AF37] hover:bg-slate-50 transition-all uppercase"
                       onClick={() => setIsUserMenuOpen(false)}
                     >
-                      <LayoutDashboard className="h-4 w-4" />
+                      <LayoutDashboard className="h-4 w-4 opacity-70" />
                       <span>{getDashboardLabel()}</span>
                     </Link>
+                    <div className="h-[1px] bg-slate-100 mx-2" />
                     <button
                       onClick={() => {
                         logout();
                         setIsUserMenuOpen(false);
                       }}
-                      className="flex items-center space-x-3 w-full px-4 py-3 text-[10px] font-bold tracking-widest text-[#111] hover:text-white hover:bg-[#111] transition-colors uppercase group relative overflow-hidden"
+                      className="flex items-center space-x-3 w-full px-4 py-4 text-[10px] font-bold tracking-widest text-[#111] hover:text-[#D4AF37] hover:bg-slate-50 transition-all uppercase group relative"
                     >
-                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-[150%] group-hover:animate-[shimmer_3s_infinite]" />
-                      <LogOut className="h-4 w-4 relative z-10" />
-                      <span className="relative z-10">Logout</span>
+                      <LogOut className="h-4 w-4 opacity-70" />
+                      <span>Logout</span>
                     </button>
                   </div>
                 )}
@@ -135,11 +126,9 @@ export function Header() {
           ) : (
             <Link
               to="/login"
-              className="hidden md:inline-flex items-center justify-center px-8 py-3 text-[10px] font-bold tracking-[0.2em] uppercase text-white bg-[#111] border border-[#111] overflow-hidden group relative shadow-md"
+              className="hidden md:inline-flex btn-premium h-12 items-center px-10 text-[10px]"
             >
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[#D4AF37]/20 to-transparent -translate-x-[150%] animate-[shimmer_3s_infinite]" />
-              <span className="relative z-10 transition-colors group-hover:text-[#D4AF37]">SIGN IN</span>
-              <span className="absolute bottom-0 left-0 w-0 h-[2px] bg-gradient-to-r from-[#D4AF37] to-[#F3E5AB] transition-all duration-500 ease-out group-hover:w-full" />
+              SIGN IN
             </Link>
           )}
         </div>

@@ -42,6 +42,41 @@
     @apply bg-background text-foreground antialiased;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-serif tracking-tight;
+  }
+}
+
+@layer components {
+  .text-gold-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-[#AA771C] via-[#F3E5AB] to-[#D4AF37] animate-gradient-x bg-[length:200%_auto];
+  }
+
+  .bg-gold-gradient {
+    @apply bg-gradient-to-r from-[#AA771C] via-[#F3E5AB] to-[#D4AF37] animate-gradient-x bg-[length:200%_auto];
+  }
+
+  .border-gold {
+    @apply border-[#D4AF37]/30 hover:border-[#D4AF37] transition-colors duration-500;
+  }
+
+  .premium-card {
+    @apply bg-white border border-gold-300/20 shadow-premium hover:shadow-premium-hover transition-all duration-500;
+  }
+
+  .btn-premium {
+    @apply relative overflow-hidden bg-[#111] text-white font-bold tracking-[0.2em] uppercase px-8 py-4 border border-[#111] transition-all duration-500 hover:text-[#D4AF37] active:scale-[0.98] disabled:opacity-50;
+  }
+
+  .btn-premium::after {
+    content: '';
+    @apply absolute bottom-0 left-0 w-0 h-[2px] bg-gradient-to-r from-[#D4AF37] to-[#F3E5AB] transition-all duration-500 ease-out;
+  }
+
+  .btn-premium:hover::after {
+    @apply w-full;
+  }
 }
 
 /* Custom scrollbar - minimal */

@@ -125,21 +125,31 @@ export function ProductDetails() {
 
                         {/* Right: Product Details */}
                         <div className="p-8 md:p-14 lg:p-20 flex flex-col justify-center bg-white">
-                            <div className="mb-4">
-                                <span className="text-[10px] font-bold tracking-[0.3em] text-[#AA771C] uppercase mb-4 block">{product.category}</span>
-                                <h1 className="text-4xl md:text-5xl lg:text-6xl font-serif text-slate-900 tracking-tight leading-tight">{product.name}</h1>
-                                <p className="text-[10px] font-bold tracking-[0.2em] text-slate-400 mt-6 uppercase">SKU: {selectedVariant?.sku || product.sku}</p>
+                            <div className="mb-6">
+                                <div className="flex items-center space-x-3 mb-6">
+                                    <div className="h-[1px] w-8 bg-[#D4AF37]" />
+                                    <span className="text-[10px] font-bold tracking-[0.4em] text-[#AA771C] uppercase">{product.category}</span>
+                                </div>
+                                <h1 className="text-5xl md:text-7xl lg:text-8xl font-serif text-slate-900 tracking-tighter leading-[0.9] mb-8">{product.name}</h1>
+                                <div className="flex items-center space-x-4">
+                                    <p className="text-[10px] font-bold tracking-[0.2em] text-slate-400 uppercase">REFERENCE: {selectedVariant?.sku || product.sku}</p>
+                                    <div className="h-4 w-[1px] bg-slate-200" />
+                                    <div className="flex items-center space-x-2">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                                        <p className="text-[10px] font-bold tracking-[0.2em] text-emerald-600 uppercase">Validated Purity</p>
+                                    </div>
+                                </div>
                             </div>
 
-                            <div className="my-8">
-                                <p className="text-slate-500 leading-relaxed text-sm md:text-base tracking-wide">{product.description}</p>
+                            <div className="my-10">
+                                <p className="text-slate-500 leading-relaxed text-base md:text-lg tracking-wide font-light max-w-xl">{product.description}</p>
                             </div>
 
                             {/* Variant Selector — Radio Button Chips */}
                             {hasVariants && (
-                                <div className="mb-8">
-                                    <label className="text-[10px] font-bold tracking-[0.2em] uppercase text-slate-400 block mb-3">SELECT OPTION</label>
-                                    <div className="flex flex-wrap gap-2">
+                                <div className="mb-10">
+                                    <label className="text-[10px] font-bold tracking-[0.3em] uppercase text-slate-400 block mb-4">SPECIFICATION</label>
+                                    <div className="flex flex-wrap gap-3">
                                         {product.variants!.map(v => {
                                             const isSelected = selectedVariant?.sku === v.sku;
                                             const isOutOfStock = v.stock <= 0;
@@ -149,17 +159,17 @@ export function ProductDetails() {
                                                     key={v.sku}
                                                     onClick={() => !isOutOfStock && setSelectedVariant(v)}
                                                     disabled={isOutOfStock}
-                                                    className={`px-4 py-2.5 text-xs font-bold tracking-wide border transition-all duration-200 flex flex-col items-start ${
+                                                    className={`px-6 py-4 text-[10px] font-bold tracking-[0.2em] border transition-all duration-500 flex flex-col items-center min-w-[120px] uppercase ${
                                                         isOutOfStock
-                                                            ? 'border-slate-200 bg-slate-50 text-slate-300 line-through cursor-not-allowed'
+                                                            ? 'border-slate-100 bg-slate-50/50 text-slate-300 line-through cursor-not-allowed opacity-50'
                                                             : isSelected
-                                                                ? 'border-[#D4AF37] bg-[#D4AF37] text-white shadow-md'
-                                                                : 'border-[#D4AF37]/30 bg-white text-slate-700 hover:border-[#D4AF37] hover:bg-[#D4AF37]/5 cursor-pointer'
+                                                                ? 'border-gold-500 bg-[#111] text-white shadow-xl scale-105 z-10'
+                                                                : 'border-gold-300/20 bg-white text-slate-600 hover:border-gold-500/50 hover:bg-gold-500/5'
                                                     }`}
                                                 >
                                                     <span>{v.label}</span>
                                                     {variantDiscountedPrice !== null && !isOutOfStock && (
-                                                        <span className={`text-[10px] font-semibold mt-0.5 ${isSelected ? 'text-white/80' : 'text-[#D4AF37]'}`}>
+                                                        <span className={`mt-1 font-bold ${isSelected ? 'text-gold-300' : 'text-gold-600'}`}>
                                                             {formatTHB(variantDiscountedPrice)}
                                                         </span>
                                                     )}
@@ -167,69 +177,58 @@ export function ProductDetails() {
                                             );
                                         })}
                                     </div>
-                                    {/* Per-variant stock info */}
-                                    {selectedVariant && (
-                                        <div className="mt-3 flex items-center gap-2">
-                                            <Package className="h-3.5 w-3.5 text-slate-400" />
-                                            {variantInStock ? (
-                                                <span className={`text-xs font-medium ${variantStock <= 10 ? 'text-amber-600' : 'text-emerald-600'}`}>
-                                                    {variantStock <= 10 ? `Only ${variantStock} left` : `${variantStock} in stock`}
-                                                </span>
-                                            ) : (
-                                                <span className="text-xs font-medium text-red-500">Out of Stock</span>
-                                            )}
-                                        </div>
-                                    )}
                                 </div>
                             )}
 
                             {isPartner ? (
                                 <>
-                                    <div className="mb-12">
-                                        <div className="flex items-end gap-4 mb-2">
-                                            <span className="text-5xl font-serif text-slate-900 tracking-tight">{formatTHB(currentPrice)}</span>
+                                    <div className="mb-14">
+                                        <div className="flex items-baseline gap-6 mb-2">
+                                            <span className="text-6xl md:text-7xl font-serif text-gold-gradient tracking-tighter">{formatTHB(currentPrice)}</span>
                                             {user?.discountRate && (
-                                                <span className="text-xl text-slate-400 line-through mb-1.5 font-light">{formatTHB(activePrice)}</span>
+                                                <span className="text-2xl text-slate-300 line-through font-light italic">{formatTHB(activePrice)}</span>
                                             )}
                                         </div>
                                         {user?.discountRate && (
-                                            <p className="text-[10px] font-bold tracking-[0.2em] uppercase text-[#D4AF37] mt-4 flex items-center">
-                                                <Check className="h-3 w-3 mr-2" />
-                                                PARTNER PRIVILEGE: {user.discountRate}% DISCOUNT
-                                            </p>
+                                            <div className="inline-flex items-center px-4 py-2 bg-gold-500/5 border border-gold-300/20 rounded-full mt-6">
+                                                <Check className="h-3 w-3 mr-3 text-gold-600" />
+                                                <p className="text-[9px] font-bold tracking-[0.3em] uppercase text-gold-700">
+                                                    PARTNER PRIVILEGE: {user.discountRate}% REDUCTION
+                                                </p>
+                                            </div>
                                         )}
                                     </div>
 
-                                    <div className="flex items-center gap-6 mb-12">
+                                    <div className="flex flex-col sm:flex-row items-stretch gap-6 mb-16">
                                         <div className="flex flex-col gap-4">
-                                            <span className="text-[10px] font-bold tracking-[0.2em] uppercase text-slate-400">QUANTITY</span>
-                                            <div className="flex items-center bg-white p-1 border border-[#D4AF37]/30 shadow-sm min-w-[120px] justify-between">
+                                            <span className="text-[10px] font-bold tracking-[0.3em] uppercase text-slate-400">UNIT COUNT</span>
+                                            <div className="flex items-center bg-white p-1 border border-gold-300/20 shadow-premium justify-between min-h-[60px] min-w-[160px]">
                                                 <button
                                                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                                                    className="p-3 text-slate-400 hover:text-[#D4AF37] hover:bg-[#D4AF37]/5 transition-colors"
+                                                    className="w-12 h-12 flex items-center justify-center text-slate-400 hover:text-gold-600 hover:bg-gold-500/5 transition-all"
                                                 >
                                                     <Minus className="h-4 w-4" />
                                                 </button>
-                                                <span className="w-12 text-center font-bold text-slate-900 text-lg">{quantity}</span>
+                                                <span className="text-xl font-bold text-slate-900 font-serif">{quantity}</span>
                                                 <button
                                                     onClick={() => setQuantity(quantity + 1)}
-                                                    className="p-3 text-slate-400 hover:text-[#D4AF37] hover:bg-[#D4AF37]/5 transition-colors"
+                                                    className="w-12 h-12 flex items-center justify-center text-slate-400 hover:text-gold-600 hover:bg-gold-500/5 transition-all"
                                                 >
                                                     <Plus className="h-4 w-4" />
                                                 </button>
                                             </div>
                                         </div>
 
-                                        <div className="flex-1 flex flex-col justify-end pt-8">
+                                        <div className="flex-1 flex flex-col justify-end">
                                             <button
                                                 onClick={handleAddToCart}
                                                 disabled={!variantInStock}
-                                                className="w-full h-14 flex items-center justify-center space-x-3 bg-[#111] text-white font-semibold text-[10px] tracking-[0.2em] uppercase transition-all disabled:opacity-50 disabled:cursor-not-allowed hover:bg-black border border-[#111] shadow-md group relative overflow-hidden"
+                                                className="w-full h-20 flex items-center justify-center space-x-4 bg-[#111] text-white font-bold text-[11px] tracking-[0.4em] uppercase transition-all disabled:opacity-30 disabled:cursor-not-allowed hover:bg-black border border-[#111] shadow-2xl group relative overflow-hidden active:scale-[0.98]"
                                             >
-                                                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[#D4AF37]/20 to-transparent -translate-x-[150%] animate-[shimmer_3s_infinite]" />
-                                                <ShoppingCart className="relative z-10 h-4 w-4 transition-colors group-hover:text-[#D4AF37]" />
-                                                <span className="relative z-10">{variantInStock ? 'ACQUIRE COMPOUND' : 'OUT OF STOCK'}</span>
-                                                <span className="absolute bottom-0 left-0 w-0 h-[2px] bg-gradient-to-r from-[#D4AF37] to-[#F3E5AB] transition-all duration-500 ease-out group-hover:w-full" />
+                                                <div className="absolute inset-0 bg-gold-gradient opacity-0 group-hover:opacity-10 transition-opacity duration-700" />
+                                                <ShoppingCart className="relative z-10 h-5 w-5 transition-transform group-hover:-translate-y-1" />
+                                                <span className="relative z-10">{variantInStock ? 'ACQUIRE COMPOUND' : 'UNAVAILABLE'}</span>
+                                                <span className="absolute bottom-0 left-0 w-0 h-[2px] bg-gold-gradient transition-all duration-700 ease-out group-hover:w-full" />
                                             </button>
                                         </div>
                                     </div>
