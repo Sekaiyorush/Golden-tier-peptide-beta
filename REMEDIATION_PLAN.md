@@ -22,15 +22,16 @@
 
 ## Merge Blocker Conditions
 
-Merge to `main` is **BLOCKED** until all three QA test artifacts and both Design fixes are delivered and verified.
+Merge to `main` is **BLOCKED** until all three QA test artifacts, both Design fixes, and the specified Performance/Operations items are delivered and verified.
 
-### QA Test Artifacts Required (3 tracks)
+### QA Test Artifacts Required (4 tracks)
 
 | # | Track | Acceptance Criterion |
 |---|-------|----------------------|
 | QA-1 | Invitation-code RPC coverage | Vitest test exercising `validate_invitation_code` RPC — valid, expired, over-limit, and already-used code paths all asserted |
 | QA-2 | `handle_new_user()` trigger reliability | Vitest/integration test confirming that a new auth signup always creates a `profiles` row with the correct default role and status |
 | QA-3 | Partner-role cart restriction guard | Vitest test confirming that non-partner (customer/admin) users cannot add items to cart and receive the correct access-denied UI |
+| QA-4 | End-to-End Cart & Auth Flows | Successful Playwright/Vitest execution of the full authentication and cart management lifecycle (login -> add to cart -> cart persistence -> logout) |
 
 ### Design Fixes Required (2 blockers)
 
@@ -38,6 +39,13 @@ Merge to `main` is **BLOCKED** until all three QA test artifacts and both Design
 |---|---------|----------------------|
 | D-1 | Role-gated cart UI | ProductCard and CartSidebar display a clear "Partner access required" message instead of an enabled Add-to-Cart button for customer/admin roles |
 | D-2 | Non-partner access messaging in product catalog | Products page shows a persistent, branded banner informing non-partner users that purchasing requires partner status, with a CTA pointing to the invitation/registration flow |
+
+### Performance & Operations Required (2 blockers)
+
+| # | Item | Acceptance Criterion |
+|---|------|----------------------|
+| P-1 | React Memoization & Debouncing | Implementation of `useMemo` for cart/product calculations and 500ms debounce for search/storage writes (ref: Master Plan G8, G9, D1, D2) |
+| O-1 | Performance Threshold Monitoring | Operations verification that post-optimization LCP is < 1.5s and search latency remains under 200ms during concurrent updates |
 
 ---
 
@@ -50,8 +58,11 @@ These items block the review gate. All must be resolved in the current round.
 1. **[QA-1]** Write Vitest test for `validate_invitation_code` RPC — four code paths
 2. **[QA-2]** Write Vitest/integration test for `handle_new_user()` trigger
 3. **[QA-3]** Write Vitest test for partner-role cart guard (CartContext + CartSidebar)
-4. **[D-1]** Implement role-gated UI in `ProductCard.tsx` and `CartSidebar.tsx`
-5. **[D-2]** Add non-partner access banner to `Products.tsx` (brand-consistent, with registration CTA)
+4. **[QA-4]** Execute E2E validation for Cart and Auth flows
+5. **[D-1]** Implement role-gated UI in `ProductCard.tsx` and `CartSidebar.tsx`
+6. **[D-2]** Add non-partner access banner to `Products.tsx`
+7. **[P-1]** Implement `useMemo` and debounce optimizations (Master Plan G8, G9, D1, D2)
+8. **[O-1]** Establish and monitor performance thresholds post-optimization
 
 ### P1 — Critical Security (next round, pre-launch)
 

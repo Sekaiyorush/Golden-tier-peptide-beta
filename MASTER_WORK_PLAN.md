@@ -52,15 +52,15 @@
 
 | # | Issue | Severity | Source |
 |---|---|---|---|
-| G1 | Disable "Add to Cart" button when selected variant is out of stock | Medium | BUG §UX |
+| G1 | Disable "Add to Cart" button when selected variant is out of stock | **Blocker** | BUG §UX |
 | G2 | Show partner-discounted price in ProductCard tiles with "Your Price" label | Medium | BUG §Business |
 | G3 | Show partner-discounted price in variant chip selector on ProductDetails | High | BUG §State |
-| G4 | Fix `variantStock` undefined — default to `0` | Medium | BUG §TS |
+| G4 | Fix `variantStock` undefined — default to `0` | **Blocker** | BUG §TS |
 | G5 | Namespace localStorage cart key by userId (`goldentier_cart_${userId}`) | Medium | BUG §UX |
-| G6 | Clear cart on logout (watch auth user becoming null) | Medium | BUG §UX |
+| G6 | Clear cart on logout (watch auth user becoming null) | **Blocker** | BUG §UX |
 | G7 | Validate cart loaded from localStorage with Zod schema | Medium | SEC §6 |
-| G8 | Wrap cart calculations in `useMemo` (cartCount, cartSubtotal, discountAmount, cartTotal) | Low | BUG §Perf |
-| G9 | Debounce `saveCartToStorage()` writes (500ms) | Low | BUG §Perf |
+| G8 | Wrap cart calculations in `useMemo` (cartCount, cartSubtotal, discountAmount, cartTotal) | **Blocker** | BUG §Perf |
+| G9 | Debounce `saveCartToStorage()` writes (500ms) | **Blocker** | BUG §Perf |
 
 ---
 
@@ -69,8 +69,8 @@
 
 | # | Issue | Severity | Source |
 |---|---|---|---|
-| D1 | `useMemo` for filtered/searched products array in Products.tsx | Medium | BUG §Perf |
-| D2 | Debounce search input (500ms) in Products.tsx | Medium | BUG §Missing |
+| D1 | `useMemo` for filtered/searched products array in Products.tsx | **Blocker** | BUG §Perf |
+| D2 | Debounce search input (500ms) in Products.tsx | **Blocker** | BUG §Missing |
 | D3 | CartSidebar: auto-close on route change via `useLocation()` | Low | BUG §State |
 | D4 | CartSidebar: `text-slate-300` → `text-slate-500` (WCAG AA contrast) | Medium | BUG §a11y |
 | D5 | `formatPrice.ts`: guard against `NaN` / `Infinity` → return `฿0.00 THB` | Low | BUG §TS |
