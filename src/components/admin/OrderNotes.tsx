@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/context/AuthContext';
+import { useDatabase } from '@/context/DatabaseContext';
 import { formatDateTime } from '@/lib/formatDate';
 import { Send, MessageSquare, Lock } from 'lucide-react';
 
@@ -21,6 +22,7 @@ interface OrderNotesProps {
 
 export function OrderNotes({ orderId }: OrderNotesProps) {
   const { user } = useAuth();
+  const { logAudit } = useDatabase();
   const [notes, setNotes] = useState<OrderNote[]>([]);
   const [newNote, setNewNote] = useState('');
   const [isInternal, setIsInternal] = useState(true);
@@ -96,13 +98,7 @@ export function OrderNotes({ orderId }: OrderNotesProps) {
     }
 
     // Log audit
-    supabase.from('audit_log').insert({
-      user_id: user.id,
-      action: 'create_note',
-      entity_type: 'order',
-      entity_id: orderId,
-      details: { note_preview: newNote.trim().slice(0, 100), is_internal: isInternal },
-    }).then(() => { });
+    logAudit('create_note', 'order', orderId, { note_preview: newNote.trim().slice(0, 100), is_internal: isInternal });
 
     setNewNote('');
     setIsSending(false);

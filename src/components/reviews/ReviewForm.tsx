@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/context/AuthContext';
+import { useDatabase } from '@/context/DatabaseContext';
 import { StarRating } from './StarRating';
 import { Send, X } from 'lucide-react';
 
@@ -12,6 +13,7 @@ interface ReviewFormProps {
 
 export function ReviewForm({ productId, onSubmitted, onCancel }: ReviewFormProps) {
   const { user } = useAuth();
+  const { logAudit } = useDatabase();
   const [rating, setRating] = useState(0);
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
@@ -52,13 +54,7 @@ export function ReviewForm({ productId, onSubmitted, onCancel }: ReviewFormProps
     }
 
     // Log to audit
-    await supabase.from('audit_log').insert({
-      user_id: user.id,
-      action: 'create',
-      entity_type: 'review',
-      entity_id: productId,
-      details: { rating, title: title.trim() || null },
-    });
+    await logAudit('create', 'review', productId, { rating, title: title.trim() || null });
 
     setIsSubmitting(false);
     setRating(0);
