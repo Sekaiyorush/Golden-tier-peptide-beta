@@ -3,13 +3,35 @@ import { Mail, MapPin, Phone, MessageSquare } from 'lucide-react';
 import { useDatabase } from '@/context/DatabaseContext';
 import { SEO } from '@/components/SEO';
 import { Breadcrumbs } from '@/components/Breadcrumbs';
+import { z } from 'zod';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+
+const ContactSchema = z.object({
+    fullName: z.string().min(2, 'Name is required').max(100, 'Name is too long'),
+    email: z.string().email('Please enter a valid email address'),
+    subject: z.string().min(2, 'Subject is required').max(150, 'Subject is too long'),
+    message: z.string().min(10, 'Message is too short').max(1000, 'Message is too long')
+});
+
+type ContactFormData = z.infer<typeof ContactSchema>;
 
 export function Contact() {
     const { db } = useDatabase();
     const settings = db.siteSettings;
     const [sent, setSent] = useState(false);
-    const handleContactSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
+
+    const {
+        register,
+        handleSubmit,
+        formState: { errors },
+    } = useForm<ContactFormData>({
+        resolver: zodResolver(ContactSchema),
+    });
+
+    const onSubmit = (data: ContactFormData) => {
+        // Here we would typically send 'data' to the backend, sanitized server-side
+        console.log("Contact form submitted:", data);
         setSent(true);
     };
 
@@ -67,24 +89,28 @@ export function Contact() {
                             <p className="text-sm text-slate-500">We will get back to you as soon as possible.</p>
                         </div>
                     ) : (
-                        <form className="space-y-8" onSubmit={handleContactSubmit}>
+                        <form className="space-y-8" onSubmit={handleSubmit(onSubmit)}>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
                                 <div>
                                     <label className="block text-[10px] font-bold tracking-[0.2em] uppercase text-slate-400 mb-3">Full Name</label>
-                                    <input type="text" required className="w-full h-14 px-5 bg-slate-50 border border-[#D4AF37]/20 focus:ring-1 focus:ring-[#D4AF37]/50 focus:border-[#D4AF37] focus:bg-white text-sm transition-all outline-none" placeholder="Dr. John Doe" />
+                                    <input type="text" {...register('fullName')} className="w-full h-14 px-5 bg-slate-50 border border-[#D4AF37]/20 focus:ring-1 focus:ring-[#D4AF37]/50 focus:border-[#D4AF37] focus:bg-white text-sm transition-all outline-none" placeholder="Dr. John Doe" />
+                                    {errors.fullName && <p className="text-xs text-red-600 mt-1">{errors.fullName.message}</p>}
                                 </div>
                                 <div>
                                     <label className="block text-[10px] font-bold tracking-[0.2em] uppercase text-slate-400 mb-3">Email Address</label>
-                                    <input type="email" required className="w-full h-14 px-5 bg-slate-50 border border-[#D4AF37]/20 focus:ring-1 focus:ring-[#D4AF37]/50 focus:border-[#D4AF37] focus:bg-white text-sm transition-all outline-none" placeholder="name@institution.edu" />
+                                    <input type="email" {...register('email')} className="w-full h-14 px-5 bg-slate-50 border border-[#D4AF37]/20 focus:ring-1 focus:ring-[#D4AF37]/50 focus:border-[#D4AF37] focus:bg-white text-sm transition-all outline-none" placeholder="name@institution.edu" />
+                                    {errors.email && <p className="text-xs text-red-600 mt-1">{errors.email.message}</p>}
                                 </div>
                             </div>
                             <div>
                                 <label className="block text-[10px] font-bold tracking-[0.2em] uppercase text-slate-400 mb-3">Subject</label>
-                                <input type="text" required className="w-full h-14 px-5 bg-slate-50 border border-[#D4AF37]/20 focus:ring-1 focus:ring-[#D4AF37]/50 focus:border-[#D4AF37] focus:bg-white text-sm transition-all outline-none" placeholder="Nature of your inquiry" />
+                                <input type="text" {...register('subject')} className="w-full h-14 px-5 bg-slate-50 border border-[#D4AF37]/20 focus:ring-1 focus:ring-[#D4AF37]/50 focus:border-[#D4AF37] focus:bg-white text-sm transition-all outline-none" placeholder="Nature of your inquiry" />
+                                {errors.subject && <p className="text-xs text-red-600 mt-1">{errors.subject.message}</p>}
                             </div>
                             <div>
                                 <label className="block text-[10px] font-bold tracking-[0.2em] uppercase text-slate-400 mb-3">Message</label>
-                                <textarea rows={5} required className="w-full px-5 py-5 bg-slate-50 border border-[#D4AF37]/20 focus:ring-1 focus:ring-[#D4AF37]/50 focus:border-[#D4AF37] focus:bg-white text-sm transition-all resize-none outline-none" placeholder="Please detail your request..." />
+                                <textarea rows={5} {...register('message')} className="w-full px-5 py-5 bg-slate-50 border border-[#D4AF37]/20 focus:ring-1 focus:ring-[#D4AF37]/50 focus:border-[#D4AF37] focus:bg-white text-sm transition-all resize-none outline-none" placeholder="Please detail your request..." />
+                                {errors.message && <p className="text-xs text-red-600 mt-1">{errors.message.message}</p>}
                             </div>
                             <button type="submit" className="w-full h-16 mt-8 bg-[#111] border border-[#111] text-white text-[10px] font-bold tracking-[0.2em] uppercase transition-all hover:bg-black shadow-md group relative overflow-hidden flex items-center justify-center">
                                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[#D4AF37]/20 to-transparent -translate-x-[150%] animate-[shimmer_3s_infinite]" />
