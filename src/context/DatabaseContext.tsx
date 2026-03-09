@@ -99,6 +99,9 @@ interface DatabaseContextType {
 
   // Site Settings
   updateSiteSettings: (updates: Partial<SiteSettings>) => Promise<boolean>;
+
+  // Audit
+  logAudit: (action: string, entityType: string, entityId: string, details?: Record<string, unknown>, severity?: 'info' | 'warning' | 'critical') => Promise<void>;
 }
 
 const DatabaseContext = createContext<DatabaseContextType | undefined>(undefined);
@@ -128,7 +131,7 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
   const [dbError, setDbError] = useState<string | null>(null);
 
   // ─── Audit Logging Helper ────────────────────────────────────────
-  const logAudit = async (action: string, entityType: string, entityId: string, details?: Record<string, unknown>) => {
+  const logAudit = async (action: string, entityType: string, entityId: string, details?: Record<string, unknown>, severity: 'info' | 'warning' | 'critical' = 'info') => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.user) return;
@@ -137,6 +140,7 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
         p_action: action,
         p_entity_type: entityType,
         p_entity_id: entityId,
+        p_severity: severity,
         p_details: details || null,
       });
     } catch (err) {
@@ -432,7 +436,7 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
     const product = db.products.find(p => p.id === id);
     setDb(prev => ({ ...prev, products: prev.products.filter(p => p.id !== id) }));
     await supabase.from('products').delete().eq('id', id);
-    logAudit('delete', 'product', id, { name: product?.name });
+    logAudit('delete', 'product', id, { name: product?.name }, 'critical');
   };
 
   // ─── Orders CRUD ──────────────────────────────────────────────
@@ -749,7 +753,7 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
         partners: prev.partners.filter(p => p.id !== id)
       }));
 
-      logAudit('delete', 'partner', id, { name: partner?.name, email: partner?.email });
+      logAudit('delete', 'partner', id, { name: partner?.name, email: partner?.email }, 'critical');
       return { success: true };
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Unknown error';
@@ -764,6 +768,27 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
       ...prev,
       customers: prev.customers.map(c => c.id === id ? { ...c, ...updates } : c)
     }));
+
+    const dbUpdates: Record<string, unknown> = {};
+    if (updates.name !== undefined) dbUpdates.full_name = updates.name;
+    if (updates.phone !== undefined) dbUpdates.phone_number = updates.phone;
+    if (updates.status !== undefined) dbUpdates.status = updates.status;
+    if (updates.notes !== undefined) dbUpdates.notes = updates.notes;
+    
+    if (updates.address) {
+      dbUpdates.address = updates.address.street;
+      dbUpdates.city = updates.address.city;
+      dbUpdates.state = updates.address.state;
+      dbUpdates.zip = updates.address.zip;
+      dbUpdates.country = updates.address.country;
+    }
+
+    const { error } = await supabase.from('profiles').update(dbUpdates).eq('id', id);
+    if (!error) {
+      logAudit('update', 'customer', id, { fields: Object.keys(dbUpdates) }, 'info');
+    } else {
+      console.error('Failed to update customer in database:', error);
+    }
   };
 
   // ─── Invitations CRUD (NOW WRITES TO SUPABASE) ──────────────────
@@ -871,6 +896,7 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
 
     // Refresh to get latest data
     await loadData();
+    logAudit('inventory_log', 'product', log.productId, { change: log.changeQuantity, reason: log.reason });
   };
 
   // ─── Site Settings ──────────────────────────────────────────────
@@ -894,7 +920,7 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
       console.error("Error updating site settings:", error);
       return false;
     }
-    logAudit('update', 'site_settings', 'default', { fields: Object.keys(dbUpdates) });
+    logAudit('update', 'site_settings', 'default', { fields: Object.keys(dbUpdates) }, 'warning');
     return true;
   };
 
@@ -908,6 +934,7 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
       addInvitationCode, updateInvitationCode, deleteInvitationCode,
       addInventoryLog,
       updateSiteSettings,
+      logAudit,
     }}>
       {children}
     </DatabaseContext.Provider>

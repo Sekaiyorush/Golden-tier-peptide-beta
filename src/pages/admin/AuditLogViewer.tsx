@@ -16,7 +16,9 @@ import {
   ShoppingCart,
   Settings,
   Key,
-  AlertTriangle
+  AlertTriangle,
+  Info,
+  AlertOctagon
 } from 'lucide-react';
 
 interface AuditEntry {
@@ -25,6 +27,7 @@ interface AuditEntry {
   action: string;
   entity_type: string | null;
   entity_id: string | null;
+  severity: 'info' | 'warning' | 'critical';
   details: Record<string, unknown> | null;
   ip_address: string | null;
   created_at: string;
@@ -46,22 +49,17 @@ const ACTION_ICONS: Record<string, typeof Shield> = {
   security: AlertTriangle,
 };
 
-const ACTION_COLORS: Record<string, string> = {
-  create: 'bg-emerald-100 text-emerald-700',
-  update: 'bg-blue-100 text-blue-700',
-  delete: 'bg-red-100 text-red-700',
-  login: 'bg-purple-100 text-purple-700',
-  logout: 'bg-slate-100 text-slate-700',
-  view: 'bg-amber-100 text-amber-700',
+const SEVERITY_COLORS = {
+  info: 'bg-[#D4AF37]/10 text-[#AA771C] border-[#D4AF37]/20',
+  warning: 'bg-amber-100 text-amber-700 border-amber-200',
+  critical: 'bg-red-50 text-red-600 border-red-100',
 };
 
-function getActionColor(action: string): string {
-  const lowerAction = action.toLowerCase();
-  for (const [key, color] of Object.entries(ACTION_COLORS)) {
-    if (lowerAction.includes(key)) return color;
-  }
-  return 'bg-slate-100 text-slate-700';
-}
+const SEVERITY_ICONS = {
+  info: Info,
+  warning: AlertTriangle,
+  critical: AlertOctagon,
+};
 
 function getEntityIcon(entityType: string | null) {
   if (!entityType) return Shield;
@@ -77,6 +75,7 @@ export function AuditLogViewer() {
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [entityFilter, setEntityFilter] = useState('all');
+  const [severityFilter, setSeverityFilter] = useState('all');
   const [expandedEntry, setExpandedEntry] = useState<string | null>(null);
   const [page, setPage] = useState(0);
   const [totalCount, setTotalCount] = useState(0);
@@ -93,6 +92,10 @@ export function AuditLogViewer() {
 
     if (entityFilter !== 'all') {
       query = query.eq('entity_type', entityFilter);
+    }
+
+    if (severityFilter !== 'all') {
+      query = query.eq('severity', severityFilter);
     }
 
     if (searchTerm) {
@@ -133,7 +136,7 @@ export function AuditLogViewer() {
     setEntries(enriched);
     setTotalCount(count || 0);
     setIsLoading(false);
-  }, [page, entityFilter, searchTerm]);
+  }, [page, entityFilter, severityFilter, searchTerm]);
 
   useEffect(() => {
     fetchAuditLogs();
@@ -149,126 +152,173 @@ export function AuditLogViewer() {
 
   // Get unique entity types for filter
   const entityTypes = ['all', 'order', 'product', 'partner', 'customer', 'invitation_code', 'settings', 'auth'];
+  const severities = ['all', 'info', 'warning', 'critical'];
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-semibold text-slate-900">Audit Log</h2>
-          <p className="text-slate-500">Track all system actions and changes</p>
+          <h2 className="text-xl font-serif text-slate-900 tracking-tight">System Audit Log</h2>
+          <p className="text-sm text-slate-500 font-medium uppercase tracking-[0.1em]">Security & Action History</p>
         </div>
         <button
           onClick={handleRefresh}
           disabled={isRefreshing}
-          className="flex items-center space-x-2 px-4 py-2 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors disabled:opacity-50"
+          className="flex items-center space-x-2 px-6 py-2.5 bg-white border border-[#D4AF37]/30 text-[#AA771C] text-[10px] font-bold tracking-[0.2em] uppercase hover:border-[#D4AF37] transition-all disabled:opacity-50"
         >
-          <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-          <span className="text-sm">Refresh</span>
+          <RefreshCw className={`h-3 w-3 ${isRefreshing ? 'animate-spin' : ''}`} />
+          <span>Refresh Logs</span>
         </button>
       </div>
 
       {/* Filters */}
-      <div className="flex flex-col md:flex-row gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-          <input
-            type="text"
-            placeholder="Search actions, entities..."
-            value={searchTerm}
-            onChange={(e) => { setSearchTerm(e.target.value); setPage(0); }}
-            className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-lg bg-white focus:ring-2 focus:ring-slate-200 focus:border-slate-300"
-          />
-        </div>
-        <div className="flex items-center space-x-2">
-          <Filter className="h-4 w-4 text-slate-400" />
-          <select
-            value={entityFilter}
-            onChange={(e) => { setEntityFilter(e.target.value); setPage(0); }}
-            className="px-3 py-2 border border-slate-200 rounded-lg bg-white focus:ring-2 focus:ring-slate-200"
-          >
-            {entityTypes.map(type => (
-              <option key={type} value={type}>
-                {type === 'all' ? 'All Types' : type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
-              </option>
-            ))}
-          </select>
+      <div className="bg-white p-6 border border-slate-100 shadow-sm rounded-xl space-y-4">
+        <div className="flex flex-col md:flex-row gap-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+            <input
+              type="text"
+              placeholder="Search actions, entities, IDs..."
+              value={searchTerm}
+              onChange={(e) => { setSearchTerm(e.target.value); setPage(0); }}
+              className="w-full pl-10 pr-4 py-3 bg-slate-50 border-none text-sm focus:ring-2 focus:ring-[#D4AF37]/20 transition-all rounded-lg"
+            />
+          </div>
+          <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2">
+              <Filter className="h-4 w-4 text-slate-400" />
+              <select
+                value={entityFilter}
+                onChange={(e) => { setEntityFilter(e.target.value); setPage(0); }}
+                className="bg-slate-50 border-none text-sm px-4 py-3 pr-10 focus:ring-2 focus:ring-[#D4AF37]/20 rounded-lg"
+              >
+                {entityTypes.map(type => (
+                  <option key={type} value={type}>
+                    {type === 'all' ? 'All Entities' : type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="flex items-center space-x-2">
+              <AlertTriangle className="h-4 w-4 text-slate-400" />
+              <select
+                value={severityFilter}
+                onChange={(e) => { setSeverityFilter(e.target.value); setPage(0); }}
+                className="bg-slate-50 border-none text-sm px-4 py-3 pr-10 focus:ring-2 focus:ring-[#D4AF37]/20 rounded-lg"
+              >
+                {severities.map(sev => (
+                  <option key={sev} value={sev}>
+                    {sev === 'all' ? 'All Severities' : sev.toUpperCase()}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
         </div>
       </div>
 
       {/* Stats */}
-      <div className="flex items-center space-x-4 text-sm text-slate-500">
-        <span>{totalCount} total entries</span>
-        <span>•</span>
-        <span>Page {page + 1} of {totalPages || 1}</span>
+      <div className="flex items-center justify-between text-[10px] font-bold tracking-widest text-slate-400 uppercase">
+        <div className="flex items-center space-x-4">
+          <span>{totalCount} Total Events</span>
+          <span className="h-1 w-1 bg-slate-200 rounded-full" />
+          <span>Page {page + 1} of {totalPages || 1}</span>
+        </div>
       </div>
 
       {/* Table */}
-      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+      <div className="bg-white rounded-2xl border border-slate-100 shadow-xl shadow-slate-200/50 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-slate-50">
-              <tr>
-                <th className="px-4 py-3 text-left text-sm font-medium text-slate-500">Time</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-slate-500">User</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-slate-500">Action</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-slate-500">Entity</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-slate-500">IP</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-slate-500"></th>
+            <thead>
+              <tr className="bg-slate-50/50 border-b border-slate-100">
+                <th className="px-6 py-4 text-left text-[10px] font-bold text-slate-400 uppercase tracking-widest">Timestamp</th>
+                <th className="px-6 py-4 text-left text-[10px] font-bold text-slate-400 uppercase tracking-widest">Initiator</th>
+                <th className="px-6 py-4 text-left text-[10px] font-bold text-slate-400 uppercase tracking-widest">Action</th>
+                <th className="px-6 py-4 text-left text-[10px] font-bold text-slate-400 uppercase tracking-widest">Severity</th>
+                <th className="px-6 py-4 text-left text-[10px] font-bold text-slate-400 uppercase tracking-widest">Target Entity</th>
+                <th className="px-6 py-4 text-left text-[10px] font-bold text-slate-400 uppercase tracking-widest">IP Address</th>
+                <th className="px-6 py-4 text-left text-[10px] font-bold text-slate-400 uppercase tracking-widest"></th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-slate-50">
               {isLoading ? (
-                <TableRowSkeleton columns={6} rows={8} />
+                <TableRowSkeleton columns={7} rows={8} />
               ) : entries.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-4 py-12 text-center">
-                    <Shield className="h-12 w-12 text-slate-300 mx-auto mb-4" />
-                    <p className="text-slate-500">No audit log entries found</p>
+                  <td colSpan={7} className="px-6 py-20 text-center">
+                    <div className="max-w-xs mx-auto">
+                      <Shield className="h-12 w-12 text-slate-200 mx-auto mb-4" />
+                      <h3 className="text-slate-900 font-serif text-lg mb-1">No audit data</h3>
+                      <p className="text-slate-500 text-sm">We couldn't find any log entries matching your criteria.</p>
+                    </div>
                   </td>
                 </tr>
               ) : entries.map((entry) => {
                 const Icon = getEntityIcon(entry.entity_type);
+                const SevIcon = SEVERITY_ICONS[entry.severity] || Info;
+                
                 return (
                   <React.Fragment key={entry.id}>
-                    <tr className="hover:bg-slate-50">
-                      <td className="px-4 py-3 text-sm text-slate-600 whitespace-nowrap">
-                        {formatDateTime(entry.created_at)}
-                      </td>
-                      <td className="px-4 py-3">
-                        <div>
-                          <p className="text-sm font-medium text-slate-900">{entry.user_name || 'System'}</p>
-                          <p className="text-xs text-slate-400">{entry.user_email || entry.user_id || '—'}</p>
+                    <tr className="hover:bg-slate-50/80 transition-colors group">
+                      <td className="px-6 py-5 text-sm text-slate-500 whitespace-nowrap">
+                        <div className="flex flex-col">
+                          <span className="text-slate-900 font-medium">{formatDateTime(entry.created_at).split(',')[0]}</span>
+                          <span className="text-[11px] text-slate-400 font-mono uppercase">{formatDateTime(entry.created_at).split(',')[1]}</span>
                         </div>
                       </td>
-                      <td className="px-4 py-3">
-                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${getActionColor(entry.action)}`}>
+                      <td className="px-6 py-5">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center border border-white shadow-sm">
+                            <User className="h-4 w-4 text-slate-400" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-serif text-slate-900">{entry.user_name || 'System'}</p>
+                            <p className="text-[10px] text-slate-400 font-mono truncate max-w-[120px]">{entry.user_email || 'automated-task'}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-5">
+                        <span className="text-sm font-semibold text-slate-700 uppercase tracking-wide">
                           {entry.action}
                         </span>
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-6 py-5">
+                        <span className={`inline-flex items-center space-x-1.5 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${SEVERITY_COLORS[entry.severity]}`}>
+                          <SevIcon className="h-3 w-3" />
+                          <span>{entry.severity}</span>
+                        </span>
+                      </td>
+                      <td className="px-6 py-5">
                         <div className="flex items-center space-x-2">
-                          <Icon className="h-4 w-4 text-slate-400" />
+                          <div className="p-2 bg-slate-50 rounded-lg group-hover:bg-white transition-colors">
+                            <Icon className="h-4 w-4 text-[#AA771C]" />
+                          </div>
                           <div>
-                            <p className="text-sm text-slate-700">{entry.entity_type || '—'}</p>
+                            <p className="text-xs font-bold text-slate-900 uppercase tracking-tight">{entry.entity_type || '—'}</p>
                             {entry.entity_id && (
-                              <p className="text-xs text-slate-400 font-mono truncate max-w-[150px]">{entry.entity_id}</p>
+                              <p className="text-[10px] text-slate-400 font-mono truncate max-w-[150px]">{entry.entity_id}</p>
                             )}
                           </div>
                         </div>
                       </td>
-                      <td className="px-4 py-3 text-xs text-slate-400 font-mono">
+                      <td className="px-6 py-5 text-[11px] text-slate-400 font-mono">
                         {entry.ip_address || '—'}
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-6 py-5">
                         {entry.details && Object.keys(entry.details).length > 0 && (
                           <button
                             onClick={() => setExpandedEntry(expandedEntry === entry.id ? null : entry.id)}
-                            className="p-1.5 hover:bg-slate-100 rounded-lg transition-colors"
+                            className={`p-2 rounded-lg transition-all ${
+                              expandedEntry === entry.id 
+                                ? 'bg-[#D4AF37] text-white shadow-lg shadow-[#D4AF37]/20' 
+                                : 'bg-slate-50 text-slate-400 hover:text-[#AA771C] hover:bg-[#D4AF37]/10'
+                            }`}
                           >
                             {expandedEntry === entry.id ? (
-                              <ChevronUp className="h-4 w-4 text-slate-400" />
+                              <ChevronUp className="h-4 w-4" />
                             ) : (
-                              <ChevronDown className="h-4 w-4 text-slate-400" />
+                              <ChevronDown className="h-4 w-4" />
                             )}
                           </button>
                         )}
@@ -276,11 +326,11 @@ export function AuditLogViewer() {
                     </tr>
                     {expandedEntry === entry.id && entry.details && (
                       <tr>
-                        <td colSpan={6} className="px-4 py-4 bg-slate-50">
-                          <div className="max-w-3xl">
-                            <h4 className="text-sm font-medium text-slate-700 mb-2">Details</h4>
-                            <pre className="p-3 bg-white border border-slate-200 rounded-lg text-xs text-slate-600 overflow-x-auto whitespace-pre-wrap font-mono">
-                              {JSON.stringify(entry.details, null, 2)}
+                        <td colSpan={7} className="px-6 py-0">
+                          <div className="my-4 p-6 bg-slate-900 rounded-2xl overflow-hidden shadow-inner relative">
+                            <div className="absolute top-4 right-6 text-[10px] font-bold text-slate-600 uppercase tracking-[0.3em]">Payload Data</div>
+                            <pre className="text-[11px] text-[#D4AF37]/90 overflow-x-auto whitespace-pre-wrap font-mono leading-relaxed">
+                              {JSON.stringify(entry.details, null, 4)}
                             </pre>
                           </div>
                         </td>
@@ -296,16 +346,17 @@ export function AuditLogViewer() {
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between pt-4">
           <button
             onClick={() => setPage(p => Math.max(0, p - 1))}
             disabled={page === 0}
-            className="flex items-center space-x-2 px-4 py-2 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center space-x-2 px-6 py-2.5 bg-white border border-slate-100 text-slate-600 text-[10px] font-bold tracking-[0.2em] uppercase hover:border-[#D4AF37] hover:text-[#AA771C] transition-all disabled:opacity-30 disabled:cursor-not-allowed"
           >
-            <ChevronLeft className="h-4 w-4" />
-            <span className="text-sm">Previous</span>
+            <ChevronLeft className="h-3 w-3" />
+            <span>Previous</span>
           </button>
-          <div className="flex items-center space-x-1">
+          
+          <div className="flex items-center space-x-2">
             {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
               let pageNum: number;
               if (totalPages <= 5) {
@@ -321,10 +372,10 @@ export function AuditLogViewer() {
                 <button
                   key={pageNum}
                   onClick={() => setPage(pageNum)}
-                  className={`w-8 h-8 rounded-lg text-sm font-medium transition-colors ${
+                  className={`w-10 h-10 rounded-xl text-[10px] font-bold transition-all ${
                     page === pageNum
-                      ? 'bg-slate-900 text-white'
-                      : 'text-slate-600 hover:bg-slate-100'
+                      ? 'bg-[#111] text-[#D4AF37] shadow-lg shadow-black/20'
+                      : 'text-slate-400 hover:text-[#AA771C] hover:bg-[#D4AF37]/10'
                   }`}
                 >
                   {pageNum + 1}
@@ -332,13 +383,14 @@ export function AuditLogViewer() {
               );
             })}
           </div>
+
           <button
             onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
             disabled={page >= totalPages - 1}
-            className="flex items-center space-x-2 px-4 py-2 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center space-x-2 px-6 py-2.5 bg-white border border-slate-100 text-slate-600 text-[10px] font-bold tracking-[0.2em] uppercase hover:border-[#D4AF37] hover:text-[#AA771C] transition-all disabled:opacity-30 disabled:cursor-not-allowed"
           >
-            <span className="text-sm">Next</span>
-            <ChevronRight className="h-4 w-4" />
+            <span>Next Page</span>
+            <ChevronRight className="h-3 w-3" />
           </button>
         </div>
       )}
