@@ -3,8 +3,9 @@ import { Link } from 'react-router-dom';
 import { useCart } from '@/context/CartContext';
 import { useLanguage } from '@/context/LanguageContext';
 import { useAuth } from '@/context/AuthContext';
+import { useTheme } from '@/context/ThemeContext';
 import { SearchBar } from './SearchBar';
-import { Menu, X, ShoppingCart, User, LogOut, LayoutDashboard, Globe } from 'lucide-react';
+import { Menu, X, ShoppingCart, User, LogOut, LayoutDashboard, Globe, Sun, Moon } from 'lucide-react';
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -12,6 +13,7 @@ export function Header() {
   const { toggleCart, cartCount } = useCart();
   const { language, toggleLanguage } = useLanguage();
   const { isAuthenticated, isAdmin, isPartner, logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
 
   const getDashboardLink = () => {
     if (isAdmin) return '/admin';
@@ -26,7 +28,7 @@ export function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-white/80 backdrop-blur-md border-b border-[#D4AF37]/10 transition-all duration-300">
+    <header className="sticky top-0 z-50 w-full bg-white/80 dark:bg-slate-900/90 backdrop-blur-md border-b border-[#D4AF37]/10 transition-all duration-300">
       <div className="container mx-auto flex h-24 items-center justify-between px-6 md:px-12">
         {/* Logo */}
         <Link to="/" className="flex items-center group relative">
@@ -67,6 +69,14 @@ export function Header() {
             <span>{language}</span>
           </button>
 
+          <button
+            onClick={toggleTheme}
+            aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+            className="p-2 text-slate-400 hover:text-[#D4AF37] transition-colors duration-300"
+          >
+            {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+          </button>
+
           {isPartner && (
             <button
               onClick={toggleCart}
@@ -98,7 +108,7 @@ export function Header() {
                 </button>
 
                 {isUserMenuOpen && (
-                  <div className="absolute right-0 mt-4 w-64 bg-white border border-[#D4AF37]/10 p-2 shadow-2xl animate-reveal overflow-hidden">
+                  <div className="absolute right-0 mt-4 w-64 bg-white dark:bg-slate-800 border border-[#D4AF37]/10 p-2 shadow-2xl animate-reveal overflow-hidden">
                     <div className="absolute top-0 left-0 w-full h-[2px] bg-gold-gradient" />
                     <Link
                       to={getDashboardLink()}
@@ -146,7 +156,7 @@ export function Header() {
 
       {/* Mobile Menu */}
       {isMenuOpen && (
-        <div className="md:hidden border-t border-[#D4AF37]/20 bg-white absolute w-full shadow-2xl">
+        <div className="md:hidden border-t border-[#D4AF37]/20 bg-white dark:bg-slate-900 absolute w-full shadow-2xl">
           <div className="p-6 border-b border-[#D4AF37]/10">
             <SearchBar />
           </div>

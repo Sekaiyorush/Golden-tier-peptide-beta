@@ -12,6 +12,17 @@
   <meta http-equiv="X-Content-Type-Options" content="nosniff" />
 
   <title>Golden Tier Peptide</title>
+  <!-- Flash-of-unstyled-theme prevention: apply class before React renders -->
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem('gtp-theme');
+        if (t === 'dark' || (!t && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+          document.documentElement.classList.add('dark');
+        }
+      } catch (e) {}
+    })();
+  </script>
 </head>
 
 <body>

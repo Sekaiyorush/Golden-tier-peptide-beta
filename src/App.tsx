@@ -4,6 +4,7 @@ import { LanguageProvider } from '@/context/LanguageContext';
 import { CartProvider } from '@/context/CartContext';
 import { AuthProvider, useAuth } from '@/context/AuthContext';
 import { DatabaseProvider, useDatabase } from '@/context/DatabaseContext';
+import { ThemeProvider } from '@/context/ThemeContext';
 import { ToastProvider } from '@/components/ui/Toast';
 import { PremiumEffects } from '@/components/PremiumEffects';
 import { BackToTop } from '@/components/ui/BackToTop';
@@ -38,7 +39,7 @@ const PartnerDashboard = lazy(() => import('@/pages/partner/PartnerDashboard').t
 
 // Stylish minimalist loading fallback
 const PageLoader = () => (
-  <div className="min-h-screen bg-white flex items-center justify-center">
+  <div className="min-h-screen bg-background flex items-center justify-center">
     <div className="w-12 h-12 border-[1px] border-[#D4AF37]/20 border-t-[#D4AF37] rounded-full animate-spin"></div>
   </div>
 );
@@ -145,7 +146,7 @@ function AppContent() {
                   </Routes>
                 ) : (
                   // Authenticated users see the full site
-                  <div className="min-h-screen bg-white text-slate-800 font-sans selection:bg-amber-200 flex flex-col relative overflow-hidden">
+                  <div className="min-h-screen bg-background text-foreground font-sans selection:bg-amber-200 flex flex-col relative overflow-hidden">
                     <PremiumEffects />
                     {/* Dynamic Background Elements */}
                     <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-amber-50/50 via-white to-white pointer-events-none -z-10" />
@@ -223,17 +224,19 @@ function AppContent() {
 
 function App() {
   return (
-    <DatabaseProvider>
-      <AuthProvider>
-        <LanguageProvider>
-          <CartProvider>
-            <ToastProvider>
-              <AppContent />
-            </ToastProvider>
-          </CartProvider>
-        </LanguageProvider>
-      </AuthProvider>
-    </DatabaseProvider>
+    <ThemeProvider>
+      <DatabaseProvider>
+        <AuthProvider>
+          <LanguageProvider>
+            <CartProvider>
+              <ToastProvider>
+                <AppContent />
+              </ToastProvider>
+            </CartProvider>
+          </LanguageProvider>
+        </AuthProvider>
+      </DatabaseProvider>
+    </ThemeProvider>
   );
 }
 
