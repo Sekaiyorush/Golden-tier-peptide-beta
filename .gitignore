@@ -14,3 +14,5 @@ node_modules/
 # Editor
 .vscode/
 *.log
+.climpire-worktrees/
+.climpire/

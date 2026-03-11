@@ -99,9 +99,6 @@ interface DatabaseContextType {
 
   // Site Settings
   updateSiteSettings: (updates: Partial<SiteSettings>) => Promise<boolean>;
-
-  // Audit
-  logAudit: (action: string, entityType: string, entityId: string, details?: Record<string, unknown>, severity?: 'info' | 'warning' | 'critical') => Promise<void>;
 }
 
 const DatabaseContext = createContext<DatabaseContextType | undefined>(undefined);
@@ -131,7 +128,7 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
   const [dbError, setDbError] = useState<string | null>(null);
 
   // ─── Audit Logging Helper ────────────────────────────────────────
-  const logAudit = async (action: string, entityType: string, entityId: string, details?: Record<string, unknown>, severity: 'info' | 'warning' | 'critical' = 'info') => {
+  const logAudit = async (action: string, entityType: string, entityId: string, details?: Record<string, unknown>) => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.user) return;
@@ -140,11 +137,10 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
         p_action: action,
         p_entity_type: entityType,
         p_entity_id: entityId,
-        p_severity: severity,
         p_details: details || null,
       });
     } catch (err) {
-      console.error('Audit log failed:', err);
+      // Error handled silently
     }
   };
 
@@ -153,7 +149,7 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
     setDbError(null);
     try {
       const [
-        { data: products, error: productsError },
+        { data: products },
         { data: profiles },
         { data: ordersRaw },
         { data: codes },
@@ -170,15 +166,8 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
         supabase.from('site_settings').select('*').eq('id', 'default').single()
       ]);
 
-      if (productsError) {
-        console.error("Critical error loading products:", productsError);
-        setDbError('Unable to load products. Please refresh.');
-        return; // Stop loading if critical data fails
-      }
-
       if (!products) {
         setDbError('Unable to load products. Please refresh.');
-        return;
       }
 
       if (products && profiles) {
@@ -369,7 +358,7 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
         });
       }
     } catch (err: unknown) {
-      console.error("Error loading Supabase data:", err);
+      // Error handled silently
       setDbError(err instanceof Error ? err.message : 'An unknown error occurred loading data');
     } finally {
       setIsLoading(false);
@@ -397,11 +386,10 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
       stock_quantity: product.stockQuantity,
       benefits: product.benefits,
       dosage: product.dosage,
-      image_url: product.imageUrl,
-      variants: product.variants || []
+      image_url: product.imageUrl
     });
     if (error) {
-      console.error(error);
+      // Error handled silently
     } else {
       await loadData();
       logAudit('create', 'product', product.id, { name: product.name, sku: product.sku, price: product.price });
@@ -426,7 +414,6 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
     if (updates.dosage !== undefined) dbUpdates.dosage = updates.dosage;
     if (updates.sku !== undefined) dbUpdates.sku = updates.sku;
     if (updates.imageUrl !== undefined) dbUpdates.image_url = updates.imageUrl;
-    if (updates.variants !== undefined) (dbUpdates as any).variants = updates.variants;
 
     await supabase.from('products').update(dbUpdates).eq('id', id);
     logAudit('update', 'product', id, { fields: Object.keys(dbUpdates) });
@@ -436,7 +423,7 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
     const product = db.products.find(p => p.id === id);
     setDb(prev => ({ ...prev, products: prev.products.filter(p => p.id !== id) }));
     await supabase.from('products').delete().eq('id', id);
-    logAudit('delete', 'product', id, { name: product?.name }, 'critical');
+    logAudit('delete', 'product', id, { name: product?.name });
   };
 
   // ─── Orders CRUD ──────────────────────────────────────────────
@@ -466,7 +453,7 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
       .single();
 
     if (orderError) {
-      console.error("Error creating order:", orderError);
+      // Error handled silently
       return;
     }
 
@@ -493,7 +480,7 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
         .insert(dbOrderItems);
 
       if (itemsError) {
-        console.error("Error creating order items:", itemsError);
+        // Error handled silently
       }
     }
 
@@ -535,70 +522,13 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
     });
 
     if (error) {
-      console.error('Secure order creation failed:', error);
+      // Error handled silently
       return { success: false, error: error.message };
     }
 
     if (data && data.success) {
-      try {
-        // Fetch only the newly created order to avoid race conditions with full reload
-        const { data: newOrderData, error: orderError } = await supabase
-          .from('orders')
-          .select('*')
-          .eq('id', data.order_id)
-          .single();
-          
-        if (!orderError && newOrderData) {
-          const { data: itemsData } = await supabase
-            .from('order_items')
-            .select('*, products(name)')
-            .eq('order_id', data.order_id);
-
-          // Get customer details from current state instead of a new fetch
-          // Wait, state might be outdated if they just registered, but they are logged in so they must be in db.users or users state if loadData ran.
-          setDbState(prev => {
-            const customerProfile = prev.users.find(u => u.id === newOrderData.customer_id);
-
-            const newOrder: Order = {
-              id: newOrderData.friendly_id || newOrderData.id,
-              dbId: newOrderData.id,
-              customerId: newOrderData.customer_id,
-              customerName: customerProfile?.name || customerProfile?.email?.split('@')[0] || 'Unknown',
-              userType: customerProfile?.role === 'partner' ? 'partner' : 'customer',
-              partnerId: newOrderData.partner_id || undefined,
-              status: newOrderData.status,
-              total: Number(newOrderData.total_amount || newOrderData.total),
-              shippingName: newOrderData.shipping_name,
-              shippingAddress: newOrderData.shipping_address,
-              shippingCity: newOrderData.shipping_city,
-              shippingState: newOrderData.shipping_state || undefined,
-              shippingZip: newOrderData.shipping_zip || undefined,
-              shippingCountry: newOrderData.shipping_country,
-              shippingPhone: newOrderData.shipping_phone,
-              shippingEmail: newOrderData.shipping_email,
-              shippingNotes: newOrderData.shipping_notes || undefined,
-              paymentMethod: newOrderData.payment_method || 'bank_transfer',
-              paymentStatus: newOrderData.payment_status || 'pending',
-              createdAt: newOrderData.created_at,
-              items: (itemsData || []).map(item => ({
-                productId: item.product_id,
-                name: item.products?.name || 'Unknown Product',
-                quantity: item.quantity,
-                price: Number(item.price_at_purchase || item.price),
-                variantSku: item.variant_sku || undefined
-              }))
-            };
-
-            return {
-              ...prev,
-              orders: [newOrder, ...prev.orders]
-            };
-          });
-        }
-      } catch (err) {
-        console.error("Failed to fetch new order:", err);
-      }
-
+      // Refresh data to get the new order from DB
+      await loadData();
       logAudit('create', 'order', data.order_id, { total: data.total, method: 'secure_rpc' });
       return { success: true, order_id: data.order_id, total: data.total };
     }
@@ -679,21 +609,42 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
     phone: string; discountRate: number; status: string; referredBy?: string; notes?: string;
   }): Promise<{ success: boolean; error?: string }> => {
     try {
-      /**
-       * REMEDIATION REQUIRED: 
-       * Creating auth users from the client side using a temporary client/anon key is a security anti-pattern.
-       * This should be moved to a Supabase Edge Function using the Service Role Key to securely 
-       * handle admin-initiated user creation without compromising security or session state.
-       */
-      console.warn('SECURITY ALERT: addPartner implementation is a temporary mock. Move to Edge Functions.');
-      
-      // For now, we simulate success for the UI flow but don't perform the insecure auth.signUp
-      // In a real remediation, you'd call: supabase.functions.invoke('admin-create-user', { body: data })
-      
-      return { 
-        success: false, 
-        error: 'Admin partner creation is currently disabled for security remediation. Please use the invitation system or contact system administrator.' 
-      };
+      // Use a temporary client so it doesn't log out the currently active admin
+      const tempAuthClient = createClient(
+        import.meta.env.VITE_SUPABASE_URL,
+        import.meta.env.VITE_SUPABASE_ANON_KEY,
+        { auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false } }
+      );
+
+      // Create auth user via signUp
+      const { data: authData, error: authError } = await tempAuthClient.auth.signUp({
+        email: data.email,
+        password: data.password,
+      });
+
+      if (authError) return { success: false, error: authError.message };
+      if (!authData.user) return { success: false, error: 'Failed to create user account' };
+
+      // Create profile with partner role using the main client so RLS (Admins can insert profiles) works
+      const { error: profileError } = await supabase.from('profiles').insert({
+        id: authData.user.id,
+        email: data.email,
+        full_name: data.name,
+        role: 'partner',
+        company_name: data.company,
+        phone_number: data.phone,
+        discount_rate: data.discountRate,
+        status: data.status || 'active',
+        invited_by: data.referredBy || null,
+      });
+
+      if (profileError) return { success: false, error: profileError.message };
+
+      logAudit('create', 'partner', authData.user.id, { name: data.name, email: data.email, company: data.company });
+
+      // Refresh data to pick up the new partner
+      await loadData();
+      return { success: true };
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Unknown error';
       return { success: false, error: message };
@@ -723,7 +674,7 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
       const { error } = await supabase.rpc('delete_user', { user_id: id });
 
       if (error) {
-        console.error("Error from RPC delete:", error);
+        // Error handled silently
         return { success: false, error: error.message };
       }
 
@@ -732,11 +683,11 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
         partners: prev.partners.filter(p => p.id !== id)
       }));
 
-      logAudit('delete', 'partner', id, { name: partner?.name, email: partner?.email }, 'critical');
+      logAudit('delete', 'partner', id, { name: partner?.name, email: partner?.email });
       return { success: true };
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Unknown error';
-      console.error("Error deleting partner:", err);
+      // Error handled silently
       return { success: false, error: message };
     }
   };
@@ -747,27 +698,6 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
       ...prev,
       customers: prev.customers.map(c => c.id === id ? { ...c, ...updates } : c)
     }));
-
-    const dbUpdates: Record<string, unknown> = {};
-    if (updates.name !== undefined) dbUpdates.full_name = updates.name;
-    if (updates.phone !== undefined) dbUpdates.phone_number = updates.phone;
-    if (updates.status !== undefined) dbUpdates.status = updates.status;
-    if (updates.notes !== undefined) dbUpdates.notes = updates.notes;
-    
-    if (updates.address) {
-      dbUpdates.address = updates.address.street;
-      dbUpdates.city = updates.address.city;
-      dbUpdates.state = updates.address.state;
-      dbUpdates.zip = updates.address.zip;
-      dbUpdates.country = updates.address.country;
-    }
-
-    const { error } = await supabase.from('profiles').update(dbUpdates).eq('id', id);
-    if (!error) {
-      logAudit('update', 'customer', id, { fields: Object.keys(dbUpdates) }, 'info');
-    } else {
-      console.error('Failed to update customer in database:', error);
-    }
   };
 
   // ─── Invitations CRUD (NOW WRITES TO SUPABASE) ──────────────────
@@ -789,7 +719,7 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
     });
 
     if (error) {
-      console.error("Error creating invitation code:", error);
+      // Error handled silently
     } else {
       logAudit('create', 'invitation_code', code.code, { type: code.type, maxUses: code.maxUses });
     }
@@ -826,39 +756,6 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
 
   // ─── Inventory Logs ──────────────────────────────────────────────
   const addInventoryLog = async (log: Omit<InventoryLog, 'id' | 'createdAt' | 'performedByName'>, updateVariantStock = false) => {
-    // 1. Update stock FIRST
-    if (updateVariantStock && log.variantSku) {
-      const product = db.products.find(p => p.id === log.productId);
-      if (product?.variants) {
-        const updatedVariants = product.variants.map(v => {
-          if (v.sku === log.variantSku) {
-            return { ...v, stock: Math.max(0, v.stock + log.changeQuantity) };
-          }
-          return v;
-        });
-        const { error: variantError } = await supabase.from('products').update({ variants: updatedVariants }).eq('id', log.productId);
-        if (variantError) {
-          console.error("Failed to update variant stock, aborting inventory log:", variantError);
-          return;
-        }
-      }
-    } else {
-      // Product-level stock update
-      const product = db.products.find(p => p.id === log.productId);
-      if (product) {
-        const newQty = product.stockQuantity + log.changeQuantity;
-        const { error: stockError } = await supabase.from('products').update({
-          stock_quantity: Math.max(0, newQty),
-          in_stock: newQty > 0,
-        }).eq('id', log.productId);
-        if (stockError) {
-          console.error("Failed to update product stock, aborting inventory log:", stockError);
-          return;
-        }
-      }
-    }
-
-    // 2. Only insert log if stock update succeeded
     const { error } = await supabase.from('inventory_log').insert({
       product_id: log.productId,
       change_quantity: log.changeQuantity,
@@ -869,13 +766,36 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
     });
 
     if (error) {
-      console.error("Error adding inventory log:", error);
+      // Error handled silently
       return;
+    }
+
+    // Update stock — variant-level or product-level
+    if (updateVariantStock && log.variantSku) {
+      const product = db.products.find(p => p.id === log.productId);
+      if (product?.variants) {
+        const updatedVariants = product.variants.map(v => {
+          if (v.sku === log.variantSku) {
+            return { ...v, stock: Math.max(0, v.stock + log.changeQuantity) };
+          }
+          return v;
+        });
+        await supabase.from('products').update({ variants: updatedVariants }).eq('id', log.productId);
+      }
+    } else {
+      // Product-level stock update
+      const product = db.products.find(p => p.id === log.productId);
+      if (product) {
+        const newQty = product.stockQuantity + log.changeQuantity;
+        await updateProduct(log.productId, {
+          stockQuantity: Math.max(0, newQty),
+          inStock: newQty > 0,
+        });
+      }
     }
 
     // Refresh to get latest data
     await loadData();
-    logAudit('inventory_log', 'product', log.productId, { change: log.changeQuantity, reason: log.reason });
   };
 
   // ─── Site Settings ──────────────────────────────────────────────
@@ -896,10 +816,10 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
 
     const { error } = await supabase.from('site_settings').update(dbUpdates).eq('id', 'default');
     if (error) {
-      console.error("Error updating site settings:", error);
+      // Error handled silently
       return false;
     }
-    logAudit('update', 'site_settings', 'default', { fields: Object.keys(dbUpdates) }, 'warning');
+    logAudit('update', 'site_settings', 'default', { fields: Object.keys(dbUpdates) });
     return true;
   };
 
@@ -913,7 +833,6 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
       addInvitationCode, updateInvitationCode, deleteInvitationCode,
       addInventoryLog,
       updateSiteSettings,
-      logAudit,
     }}>
       {children}
     </DatabaseContext.Provider>

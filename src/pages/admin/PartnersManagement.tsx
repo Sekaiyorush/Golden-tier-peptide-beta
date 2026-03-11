@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { type Partner } from '@/data/products';
 import { useDatabase } from '@/context/DatabaseContext';
+import { useToast } from '@/components/ui/useToast';
 import { formatDate } from '@/lib/formatDate';
 import { formatTHB } from '@/lib/formatPrice';
 import {
@@ -49,6 +50,7 @@ const initialFormData: PartnerFormData = {
 
 export function PartnersManagement() {
   const { db, addPartner, updatePartner: contextUpdatePartner, deletePartner } = useDatabase();
+  const { addToast } = useToast();
   const partnerList = db.partners;
 
   const [searchTerm, setSearchTerm] = useState('');
@@ -100,8 +102,17 @@ export function PartnersManagement() {
     if (window.confirm(`Are you SURE you want to completely delete the partner account for ${partner.name}? This action cannot be undone and will permanently remove their access.`)) {
       const result = await deletePartner(partner.id);
       if (!result.success) {
-        console.error('Delete failed:', result.error);
-        window.alert(`Failed to delete partner: ${result.error}`);
+        addToast({
+          type: 'error',
+          title: 'Delete Failed',
+          message: result.error || 'Failed to delete partner account',
+        });
+      } else {
+        addToast({
+          type: 'success',
+          title: 'Partner Deleted',
+          message: `${partner.name}'s account has been deleted successfully.`,
+        });
       }
     }
   };
